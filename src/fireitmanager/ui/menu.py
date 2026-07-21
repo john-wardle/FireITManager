@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu
 
 
@@ -24,4 +25,18 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
     for name in menu_names:
         menu_bar.addMenu(QMenu(name, window))
 
+    file_menu = menu_bar.actions()[0].menu()
+    if file_menu is not None:
+        file_menu.addAction(_create_action("New Incident", window.create_new_incident, window))
+        file_menu.addAction(_create_action("Open", window.load_workspace, window))
+        file_menu.addAction(_create_action("Save", window.save_workspace, window))
+
     return menu_bar
+
+
+def _create_action(text: str, callback, parent: QMainWindow) -> QAction:
+    """Create a menu action with a stable object name."""
+    action = QAction(text, parent)
+    action.setObjectName(text.lower().replace(" ", "_"))
+    action.triggered.connect(callback)
+    return action

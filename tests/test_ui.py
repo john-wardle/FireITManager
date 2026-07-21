@@ -133,6 +133,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["Building Editor"].isEnabled()
     assert actions["Canvas"].isEnabled()
     assert actions["New Incident"].isEnabled()
+    assert actions["Open"].isEnabled()
     assert actions["Save"].isEnabled()
     assert actions["Zoom In"].isEnabled()
     assert actions["Zoom Out"].isEnabled()
@@ -237,6 +238,16 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     saved = loads(save_path.read_text(encoding="utf-8"))
     assert saved["incident"]["name"] == "Untitled Incident"
     assert saved["schema_version"] == 1
+
+    editor_name.setText("Loaded Incident")
+    apply_button.click()
+    assert "Loaded Incident" in incident_label.text()
+
+    window.load_workspace(save_path)
+    assert "Untitled Incident" in incident_label.text()
+    assert incident_editor_summary.text() == "Editing Untitled Incident (no-number)"
+    assert camp_editor_summary.text() == "Editing Base Camp for Untitled Incident (no-number)"
+    assert building_editor_summary.text().startswith("Editing IT Staging (command_post) for Untitled Incident (no-number)")
 
     window.close()
     app.quit()

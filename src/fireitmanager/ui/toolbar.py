@@ -13,7 +13,7 @@ def create_tool_bar(window: QMainWindow) -> QToolBar:
 
     action_specs = [
         ("New Incident", True, window.create_new_incident),
-        ("Open", False, None),
+        ("Open", True, window.load_workspace),
         ("Save", True, window.save_workspace),
         ("Undo", True, window.canvas.undo),
         ("Redo", True, window.canvas.redo),

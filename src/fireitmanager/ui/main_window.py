@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import gettempdir
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMainWindow, QLabel, QStatusBar, QTabWidget
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QLabel, QStatusBar, QTabWidget
 
 from fireitmanager.ui.canvas import CampCanvas
 from fireitmanager.ui.camp_editor import CampEditorWidget
@@ -16,6 +16,7 @@ from fireitmanager.ui.explorer import IncidentExplorerWidget
 from fireitmanager.ui.incident_editor import IncidentEditorWidget
 from fireitmanager.ui.menu import create_menu_bar
 from fireitmanager.ui.properties import PropertiesWidget
+from fireitmanager.models.incident import Incident
 from fireitmanager.ui.workspace import (
     WorkspaceNode,
     build_demo_workspace_snapshot,
@@ -35,6 +36,7 @@ class FireITMainWindow(QMainWindow):
         self.workspace_snapshot = build_demo_workspace_snapshot()
         self.repository = IncidentRepository()
         self.save_path = Path(gettempdir()) / "fireitmanager" / "incident.json"
+        self.load_path = self.save_path
 
         self._setup_menu_bar()
         self._setup_central_widget()
@@ -134,10 +136,34 @@ class FireITMainWindow(QMainWindow):
         """Start a new incident record for manual entry."""
         self.incident_editor.create_new_incident()
 
+    def load_workspace(self, path: str | Path | None = None) -> None:
+        """Load an incident graph from disk into the active workspace."""
+        target = Path(path) if path is not None else self._prompt_for_load_path()
+        if target is None:
+            return
+
+        incident = self.repository.load(target)
+        self._reset_workspace(incident)
+        self.load_path = target
+        self.save_path = target
+        self.ready_label.setText(f"Loaded from {target}")
+
     def save_workspace(self) -> None:
         """Persist the active incident graph to disk."""
         saved_path = self.repository.save(self.workspace_snapshot.incident, self.save_path)
         self.ready_label.setText(f"Saved to {saved_path}")
+
+    def _prompt_for_load_path(self) -> Path | None:
+        """Show a file picker for incident files."""
+        selected_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Incident",
+            str(self.load_path.parent),
+            "Incident JSON (*.json);;All Files (*)",
+        )
+        if not selected_path:
+            return None
+        return Path(selected_path)
 
     def _sync_incident_status(self) -> None:
         """Update the incident status labels from the loaded incident."""
@@ -176,7 +202,20 @@ class FireITMainWindow(QMainWindow):
         """Refresh the workspace when the incident editor applies changes."""
         if not isinstance(incident, type(self.workspace_snapshot.incident)):
             return
+        self._sync_workspace(incident, preserve_messages=True)
+
+    def _handle_incident_created(self, incident: object) -> None:
+        """Refresh the workspace when the incident editor creates a new incident."""
+        if not isinstance(incident, type(self.workspace_snapshot.incident)):
+            return
+        self._reset_workspace(incident)
+
+    def _reset_workspace(self, incident: Incident) -> None:
+        """Bind the workspace widgets to a new incident model and reset messages."""
         self.workspace_snapshot = build_workspace_snapshot(incident)
+        self.incident_editor.load_incident(incident)
+        self.camp_editor.bind_incident(incident)
+        self.building_editor.bind_incident(incident)
         self.incident_editor.sync_from_model()
         self.camp_editor.sync_from_model()
         self.building_editor.sync_from_model()
@@ -184,14 +223,13 @@ class FireITMainWindow(QMainWindow):
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
         self._sync_current_selection()
 
-    def _handle_incident_created(self, incident: object) -> None:
-        """Refresh the workspace when the incident editor creates a new incident."""
-        if not isinstance(incident, type(self.workspace_snapshot.incident)):
-            return
-        self.camp_editor.bind_incident(incident)
-        self.building_editor.bind_incident(incident)
+    def _sync_workspace(self, incident: Incident, *, preserve_messages: bool) -> None:
+        """Rebuild the snapshot while preserving editor messages when requested."""
         self.workspace_snapshot = build_workspace_snapshot(incident)
-        self.incident_editor.sync_from_model()
+        if preserve_messages:
+            self.incident_editor.sync_from_model()
+        else:
+            self.incident_editor.load_incident(incident)
         self.camp_editor.sync_from_model()
         self.building_editor.sync_from_model()
         self._sync_incident_status()
