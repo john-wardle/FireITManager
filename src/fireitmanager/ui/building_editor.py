@@ -124,9 +124,9 @@ class BuildingEditorWidget(QWidget):
         self._camp = self._ensure_camp()
         if building is not None:
             self._building = building
-            if self._building not in self._camp.buildings:
+            if not self._contains_building(self._building):
                 self._camp.add_building(self._building)
-        elif self._building not in self._camp.buildings:
+        elif not self._contains_building(self._building):
             self._building = self._ensure_building()
 
         self.name_input.setText(self._building.name)
@@ -238,3 +238,7 @@ class BuildingEditorWidget(QWidget):
             return float(text)
         except ValueError:
             return f"{field_name.capitalize()} must be a number."
+
+    def _contains_building(self, building: Building) -> bool:
+        """Return True when the camp already owns the given building by identity."""
+        return any(existing is building for existing in self._camp.buildings)

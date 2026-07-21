@@ -102,9 +102,9 @@ class NetworkEditorWidget(QWidget):
         self._camp = self._ensure_camp()
         if network is not None:
             self._network = network
-            if self._network not in self._camp.networks:
+            if not self._contains_network(self._network):
                 self._camp.add_network(self._network)
-        elif self._network not in self._camp.networks:
+        elif not self._contains_network(self._network):
             self._network = self._ensure_network()
 
         self.name_input.setText(self._network.name)
@@ -167,3 +167,7 @@ class NetworkEditorWidget(QWidget):
         """Refresh the related network counts."""
         self.device_count_value.setText(str(len(self._network.devices)))
         self.cable_count_value.setText(str(len(self._network.cables)))
+
+    def _contains_network(self, network: Network) -> bool:
+        """Return True when the camp already owns the given network by identity."""
+        return any(existing is network for existing in self._camp.networks)

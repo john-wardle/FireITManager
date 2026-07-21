@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QTreeWidget,
 )
 
-from fireitmanager.models.enums import BuildingType
+from fireitmanager.models.enums import BuildingType, DeviceStatus, DeviceType
 from fireitmanager.ui.main_window import FireITMainWindow
 
 
@@ -28,7 +28,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert window.centralWidget().objectName() == "workspaceTabs"
     workspace_tabs = window.findChild(QTabWidget, "workspaceTabs")
     assert workspace_tabs is not None
-    assert workspace_tabs.count() == 5
+    assert workspace_tabs.count() == 6
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"
 
     dock_titles = {dock.windowTitle() for dock in window.findChildren(QDockWidget)}
@@ -77,6 +77,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     building_elevation = window.findChild(QLineEdit, "buildingElevationInput")
     building_notes = window.findChild(QLineEdit, "buildingNotesInput")
     building_type = window.findChild(QComboBox, "buildingTypeInput")
+    device_hostname = window.findChild(QLineEdit, "deviceHostnameInput")
+    device_manufacturer = window.findChild(QLineEdit, "deviceManufacturerInput")
+    device_model = window.findChild(QLineEdit, "deviceModelInput")
+    device_serial = window.findChild(QLineEdit, "deviceSerialInput")
+    device_ip = window.findChild(QLineEdit, "deviceIpInput")
+    device_mac = window.findChild(QLineEdit, "deviceMacInput")
+    device_type = window.findChild(QComboBox, "deviceTypeInput")
+    device_status = window.findChild(QComboBox, "deviceStatusInput")
     network_name = window.findChild(QLineEdit, "networkNameInput")
     assert editor_name is not None
     assert editor_number is not None
@@ -90,6 +98,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert building_elevation is not None
     assert building_notes is not None
     assert building_type is not None
+    assert device_hostname is not None
+    assert device_manufacturer is not None
+    assert device_model is not None
+    assert device_serial is not None
+    assert device_ip is not None
+    assert device_mac is not None
+    assert device_type is not None
+    assert device_status is not None
     assert network_name is not None
     assert editor_name.text() == "Pine Gulch Incident"
     assert editor_number.text() == "CA-INC-2026-041"
@@ -97,6 +113,9 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert editor_period.text() == "Operational Period 1"
     assert camp_name.text() == "Base Camp"
     assert building_name.text() == "IT Staging"
+    assert device_hostname.text() == "it-router-01"
+    assert device_type.currentText() == DeviceType.ROUTER.value
+    assert device_status.currentText() == DeviceStatus.ONLINE.value
     assert network_name.text() == "Camp LAN"
     assert building_type.currentText() == "command_post"
     assert building_location_name.text() == ""
@@ -107,6 +126,8 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     camp_editor_message = window.findChild(QLabel, "campEditorMessage")
     building_editor_summary = window.findChild(QLabel, "buildingEditorSummary")
     building_editor_message = window.findChild(QLabel, "buildingEditorMessage")
+    device_editor_summary = window.findChild(QLabel, "deviceEditorSummary")
+    device_editor_message = window.findChild(QLabel, "deviceEditorMessage")
     network_editor_summary = window.findChild(QLabel, "networkEditorSummary")
     network_editor_message = window.findChild(QLabel, "networkEditorMessage")
     assert incident_editor_summary is not None
@@ -115,11 +136,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert camp_editor_message is not None
     assert building_editor_summary is not None
     assert building_editor_message is not None
+    assert device_editor_summary is not None
+    assert device_editor_message is not None
     assert network_editor_summary is not None
     assert network_editor_message is not None
     assert incident_editor_summary.text() == "Editing Pine Gulch Incident (CA-INC-2026-041)"
     assert camp_editor_summary.text() == "Editing Base Camp for Pine Gulch Incident (CA-INC-2026-041)"
     assert building_editor_summary.text() == "Editing IT Staging (command_post) for Pine Gulch Incident (CA-INC-2026-041)"
+    assert device_editor_summary.text() == "Editing it-router-01 for Pine Gulch Incident (CA-INC-2026-041)"
     assert network_editor_summary.text() == "Editing Camp LAN for Pine Gulch Incident (CA-INC-2026-041)"
 
     zoom_label = window.findChild(QLabel, "zoomStatusLabel")
@@ -139,6 +163,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["Incident Editor"].isEnabled()
     assert actions["Camp Editor"].isEnabled()
     assert actions["Building Editor"].isEnabled()
+    assert actions["Device Editor"].isEnabled()
     assert actions["Network Editor"].isEnabled()
     assert actions["Canvas"].isEnabled()
     assert actions["New Incident"].isEnabled()
@@ -152,6 +177,8 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert workspace_tabs.currentWidget().objectName() == "campEditorWidget"
     actions["Building Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "buildingEditorWidget"
+    actions["Device Editor"].trigger()
+    assert workspace_tabs.currentWidget().objectName() == "deviceEditorWidget"
     actions["Network Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "networkEditorWidget"
     actions["Canvas"].trigger()
@@ -236,6 +263,21 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert "Location: North Pad" in details_value.text()
     assert selection_label.text() == "Selected: Staging HQ (building)"
 
+    device_hostname.setText("it-workstation-01")
+    device_manufacturer.setText("Dell")
+    device_model.setText("Latitude 5440")
+    device_serial.setText("SN-12345")
+    device_ip.setText("10.0.0.10")
+    device_mac.setText("AA:BB:CC:DD:EE:FF")
+    device_type.setCurrentIndex(device_type.findData(DeviceType.WORKSTATION.value))
+    device_status.setCurrentIndex(device_status.findData(DeviceStatus.MAINTENANCE.value))
+    apply_device_button = window.findChild(QPushButton, "applyDeviceChangesButton")
+    assert apply_device_button is not None
+    apply_device_button.click()
+
+    assert device_editor_message.text() == "Device updated in memory."
+    assert device_editor_summary.text() == "Editing it-workstation-01 for Pine Gulch Base Incident (CA-INC-2026-041)"
+
     network_name.setText("Alpha LAN")
     apply_network_button = window.findChild(QPushButton, "applyNetworkChangesButton")
     assert apply_network_button is not None
@@ -267,6 +309,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert incident_editor_summary.text() == "Editing Untitled Incident (no-number)"
     assert camp_editor_summary.text() == "Editing Base Camp for Untitled Incident (no-number)"
     assert building_editor_summary.text().startswith("Editing IT Staging (command_post) for Untitled Incident (no-number)")
+    assert device_editor_summary.text().startswith("Editing it-router-01 for Untitled Incident (no-number)")
     assert network_editor_summary.text().startswith("Editing Camp LAN for Untitled Incident (no-number)")
 
     window.close()
