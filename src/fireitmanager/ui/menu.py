@@ -31,6 +31,10 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
         file_menu.addAction(_create_action("Open", window.load_workspace, window))
         file_menu.addAction(_create_action("Save", window.save_workspace, window))
 
+    network_menu = menu_bar.actions()[3].menu()
+    if network_menu is not None:
+        network_menu.addAction(_create_action("Network Editor", window.show_network_editor, window))
+
     return menu_bar
 
 

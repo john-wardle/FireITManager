@@ -15,6 +15,7 @@ from fireitmanager.ui.docks import create_docks
 from fireitmanager.ui.explorer import IncidentExplorerWidget
 from fireitmanager.ui.incident_editor import IncidentEditorWidget
 from fireitmanager.ui.menu import create_menu_bar
+from fireitmanager.ui.network_editor import NetworkEditorWidget
 from fireitmanager.ui.properties import PropertiesWidget
 from fireitmanager.models.incident import Incident
 from fireitmanager.ui.workspace import (
@@ -85,16 +86,19 @@ class FireITMainWindow(QMainWindow):
         self.incident_editor = IncidentEditorWidget(self.workspace_snapshot.incident)
         self.camp_editor = CampEditorWidget(self.workspace_snapshot.incident)
         self.building_editor = BuildingEditorWidget(self.workspace_snapshot.incident)
+        self.network_editor = NetworkEditorWidget(self.workspace_snapshot.incident)
         self.incident_editor.incident_updated.connect(self._handle_incident_updated)
         self.incident_editor.incident_created.connect(self._handle_incident_created)
         self.camp_editor.camp_updated.connect(self._handle_incident_updated)
         self.building_editor.building_updated.connect(self._handle_incident_updated)
+        self.network_editor.network_updated.connect(self._handle_incident_updated)
 
         self.workspace_tabs = QTabWidget(self)
         self.workspace_tabs.setObjectName("workspaceTabs")
         self.workspace_tabs.addTab(self.incident_editor, "Incident Editor")
         self.workspace_tabs.addTab(self.camp_editor, "Camp Editor")
         self.workspace_tabs.addTab(self.building_editor, "Building Editor")
+        self.workspace_tabs.addTab(self.network_editor, "Network Editor")
         self.workspace_tabs.addTab(self.canvas, "Canvas")
         self.workspace_tabs.setCurrentIndex(0)
         self.setCentralWidget(self.workspace_tabs)
@@ -131,6 +135,10 @@ class FireITMainWindow(QMainWindow):
     def show_building_editor(self) -> None:
         """Switch the workspace to the building editor tab."""
         self.workspace_tabs.setCurrentWidget(self.building_editor)
+
+    def show_network_editor(self) -> None:
+        """Switch the workspace to the network editor tab."""
+        self.workspace_tabs.setCurrentWidget(self.network_editor)
 
     def create_new_incident(self) -> None:
         """Start a new incident record for manual entry."""
@@ -216,9 +224,11 @@ class FireITMainWindow(QMainWindow):
         self.incident_editor.load_incident(incident)
         self.camp_editor.bind_incident(incident)
         self.building_editor.bind_incident(incident)
+        self.network_editor.bind_incident(incident)
         self.incident_editor.sync_from_model()
         self.camp_editor.sync_from_model()
         self.building_editor.sync_from_model()
+        self.network_editor.sync_from_model()
         self._sync_incident_status()
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
         self._sync_current_selection()
@@ -232,6 +242,7 @@ class FireITMainWindow(QMainWindow):
             self.incident_editor.load_incident(incident)
         self.camp_editor.sync_from_model()
         self.building_editor.sync_from_model()
+        self.network_editor.sync_from_model()
         self._sync_incident_status()
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
         self._sync_current_selection()
