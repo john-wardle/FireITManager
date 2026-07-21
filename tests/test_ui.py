@@ -319,6 +319,9 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert path_value.text() == "Workspace / Camps / Alpha Base Camp / Staging HQ"
     assert "Location: North Pad" in details_value.text()
     assert selection_label.text() == "Selected: Staging HQ (building)"
+    workspace_tabs.setCurrentWidget(window.canvas)
+    explorer_tree.itemDoubleClicked.emit(building_item, 0)
+    assert workspace_tabs.currentWidget().objectName() == "buildingEditorWidget"
 
     device_hostname.setText("it-workstation-01")
     device_manufacturer.setText("Dell")

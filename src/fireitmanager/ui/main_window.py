@@ -129,6 +129,7 @@ class FireITMainWindow(QMainWindow):
         ):
             self.explorer_widget.selection_changed.connect(self.properties_widget.set_details)
             self.explorer_widget.selection_changed.connect(self._update_selection_status)
+            self.explorer_widget.tree.itemDoubleClicked.connect(self._activate_editor_for_item)
             self._sync_current_selection()
         self.canvas.zoom_changed.connect(self._update_zoom_status)
 
@@ -295,3 +296,23 @@ class FireITMainWindow(QMainWindow):
         """Reflect the active explorer selection in the status bar."""
         del path, description, details
         self.selection_label.setText(f"Selected: {name} ({kind})")
+
+    def _activate_editor_for_item(self, item, column: int) -> None:
+        """Switch to the editor tab that matches the double-clicked explorer node."""
+        del column
+        node = item.data(0, Qt.UserRole)
+        if not isinstance(node, WorkspaceNode):
+            return
+
+        tab_map = {
+            "incident": self.incident_editor,
+            "camp": self.camp_editor,
+            "asset": self.asset_editor,
+            "person": self.person_editor,
+            "building": self.building_editor,
+            "device": self.device_editor,
+            "network": self.network_editor,
+        }
+        editor = tab_map.get(node.kind)
+        if editor is not None:
+            self.workspace_tabs.setCurrentWidget(editor)
