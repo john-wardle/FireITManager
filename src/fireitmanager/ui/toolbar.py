@@ -19,6 +19,7 @@ def create_tool_bar(window: QMainWindow) -> QToolBar:
         ("Redo", True, window.canvas.redo),
         ("Incident Editor", True, window.show_incident_editor),
         ("Camp Editor", True, window.show_camp_editor),
+        ("Asset Editor", True, window.show_asset_editor),
         ("Building Editor", True, window.show_building_editor),
         ("Device Editor", True, window.show_device_editor),
         ("Network Editor", True, window.show_network_editor),
