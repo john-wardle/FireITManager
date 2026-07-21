@@ -51,6 +51,8 @@ class AssetEditorWidget(QWidget):
         self.acquisition_input.setObjectName("assetAcquisitionInput")
         self.barcode_input = QLineEdit(self)
         self.barcode_input.setObjectName("assetBarcodeInput")
+        self.assigned_person_input = QLineEdit(self)
+        self.assigned_person_input.setObjectName("assetAssignedPersonInput")
 
         self.status_input = QComboBox(self)
         self.status_input.setObjectName("assetStatusInput")
@@ -61,6 +63,7 @@ class AssetEditorWidget(QWidget):
         form.addRow("Owner", self.owner_input)
         form.addRow("Acquisition Type", self.acquisition_input)
         form.addRow("Barcode", self.barcode_input)
+        form.addRow("Assigned Person", self.assigned_person_input)
         form.addRow("Status", self.status_input)
 
         self.message_label = QLabel("", self)
@@ -115,6 +118,9 @@ class AssetEditorWidget(QWidget):
         self.owner_input.setText(self._asset.owner)
         self.acquisition_input.setText(self._asset.acquisition_type)
         self.barcode_input.setText(self._asset.barcode)
+        self.assigned_person_input.setText(
+            self._asset.assigned_person.name if self._asset.assigned_person is not None else ""
+        )
         self.status_input.setCurrentIndex(
             max(0, self.status_input.findData(self._asset.status.value))
         )
@@ -144,6 +150,15 @@ class AssetEditorWidget(QWidget):
         self._asset.owner = self.owner_input.text().strip()
         self._asset.acquisition_type = self.acquisition_input.text().strip()
         self._asset.barcode = self.barcode_input.text().strip()
+        assigned_person_name = self.assigned_person_input.text().strip()
+        if assigned_person_name:
+            assigned_person = self._find_person(assigned_person_name)
+            if assigned_person is None:
+                self.message_label.setText("Assigned person not found.")
+                return
+            self._asset.assign_person(assigned_person)
+        else:
+            self._asset.assigned_person = None
         self._asset.status = AssetStatus(self.status_input.currentData())
         self._asset.touch()
         self._refresh_summary()
@@ -168,3 +183,10 @@ class AssetEditorWidget(QWidget):
     def _contains_asset(self, asset: Asset) -> bool:
         """Return True when the incident already owns the given asset by identity."""
         return any(existing is asset for existing in self._incident.assets)
+
+    def _find_person(self, name: str):
+        """Find a person by name within the active incident."""
+        for person in self._incident.personnel:
+            if person.name.lower() == name.lower():
+                return person
+        return None

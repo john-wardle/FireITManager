@@ -47,10 +47,13 @@ class PersonEditorWidget(QWidget):
         self.position_input.setObjectName("personPositionInput")
         self.agency_input = QLineEdit(self)
         self.agency_input.setObjectName("personAgencyInput")
+        self.assigned_devices_input = QLineEdit(self)
+        self.assigned_devices_input.setObjectName("personAssignedDevicesInput")
 
         form.addRow("Name", self.name_input)
         form.addRow("Position", self.position_input)
         form.addRow("Agency", self.agency_input)
+        form.addRow("Assigned Devices", self.assigned_devices_input)
 
         self.message_label = QLabel("", self)
         self.message_label.setObjectName("personEditorMessage")
@@ -103,6 +106,9 @@ class PersonEditorWidget(QWidget):
         self.name_input.setText(self._person.name)
         self.position_input.setText(self._person.position)
         self.agency_input.setText(self._person.agency)
+        self.assigned_devices_input.setText(
+            ", ".join(device.hostname for device in self._person.assigned_devices)
+        )
         self._refresh_summary()
         self.message_label.setText("")
 
@@ -128,6 +134,20 @@ class PersonEditorWidget(QWidget):
         self._person.name = name
         self._person.position = self.position_input.text().strip()
         self._person.agency = self.agency_input.text().strip()
+        assigned_device_names = [
+            hostname.strip()
+            for hostname in self.assigned_devices_input.text().split(",")
+            if hostname.strip()
+        ]
+        assigned_devices = []
+        for hostname in assigned_device_names:
+            device = self._incident.find_device(hostname)
+            if device is None:
+                self.message_label.setText(f"Device '{hostname}' not found.")
+                return
+            if device not in assigned_devices:
+                assigned_devices.append(device)
+        self._person.assigned_devices = assigned_devices
         self._person.touch()
         self._refresh_summary()
         self.message_label.setText("Person updated in memory.")

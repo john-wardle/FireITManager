@@ -74,10 +74,12 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     asset_owner = window.findChild(QLineEdit, "assetOwnerInput")
     asset_acquisition = window.findChild(QLineEdit, "assetAcquisitionInput")
     asset_barcode = window.findChild(QLineEdit, "assetBarcodeInput")
+    asset_assigned_person = window.findChild(QLineEdit, "assetAssignedPersonInput")
     asset_status = window.findChild(QComboBox, "assetStatusInput")
     person_name = window.findChild(QLineEdit, "personNameInput")
     person_position = window.findChild(QLineEdit, "personPositionInput")
     person_agency = window.findChild(QLineEdit, "personAgencyInput")
+    person_assigned_devices = window.findChild(QLineEdit, "personAssignedDevicesInput")
     building_name = window.findChild(QLineEdit, "buildingNameInput")
     building_location_name = window.findChild(QLineEdit, "buildingLocationNameInput")
     building_latitude = window.findChild(QLineEdit, "buildingLatitudeInput")
@@ -103,10 +105,12 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert asset_owner is not None
     assert asset_acquisition is not None
     assert asset_barcode is not None
+    assert asset_assigned_person is not None
     assert asset_status is not None
     assert person_name is not None
     assert person_position is not None
     assert person_agency is not None
+    assert person_assigned_devices is not None
     assert building_name is not None
     assert building_location_name is not None
     assert building_latitude is not None
@@ -130,7 +134,9 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert camp_name.text() == "Base Camp"
     assert asset_name.text() == "Generator 1"
     assert asset_status.currentText() == AssetStatus.AVAILABLE.value
+    assert asset_assigned_person.text() == ""
     assert person_name.text() == "Alex Morgan"
+    assert person_assigned_devices.text() == ""
     assert building_name.text() == "IT Staging"
     assert device_hostname.text() == "it-router-01"
     assert device_type.currentText() == DeviceType.ROUTER.value
@@ -283,12 +289,19 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     person_name.setText("Jordan Lee")
     person_position.setText("IT Support")
     person_agency.setText("State")
+    person_assigned_devices.setText("it-workstation-01")
     apply_person_button = window.findChild(QPushButton, "applyPersonChangesButton")
     assert apply_person_button is not None
     apply_person_button.click()
 
     assert person_editor_message.text() == "Person updated in memory."
     assert person_editor_summary.text() == "Editing Jordan Lee for Pine Gulch Base Incident (CA-INC-2026-041)"
+    assert person_assigned_devices.text() == "it-workstation-01"
+
+    asset_assigned_person.setText("Jordan Lee")
+    apply_asset_button.click()
+    assert asset_editor_message.text() == "Asset updated in memory."
+    assert asset_editor_summary.text() == "Editing Generator 2 (in_use) for Pine Gulch Base Incident (CA-INC-2026-041)"
 
     building_name.setText("Staging HQ")
     building_type.setCurrentIndex(building_type.findData(BuildingType.OPERATIONS.value))
@@ -346,17 +359,28 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert network_editor_message.text() == "Network updated in memory."
     assert network_editor_summary.text() == "Editing Alpha LAN for Pine Gulch Base Incident (CA-INC-2026-041)"
 
+    relation_path = tmp_path / "relations.json"
+    default_save_path = tmp_path / "incident.json"
+    window.save_path = relation_path
+    actions["Save"].trigger()
+    assert relation_path.exists()
+    window.load_workspace(relation_path)
+    assert asset_editor_summary.text() == "Editing Generator 2 (in_use) for Pine Gulch Base Incident (CA-INC-2026-041)"
+    assert asset_assigned_person.text() == "Jordan Lee"
+    assert person_editor_summary.text() == "Editing Jordan Lee for Pine Gulch Base Incident (CA-INC-2026-041)"
+    assert person_assigned_devices.text() == "it-workstation-01"
+
+    window.save_path = default_save_path
     actions["New Incident"].trigger()
     assert "Untitled Incident" in incident_editor_summary.text()
     assert "Untitled Incident" in incident_label.text()
     assert camp_editor_summary.text() == "Editing Base Camp for Untitled Incident (no-number)"
     assert building_editor_summary.text().startswith("Editing IT Staging (command_post) for Untitled Incident (no-number)")
 
-    save_path = tmp_path / "incident.json"
-    window.save_path = save_path
+    window.save_path = default_save_path
     actions["Save"].trigger()
-    assert save_path.exists()
-    saved = loads(save_path.read_text(encoding="utf-8"))
+    assert default_save_path.exists()
+    saved = loads(default_save_path.read_text(encoding="utf-8"))
     assert saved["incident"]["name"] == "Untitled Incident"
     assert saved["schema_version"] == 1
 
@@ -364,12 +388,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     apply_button.click()
     assert "Loaded Incident" in incident_label.text()
 
-    window.load_workspace(save_path)
+    window.load_workspace(default_save_path)
     assert "Untitled Incident" in incident_label.text()
     assert incident_editor_summary.text() == "Editing Untitled Incident (no-number)"
     assert camp_editor_summary.text() == "Editing Base Camp for Untitled Incident (no-number)"
     assert asset_editor_summary.text() == "Editing Generator 1 (available) for Untitled Incident (no-number)"
+    assert asset_assigned_person.text() == ""
     assert person_editor_summary.text() == "Editing Alex Morgan for Untitled Incident (no-number)"
+    assert person_assigned_devices.text() == ""
     assert building_editor_summary.text().startswith("Editing IT Staging (command_post) for Untitled Incident (no-number)")
     assert device_editor_summary.text().startswith("Editing it-router-01 for Untitled Incident (no-number)")
     assert network_editor_summary.text().startswith("Editing Camp LAN for Untitled Incident (no-number)")
