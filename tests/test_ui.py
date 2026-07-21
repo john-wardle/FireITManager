@@ -180,6 +180,8 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert building_editor_summary.text() == "Editing IT Staging (command_post) for Pine Gulch Incident (CA-INC-2026-041)"
     assert device_editor_summary.text() == "Editing it-router-01 for Pine Gulch Incident (CA-INC-2026-041)"
     assert network_editor_summary.text() == "Editing Camp LAN for Pine Gulch Incident (CA-INC-2026-041)"
+    assert window.validate_workspace() == []
+    assert window.findChild(QLabel, "readyStatusLabel").text() == "Workspace is valid."
 
     zoom_label = window.findChild(QLabel, "zoomStatusLabel")
     assert zoom_label is not None
@@ -206,6 +208,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["New Incident"].isEnabled()
     assert actions["Open"].isEnabled()
     assert actions["Save"].isEnabled()
+    assert actions["Validate Workspace"].isEnabled()
     assert actions["Zoom In"].isEnabled()
     assert actions["Zoom Out"].isEnabled()
     assert actions["Center View"].isEnabled()

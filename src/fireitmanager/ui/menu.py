@@ -64,6 +64,10 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
     if reports_menu is not None:
         reports_menu.addAction(_create_action("Incident Summary", window.export_incident_summary, window))
 
+    tools_menu = menu_bar.actions()[7].menu()
+    if tools_menu is not None:
+        tools_menu.addAction(_create_action("Validate Workspace", window.validate_workspace, window))
+
     return menu_bar
 
 

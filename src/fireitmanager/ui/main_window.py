@@ -21,6 +21,7 @@ from fireitmanager.ui.network_editor import NetworkEditorWidget
 from fireitmanager.ui.person_editor import PersonEditorWidget
 from fireitmanager.ui.properties import PropertiesWidget
 from fireitmanager.models.incident import Incident
+from fireitmanager.core import validate_incident_workspace
 from fireitmanager.ui.workspace import (
     WorkspaceNode,
     build_demo_workspace_snapshot,
@@ -194,6 +195,15 @@ class FireITMainWindow(QMainWindow):
         saved_path = write_incident_summary_report(self.workspace_snapshot.incident, target)
         self.ready_label.setText(f"Report written to {saved_path}")
         return saved_path
+
+    def validate_workspace(self) -> list[str]:
+        """Validate the active incident workspace and show the result."""
+        issues = validate_incident_workspace(self.workspace_snapshot.incident)
+        if issues:
+            self.ready_label.setText(f"Validation found {len(issues)} issue(s).")
+        else:
+            self.ready_label.setText("Workspace is valid.")
+        return issues
 
     def _prompt_for_load_path(self) -> Path | None:
         """Show a file picker for incident files."""
