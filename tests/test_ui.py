@@ -1,10 +1,12 @@
 import os
+from json import loads
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
+    QComboBox,
     QDockWidget,
     QLabel,
     QLineEdit,
@@ -13,10 +15,11 @@ from PySide6.QtWidgets import (
     QTreeWidget,
 )
 
+from fireitmanager.models.enums import BuildingType
 from fireitmanager.ui.main_window import FireITMainWindow
 
 
-def test_main_window_contains_expected_panels() -> None:
+def test_main_window_contains_expected_panels(tmp_path) -> None:
     app = QApplication.instance() or QApplication([])
     window = FireITMainWindow()
 
@@ -25,7 +28,7 @@ def test_main_window_contains_expected_panels() -> None:
     assert window.centralWidget().objectName() == "workspaceTabs"
     workspace_tabs = window.findChild(QTabWidget, "workspaceTabs")
     assert workspace_tabs is not None
-    assert workspace_tabs.count() == 2
+    assert workspace_tabs.count() == 4
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"
 
     dock_titles = {dock.windowTitle() for dock in window.findChildren(QDockWidget)}
@@ -66,20 +69,50 @@ def test_main_window_contains_expected_panels() -> None:
     editor_number = window.findChild(QLineEdit, "incidentNumberInput")
     editor_agency = window.findChild(QLineEdit, "incidentAgencyInput")
     editor_period = window.findChild(QLineEdit, "operationalPeriodInput")
+    camp_name = window.findChild(QLineEdit, "campNameInput")
+    building_name = window.findChild(QLineEdit, "buildingNameInput")
+    building_location_name = window.findChild(QLineEdit, "buildingLocationNameInput")
+    building_latitude = window.findChild(QLineEdit, "buildingLatitudeInput")
+    building_longitude = window.findChild(QLineEdit, "buildingLongitudeInput")
+    building_elevation = window.findChild(QLineEdit, "buildingElevationInput")
+    building_notes = window.findChild(QLineEdit, "buildingNotesInput")
+    building_type = window.findChild(QComboBox, "buildingTypeInput")
     assert editor_name is not None
     assert editor_number is not None
     assert editor_agency is not None
     assert editor_period is not None
+    assert camp_name is not None
+    assert building_name is not None
+    assert building_location_name is not None
+    assert building_latitude is not None
+    assert building_longitude is not None
+    assert building_elevation is not None
+    assert building_notes is not None
+    assert building_type is not None
     assert editor_name.text() == "Pine Gulch Incident"
     assert editor_number.text() == "CA-INC-2026-041"
     assert editor_agency.text() == "USFS"
     assert editor_period.text() == "Operational Period 1"
+    assert camp_name.text() == "Base Camp"
+    assert building_name.text() == "IT Staging"
+    assert building_type.currentText() == "command_post"
+    assert building_location_name.text() == ""
 
     incident_editor_summary = window.findChild(QLabel, "incidentEditorSummary")
     incident_editor_message = window.findChild(QLabel, "incidentEditorMessage")
+    camp_editor_summary = window.findChild(QLabel, "campEditorSummary")
+    camp_editor_message = window.findChild(QLabel, "campEditorMessage")
+    building_editor_summary = window.findChild(QLabel, "buildingEditorSummary")
+    building_editor_message = window.findChild(QLabel, "buildingEditorMessage")
     assert incident_editor_summary is not None
     assert incident_editor_message is not None
+    assert camp_editor_summary is not None
+    assert camp_editor_message is not None
+    assert building_editor_summary is not None
+    assert building_editor_message is not None
     assert incident_editor_summary.text() == "Editing Pine Gulch Incident (CA-INC-2026-041)"
+    assert camp_editor_summary.text() == "Editing Base Camp for Pine Gulch Incident (CA-INC-2026-041)"
+    assert building_editor_summary.text() == "Editing IT Staging (command_post) for Pine Gulch Incident (CA-INC-2026-041)"
 
     zoom_label = window.findChild(QLabel, "zoomStatusLabel")
     assert zoom_label is not None
@@ -96,11 +129,19 @@ def test_main_window_contains_expected_panels() -> None:
 
     actions = {action.text(): action for action in window.findChildren(QAction)}
     assert actions["Incident Editor"].isEnabled()
+    assert actions["Camp Editor"].isEnabled()
+    assert actions["Building Editor"].isEnabled()
     assert actions["Canvas"].isEnabled()
+    assert actions["New Incident"].isEnabled()
+    assert actions["Save"].isEnabled()
     assert actions["Zoom In"].isEnabled()
     assert actions["Zoom Out"].isEnabled()
     assert actions["Center View"].isEnabled()
 
+    actions["Camp Editor"].trigger()
+    assert workspace_tabs.currentWidget().objectName() == "campEditorWidget"
+    actions["Building Editor"].trigger()
+    assert workspace_tabs.currentWidget().objectName() == "buildingEditorWidget"
     actions["Canvas"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "campCanvas"
     actions["Incident Editor"].trigger()
@@ -121,9 +162,25 @@ def test_main_window_contains_expected_panels() -> None:
     assert incident_editor_summary.text() == "Editing Pine Gulch Base Incident (CA-INC-2026-041)"
     assert "Pine Gulch Base Incident" in incident_label.text()
     assert operational_label.text() == "OP: Operational Period 2"
+    assert camp_editor_summary.text() == "Editing Base Camp for Pine Gulch Base Incident (CA-INC-2026-041)"
     explorer_subtitle = window.findChild(QLabel, "incidentExplorerSubtitle")
     assert explorer_subtitle is not None
     assert "Pine Gulch Base Incident" in explorer_subtitle.text()
+
+    camp_name.setText("Alpha Base Camp")
+    apply_camp_button = window.findChild(QPushButton, "applyCampChangesButton")
+    assert apply_camp_button is not None
+    apply_camp_button.click()
+
+    assert camp_editor_message.text() == "Camp updated in memory."
+    assert camp_editor_summary.text() == "Editing Alpha Base Camp for Pine Gulch Base Incident (CA-INC-2026-041)"
+    explorer_tree = window.findChild(QTreeWidget, "incidentExplorerTree")
+    assert explorer_tree is not None
+    camps_group = explorer_tree.topLevelItem(0).child(1)
+    assert camps_group is not None
+    camp_item = camps_group.child(0)
+    assert camp_item is not None
+    assert camp_item.text(0) == "Alpha Base Camp"
 
     network_group = explorer_tree.topLevelItem(0).child(2)
     assert network_group is not None
@@ -132,10 +189,54 @@ def test_main_window_contains_expected_panels() -> None:
     explorer_tree.setCurrentItem(network_item)
     assert name_value.text() == "Camp LAN"
     assert kind_value.text() == "network"
-    assert path_value.text() == "Workspace / Camps / Base Camp / Network / Camp LAN"
+    assert path_value.text() == "Workspace / Camps / Alpha Base Camp / Network / Camp LAN"
     assert description_value.text() == "The active camp LAN supporting the IT staging area."
     assert "Devices: 2" in details_value.text()
     assert selection_label.text() == "Selected: Camp LAN (network)"
+
+    building_name.setText("Staging HQ")
+    building_type.setCurrentIndex(building_type.findData(BuildingType.OPERATIONS.value))
+    building_location_name.setText("North Pad")
+    building_latitude.setText("45.1234")
+    building_longitude.setText("-118.9876")
+    building_elevation.setText("5120")
+    building_notes.setText("Primary IT staging location.")
+    apply_building_button = window.findChild(QPushButton, "applyBuildingChangesButton")
+    assert apply_building_button is not None
+    apply_building_button.click()
+
+    assert building_editor_message.text() == "Building updated in memory."
+    assert building_editor_summary.text() == "Editing Staging HQ (operations) for Pine Gulch Base Incident (CA-INC-2026-041)"
+    explorer_tree = window.findChild(QTreeWidget, "incidentExplorerTree")
+    assert explorer_tree is not None
+    camps_group = explorer_tree.topLevelItem(0).child(1)
+    assert camps_group is not None
+    camp_item = camps_group.child(0)
+    assert camp_item is not None
+    building_item = camp_item.child(0)
+    assert building_item is not None
+    assert building_item.text(0) == "Staging HQ"
+
+    explorer_tree.setCurrentItem(building_item)
+    assert name_value.text() == "Staging HQ"
+    assert kind_value.text() == "building"
+    assert path_value.text() == "Workspace / Camps / Alpha Base Camp / Staging HQ"
+    assert "Location: North Pad" in details_value.text()
+    assert selection_label.text() == "Selected: Staging HQ (building)"
+
+    actions["New Incident"].trigger()
+    assert "Untitled Incident" in incident_editor_summary.text()
+    assert "Untitled Incident" in incident_label.text()
+    assert camp_editor_summary.text() == "Editing Base Camp for Untitled Incident (no-number)"
+    assert building_editor_summary.text().startswith("Editing IT Staging (command_post) for Untitled Incident (no-number)")
+
+    save_path = tmp_path / "incident.json"
+    window.save_path = save_path
+    actions["Save"].trigger()
+    assert save_path.exists()
+    saved = loads(save_path.read_text(encoding="utf-8"))
+    assert saved["incident"]["name"] == "Untitled Incident"
+    assert saved["schema_version"] == 1
 
     window.close()
     app.quit()

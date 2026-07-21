@@ -137,4 +137,4 @@ Thumbs.db
 *.db
 *.sqlite
 config/local_settings.py
-FireITManager/
+/FireITManager/

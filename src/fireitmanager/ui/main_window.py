@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from tempfile import gettempdir
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow, QLabel, QStatusBar, QTabWidget
 
 from fireitmanager.ui.canvas import CampCanvas
+from fireitmanager.ui.camp_editor import CampEditorWidget
+from fireitmanager.ui.building_editor import BuildingEditorWidget
 from fireitmanager.ui.docks import create_docks
 from fireitmanager.ui.explorer import IncidentExplorerWidget
 from fireitmanager.ui.incident_editor import IncidentEditorWidget
@@ -16,6 +21,7 @@ from fireitmanager.ui.workspace import (
     build_demo_workspace_snapshot,
     build_workspace_snapshot,
 )
+from fireitmanager.persistence import IncidentRepository
 from fireitmanager.ui.toolbar import create_tool_bar
 
 
@@ -27,6 +33,8 @@ class FireITMainWindow(QMainWindow):
         self.setWindowTitle("FireIT Manager")
         self.resize(1280, 900)
         self.workspace_snapshot = build_demo_workspace_snapshot()
+        self.repository = IncidentRepository()
+        self.save_path = Path(gettempdir()) / "fireitmanager" / "incident.json"
 
         self._setup_menu_bar()
         self._setup_central_widget()
@@ -73,11 +81,18 @@ class FireITMainWindow(QMainWindow):
         """Attach the central workspace tabs to the main window."""
         self.canvas = CampCanvas()
         self.incident_editor = IncidentEditorWidget(self.workspace_snapshot.incident)
+        self.camp_editor = CampEditorWidget(self.workspace_snapshot.incident)
+        self.building_editor = BuildingEditorWidget(self.workspace_snapshot.incident)
         self.incident_editor.incident_updated.connect(self._handle_incident_updated)
+        self.incident_editor.incident_created.connect(self._handle_incident_created)
+        self.camp_editor.camp_updated.connect(self._handle_incident_updated)
+        self.building_editor.building_updated.connect(self._handle_incident_updated)
 
         self.workspace_tabs = QTabWidget(self)
         self.workspace_tabs.setObjectName("workspaceTabs")
         self.workspace_tabs.addTab(self.incident_editor, "Incident Editor")
+        self.workspace_tabs.addTab(self.camp_editor, "Camp Editor")
+        self.workspace_tabs.addTab(self.building_editor, "Building Editor")
         self.workspace_tabs.addTab(self.canvas, "Canvas")
         self.workspace_tabs.setCurrentIndex(0)
         self.setCentralWidget(self.workspace_tabs)
@@ -106,6 +121,23 @@ class FireITMainWindow(QMainWindow):
     def show_incident_editor(self) -> None:
         """Switch the workspace to the incident editor tab."""
         self.workspace_tabs.setCurrentWidget(self.incident_editor)
+
+    def show_camp_editor(self) -> None:
+        """Switch the workspace to the camp editor tab."""
+        self.workspace_tabs.setCurrentWidget(self.camp_editor)
+
+    def show_building_editor(self) -> None:
+        """Switch the workspace to the building editor tab."""
+        self.workspace_tabs.setCurrentWidget(self.building_editor)
+
+    def create_new_incident(self) -> None:
+        """Start a new incident record for manual entry."""
+        self.incident_editor.create_new_incident()
+
+    def save_workspace(self) -> None:
+        """Persist the active incident graph to disk."""
+        saved_path = self.repository.save(self.workspace_snapshot.incident, self.save_path)
+        self.ready_label.setText(f"Saved to {saved_path}")
 
     def _sync_incident_status(self) -> None:
         """Update the incident status labels from the loaded incident."""
@@ -145,8 +177,26 @@ class FireITMainWindow(QMainWindow):
         if not isinstance(incident, type(self.workspace_snapshot.incident)):
             return
         self.workspace_snapshot = build_workspace_snapshot(incident)
+        self.incident_editor.sync_from_model()
+        self.camp_editor.sync_from_model()
+        self.building_editor.sync_from_model()
         self._sync_incident_status()
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
+        self._sync_current_selection()
+
+    def _handle_incident_created(self, incident: object) -> None:
+        """Refresh the workspace when the incident editor creates a new incident."""
+        if not isinstance(incident, type(self.workspace_snapshot.incident)):
+            return
+        self.camp_editor.bind_incident(incident)
+        self.building_editor.bind_incident(incident)
+        self.workspace_snapshot = build_workspace_snapshot(incident)
+        self.incident_editor.sync_from_model()
+        self.camp_editor.sync_from_model()
+        self.building_editor.sync_from_model()
+        self._sync_incident_status()
+        self.explorer_widget.set_snapshot(self.workspace_snapshot)
+        self._sync_current_selection()
 
     def _update_zoom_status(self, zoom_factor: float) -> None:
         """Reflect the current canvas zoom level in the status bar."""

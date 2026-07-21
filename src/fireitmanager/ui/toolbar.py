@@ -12,12 +12,14 @@ def create_tool_bar(window: QMainWindow) -> QToolBar:
     toolbar.setMovable(False)
 
     action_specs = [
-        ("New Incident", False, None),
+        ("New Incident", True, window.create_new_incident),
         ("Open", False, None),
-        ("Save", False, None),
+        ("Save", True, window.save_workspace),
         ("Undo", False, None),
         ("Redo", False, None),
         ("Incident Editor", True, window.show_incident_editor),
+        ("Camp Editor", True, window.show_camp_editor),
+        ("Building Editor", True, window.show_building_editor),
         ("Canvas", True, window.show_canvas),
         ("Zoom In", True, window.canvas.zoom_in),
         ("Zoom Out", True, window.canvas.zoom_out),

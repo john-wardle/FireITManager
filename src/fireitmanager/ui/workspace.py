@@ -108,6 +108,17 @@ def _build_camp_node(camp: Camp, index: int) -> WorkspaceNode:
 def _build_building_node(building: Building, camp_path: str) -> WorkspaceNode:
     building_path = f"{camp_path} / {building.name}"
     device_nodes = [_build_device_node(device, building_path) for device in building.devices]
+    location_name = building.location.name if building.location is not None else "Unassigned"
+    latitude = (
+        f"{building.location.latitude:.4f}"
+        if building.location is not None and building.location.latitude is not None
+        else "Unknown"
+    )
+    longitude = (
+        f"{building.location.longitude:.4f}"
+        if building.location is not None and building.location.longitude is not None
+        else "Unknown"
+    )
     return WorkspaceNode(
         label=building.name,
         kind="building",
@@ -116,6 +127,9 @@ def _build_building_node(building: Building, camp_path: str) -> WorkspaceNode:
         details={
             "Building Type": building.building_type.value,
             "Devices": str(len(building.devices)),
+            "Location": location_name,
+            "Latitude": latitude,
+            "Longitude": longitude,
         },
         children=device_nodes,
     )

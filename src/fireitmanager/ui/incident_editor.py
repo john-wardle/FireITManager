@@ -20,6 +20,7 @@ class IncidentEditorWidget(QWidget):
     """Manual entry form for the active incident record."""
 
     incident_updated = Signal(object)
+    incident_created = Signal(object)
 
     def __init__(self, incident: Incident, parent=None) -> None:
         super().__init__(parent)
@@ -77,8 +78,11 @@ class IncidentEditorWidget(QWidget):
         self.apply_button.setObjectName("applyIncidentChangesButton")
         self.reset_button = QPushButton("Reset", self)
         self.reset_button.setObjectName("resetIncidentButton")
+        self.new_button = QPushButton("New Incident", self)
+        self.new_button.setObjectName("newIncidentButton")
         button_row.addWidget(self.apply_button)
         button_row.addWidget(self.reset_button)
+        button_row.addWidget(self.new_button)
         button_row.addStretch(1)
 
         root_layout.addWidget(title)
@@ -91,6 +95,7 @@ class IncidentEditorWidget(QWidget):
 
         self.apply_button.clicked.connect(self.apply_changes)
         self.reset_button.clicked.connect(lambda: self.load_incident())
+        self.new_button.clicked.connect(self.create_new_incident)
         self.load_incident()
 
     @property
@@ -110,6 +115,18 @@ class IncidentEditorWidget(QWidget):
         self._refresh_counts()
         self._refresh_summary()
         self.message_label.setText("")
+
+    def sync_from_model(self) -> None:
+        """Refresh derived labels without discarding the user's feedback message."""
+        self._refresh_counts()
+        self._refresh_summary()
+
+    def create_new_incident(self) -> None:
+        """Create a fresh incident record for manual entry."""
+        incident = Incident("Untitled Incident")
+        self.load_incident(incident)
+        self.message_label.setText("New incident created in memory.")
+        self.incident_created.emit(self._incident)
 
     def apply_changes(self) -> None:
         """Validate and apply the form values to the incident model."""
