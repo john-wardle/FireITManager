@@ -60,6 +60,10 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
         inventory_menu.addAction(_create_action("Asset Editor", window.show_asset_editor, window))
         inventory_menu.addAction(_create_action("Device Editor", window.show_device_editor, window))
 
+    reports_menu = menu_bar.actions()[6].menu()
+    if reports_menu is not None:
+        reports_menu.addAction(_create_action("Incident Summary", window.export_incident_summary, window))
+
     return menu_bar
 
 

@@ -27,6 +27,7 @@ from fireitmanager.ui.workspace import (
     build_workspace_snapshot,
 )
 from fireitmanager.persistence import IncidentRepository
+from fireitmanager.reports import write_incident_summary_report
 from fireitmanager.ui.toolbar import create_tool_bar
 
 
@@ -41,6 +42,7 @@ class FireITMainWindow(QMainWindow):
         self.repository = IncidentRepository()
         self.save_path = Path(gettempdir()) / "fireitmanager" / "incident.json"
         self.load_path = self.save_path
+        self.report_path = Path(gettempdir()) / "fireitmanager" / "incident-summary.md"
 
         self._setup_central_widget()
         self._setup_menu_bar()
@@ -185,6 +187,13 @@ class FireITMainWindow(QMainWindow):
         """Persist the active incident graph to disk."""
         saved_path = self.repository.save(self.workspace_snapshot.incident, self.save_path)
         self.ready_label.setText(f"Saved to {saved_path}")
+
+    def export_incident_summary(self, path: str | Path | None = None) -> Path:
+        """Export a markdown summary report for the active incident."""
+        target = Path(path) if path is not None else self.report_path
+        saved_path = write_incident_summary_report(self.workspace_snapshot.incident, target)
+        self.ready_label.setText(f"Report written to {saved_path}")
+        return saved_path
 
     def _prompt_for_load_path(self) -> Path | None:
         """Show a file picker for incident files."""
