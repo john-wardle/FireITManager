@@ -31,6 +31,22 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
         file_menu.addAction(_create_action("Open", window.load_workspace, window))
         file_menu.addAction(_create_action("Save", window.save_workspace, window))
 
+    edit_menu = menu_bar.actions()[1].menu()
+    if edit_menu is not None:
+        edit_menu.addAction(_create_action("Undo", window.canvas.undo, window))
+        edit_menu.addAction(_create_action("Redo", window.canvas.redo, window))
+
+    view_menu = menu_bar.actions()[2].menu()
+    if view_menu is not None:
+        view_menu.addAction(_create_action("Canvas", window.show_canvas, window))
+        view_menu.addAction(_create_action("Incident Editor", window.show_incident_editor, window))
+        view_menu.addAction(_create_action("Camp Editor", window.show_camp_editor, window))
+        view_menu.addAction(_create_action("Asset Editor", window.show_asset_editor, window))
+        view_menu.addAction(_create_action("Person Editor", window.show_person_editor, window))
+        view_menu.addAction(_create_action("Building Editor", window.show_building_editor, window))
+        view_menu.addAction(_create_action("Device Editor", window.show_device_editor, window))
+        view_menu.addAction(_create_action("Network Editor", window.show_network_editor, window))
+
     incident_menu = menu_bar.actions()[3].menu()
     if incident_menu is not None:
         incident_menu.addAction(_create_action("Person Editor", window.show_person_editor, window))

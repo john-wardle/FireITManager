@@ -42,8 +42,8 @@ class FireITMainWindow(QMainWindow):
         self.save_path = Path(gettempdir()) / "fireitmanager" / "incident.json"
         self.load_path = self.save_path
 
-        self._setup_menu_bar()
         self._setup_central_widget()
+        self._setup_menu_bar()
         self._setup_tool_bar()
         self._setup_status_bar()
         self._setup_docks()
