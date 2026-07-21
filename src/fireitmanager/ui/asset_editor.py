@@ -53,6 +53,12 @@ class AssetEditorWidget(QWidget):
         self.barcode_input.setObjectName("assetBarcodeInput")
         self.assigned_person_input = QLineEdit(self)
         self.assigned_person_input.setObjectName("assetAssignedPersonInput")
+        self.assigned_person_selector = QComboBox(self)
+        self.assigned_person_selector.setObjectName("assetAssignedPersonSelectorInput")
+        self.assign_selected_person_button = QPushButton("Use Selected Person", self)
+        self.assign_selected_person_button.setObjectName("assignSelectedAssetPersonButton")
+        self.clear_assigned_person_button = QPushButton("Clear Assigned Person", self)
+        self.clear_assigned_person_button.setObjectName("clearAssetAssignedPersonButton")
 
         self.status_input = QComboBox(self)
         self.status_input.setObjectName("assetStatusInput")
@@ -64,6 +70,7 @@ class AssetEditorWidget(QWidget):
         form.addRow("Acquisition Type", self.acquisition_input)
         form.addRow("Barcode", self.barcode_input)
         form.addRow("Assigned Person", self.assigned_person_input)
+        form.addRow("People Picker", self.assigned_person_selector)
         form.addRow("Status", self.status_input)
 
         self.message_label = QLabel("", self)
@@ -81,6 +88,8 @@ class AssetEditorWidget(QWidget):
         button_row.addWidget(self.apply_button)
         button_row.addWidget(self.reset_button)
         button_row.addWidget(self.new_button)
+        button_row.addWidget(self.assign_selected_person_button)
+        button_row.addWidget(self.clear_assigned_person_button)
         button_row.addStretch(1)
 
         root_layout.addWidget(title)
@@ -93,6 +102,8 @@ class AssetEditorWidget(QWidget):
         self.apply_button.clicked.connect(self.apply_changes)
         self.reset_button.clicked.connect(lambda: self.load_asset())
         self.new_button.clicked.connect(self.create_new_asset)
+        self.assign_selected_person_button.clicked.connect(self.assign_selected_person)
+        self.clear_assigned_person_button.clicked.connect(self.clear_assigned_person)
         self.load_asset()
 
     @property
@@ -121,6 +132,7 @@ class AssetEditorWidget(QWidget):
         self.assigned_person_input.setText(
             self._asset.assigned_person.name if self._asset.assigned_person is not None else ""
         )
+        self._refresh_person_selector()
         self.status_input.setCurrentIndex(
             max(0, self.status_input.findData(self._asset.status.value))
         )
@@ -129,6 +141,7 @@ class AssetEditorWidget(QWidget):
 
     def sync_from_model(self) -> None:
         """Refresh the summary without clearing the current feedback message."""
+        self._refresh_person_selector()
         self._refresh_summary()
 
     def create_new_asset(self) -> None:
@@ -179,6 +192,44 @@ class AssetEditorWidget(QWidget):
         self.summary_label.setText(
             f"Editing {self._asset.name} ({self._asset.status.value}) for {self._incident.summary()}"
         )
+
+    def _refresh_person_selector(self) -> None:
+        """Populate the picker with the people in the incident."""
+        current_person = self._asset.assigned_person
+        self.assigned_person_selector.blockSignals(True)
+        self.assigned_person_selector.clear()
+        self.assigned_person_selector.addItem("Unassigned", None)
+        for person in self._incident.personnel:
+            self.assigned_person_selector.addItem(person.name, person)
+        if current_person is not None:
+            index = self.assigned_person_selector.findData(current_person)
+            if index >= 0:
+                self.assigned_person_selector.setCurrentIndex(index)
+        elif self.assigned_person_input.text().strip():
+            index = self.assigned_person_selector.findText(self.assigned_person_input.text().strip())
+            if index >= 0:
+                self.assigned_person_selector.setCurrentIndex(index)
+        self.assigned_person_selector.blockSignals(False)
+
+    def assign_selected_person(self) -> None:
+        """Copy the selected picker value into the manual assignment field."""
+        person = self.assigned_person_selector.currentData()
+        if person is None:
+            self.assigned_person_input.clear()
+            self.message_label.setText("Cleared the assigned person picker.")
+            return
+        self.assigned_person_input.setText(person.name)
+        self.message_label.setText(f"Selected {person.name} for the asset.")
+
+    def clear_assigned_person(self) -> None:
+        """Clear the assigned person from the asset."""
+        self.assigned_person_selector.setCurrentIndex(0)
+        self.assigned_person_input.clear()
+        self._asset.assigned_person = None
+        self._asset.touch()
+        self._refresh_summary()
+        self.message_label.setText("Assigned person cleared.")
+        self.asset_updated.emit(self._incident)
 
     def _contains_asset(self, asset: Asset) -> bool:
         """Return True when the incident already owns the given asset by identity."""

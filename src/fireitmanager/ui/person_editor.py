@@ -3,16 +3,21 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QComboBox,
     QFormLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
+from fireitmanager.models.device import Device
 from fireitmanager.models.incident import Incident
 from fireitmanager.models.person import Person
 
@@ -49,11 +54,21 @@ class PersonEditorWidget(QWidget):
         self.agency_input.setObjectName("personAgencyInput")
         self.assigned_devices_input = QLineEdit(self)
         self.assigned_devices_input.setObjectName("personAssignedDevicesInput")
+        self.device_selector = QComboBox(self)
+        self.device_selector.setObjectName("personDeviceSelectorInput")
+        self.add_device_button = QPushButton("Add Selected Device", self)
+        self.add_device_button.setObjectName("addPersonDeviceButton")
+        self.remove_device_button = QPushButton("Remove Selected Device", self)
+        self.remove_device_button.setObjectName("removePersonDeviceButton")
+        self.assigned_device_list = QListWidget(self)
+        self.assigned_device_list.setObjectName("personAssignedDeviceList")
 
         form.addRow("Name", self.name_input)
         form.addRow("Position", self.position_input)
         form.addRow("Agency", self.agency_input)
         form.addRow("Assigned Devices", self.assigned_devices_input)
+        form.addRow("Available Devices", self.device_selector)
+        form.addRow("Assigned Device List", self.assigned_device_list)
 
         self.message_label = QLabel("", self)
         self.message_label.setObjectName("personEditorMessage")
@@ -70,6 +85,8 @@ class PersonEditorWidget(QWidget):
         button_row.addWidget(self.apply_button)
         button_row.addWidget(self.reset_button)
         button_row.addWidget(self.new_button)
+        button_row.addWidget(self.add_device_button)
+        button_row.addWidget(self.remove_device_button)
         button_row.addStretch(1)
 
         root_layout.addWidget(title)
@@ -82,6 +99,8 @@ class PersonEditorWidget(QWidget):
         self.apply_button.clicked.connect(self.apply_changes)
         self.reset_button.clicked.connect(lambda: self.load_person())
         self.new_button.clicked.connect(self.create_new_person)
+        self.add_device_button.clicked.connect(self.add_selected_device)
+        self.remove_device_button.clicked.connect(self.remove_selected_device)
         self.load_person()
 
     @property
@@ -109,11 +128,15 @@ class PersonEditorWidget(QWidget):
         self.assigned_devices_input.setText(
             ", ".join(device.hostname for device in self._person.assigned_devices)
         )
+        self._refresh_device_selector()
+        self._refresh_device_list()
         self._refresh_summary()
         self.message_label.setText("")
 
     def sync_from_model(self) -> None:
         """Refresh derived labels without clearing the current feedback message."""
+        self._refresh_device_selector()
+        self._refresh_device_list()
         self._refresh_summary()
 
     def create_new_person(self) -> None:
@@ -149,8 +172,48 @@ class PersonEditorWidget(QWidget):
                 assigned_devices.append(device)
         self._person.assigned_devices = assigned_devices
         self._person.touch()
+        self._refresh_device_list()
         self._refresh_summary()
         self.message_label.setText("Person updated in memory.")
+        self.person_updated.emit(self._incident)
+
+    def add_selected_device(self) -> None:
+        """Add the selected available device to the person."""
+        device = self._selected_device_from_selector()
+        if device is None:
+            self.message_label.setText("Select a device to add.")
+            return
+        if device in self._person.assigned_devices:
+            self.message_label.setText(f"{device.hostname} is already assigned.")
+            return
+        self._person.assign_device(device)
+        self.assigned_devices_input.setText(
+            ", ".join(item.hostname for item in self._person.assigned_devices)
+        )
+        self._refresh_device_list()
+        self._refresh_summary()
+        self.message_label.setText(f"Added {device.hostname} to the person.")
+        self.person_updated.emit(self._incident)
+
+    def remove_selected_device(self) -> None:
+        """Remove the selected assigned device from the person."""
+        item = self.assigned_device_list.currentItem()
+        if item is None:
+            self.message_label.setText("Select an assigned device to remove.")
+            return
+        device = item.data(Qt.UserRole)
+        if not isinstance(device, Device):
+            self.message_label.setText("Selected assigned device is unavailable.")
+            return
+        if device in self._person.assigned_devices:
+            self._person.assigned_devices.remove(device)
+            self._person.touch()
+        self.assigned_devices_input.setText(
+            ", ".join(item.hostname for item in self._person.assigned_devices)
+        )
+        self._refresh_device_list()
+        self._refresh_summary()
+        self.message_label.setText(f"Removed {device.hostname} from the person.")
         self.person_updated.emit(self._incident)
 
     def _ensure_person(self) -> Person:
@@ -167,6 +230,55 @@ class PersonEditorWidget(QWidget):
         self.summary_label.setText(
             f"Editing {self._person.name} for {self._incident.summary()}"
         )
+
+    def _refresh_device_selector(self) -> None:
+        """Populate the available-device picker from the incident graph."""
+        current_device = self.device_selector.currentData()
+        self.device_selector.blockSignals(True)
+        self.device_selector.clear()
+        self.device_selector.addItem("Select a device", None)
+        for device in self._all_devices():
+            label = device.hostname
+            if device.assigned_building is not None:
+                label = f"{label} ({device.assigned_building.name})"
+            self.device_selector.addItem(label, device)
+        if current_device is not None:
+            index = self.device_selector.findData(current_device)
+            if index >= 0:
+                self.device_selector.setCurrentIndex(index)
+        self.device_selector.blockSignals(False)
+
+    def _refresh_device_list(self) -> None:
+        """Refresh the list of devices assigned to the person."""
+        self.assigned_device_list.clear()
+        for device in self._person.assigned_devices:
+            label = device.hostname
+            if device.assigned_building is not None:
+                label = f"{label} ({device.assigned_building.name})"
+            item = QListWidgetItem(label)
+            item.setData(Qt.UserRole, device)
+            self.assigned_device_list.addItem(item)
+
+    def _selected_device_from_selector(self) -> Device | None:
+        """Return the currently selected device from the picker."""
+        candidate = self.device_selector.currentData()
+        if isinstance(candidate, Device):
+            return candidate
+        return None
+
+    def _all_devices(self) -> list[Device]:
+        """Return all devices in the incident, preserving first-seen order."""
+        devices: list[Device] = []
+        seen: set[str] = set()
+        for camp in self._incident.camps:
+            for building in camp.buildings:
+                for device in building.devices:
+                    device_key = str(device.device_id)
+                    if device_key in seen:
+                        continue
+                    seen.add(device_key)
+                    devices.append(device)
+        return devices
 
     def _contains_person(self, person: Person) -> bool:
         """Return True when the incident already owns the given person by identity."""

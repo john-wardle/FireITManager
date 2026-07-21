@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -28,8 +29,14 @@ def test_recent_files_are_recorded_and_reopened(tmp_path) -> None:
     assert apply_button is not None
     apply_button.click()
 
-    window.save_path = second_path
-    window.save_workspace()
+    with patch(
+        "fireitmanager.ui.main_window.QFileDialog.getSaveFileName",
+        return_value=(str(second_path), "Incident JSON (*.json)"),
+    ):
+        saved_as_path = window.save_workspace_as()
+    assert saved_as_path == second_path
+    assert window.save_path == second_path
+    assert window.load_path == second_path
     assert window.recent_paths[0] == second_path
     assert window.recent_paths[1] == first_path
     assert window.recent_files_menu is not None

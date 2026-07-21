@@ -213,6 +213,9 @@ def _build_assets_node(incident: Incident) -> WorkspaceNode:
                     "Owner": asset.owner,
                     "Acquisition Type": asset.acquisition_type,
                     "Status": asset.status.value,
+                    "Assigned Person": (
+                        asset.assigned_person.name if asset.assigned_person is not None else "Unassigned"
+                    ),
                 },
             )
             for asset in incident.assets
@@ -236,6 +239,7 @@ def _build_personnel_node(incident: Incident) -> WorkspaceNode:
                 details={
                     "Position": person.position,
                     "Agency": person.agency,
+                    "Assigned Devices": str(len(person.assigned_devices)),
                 },
             )
             for person in incident.personnel

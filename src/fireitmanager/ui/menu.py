@@ -30,6 +30,9 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
         file_menu.addAction(_create_action("New Incident", window.create_new_incident, window))
         file_menu.addAction(_create_action("Open", window.load_workspace, window))
         file_menu.addAction(_create_action("Save", window.save_workspace, window))
+        file_menu.addAction(
+            _create_action("Save As", lambda checked=False: window.save_workspace_as(), window)
+        )
         recent_menu = file_menu.addMenu("Recent Files")
         recent_menu.setObjectName("recentFilesMenu")
         if hasattr(window, "_register_recent_files_menu"):

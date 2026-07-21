@@ -205,6 +205,19 @@ class FireITMainWindow(QMainWindow):
         self.ready_label.setText(f"Saved to {saved_path}")
         return saved_path
 
+    def save_workspace_as(self, path: str | Path | None = None) -> Path | None:
+        """Persist the active incident graph to a chosen path."""
+        target = Path(path) if path is not None else self._prompt_for_save_path()
+        if target is None:
+            return None
+
+        saved_path = self.repository.save(self.workspace_snapshot.incident, target)
+        self.save_path = saved_path
+        self.load_path = saved_path
+        self._record_recent_path(saved_path)
+        self.ready_label.setText(f"Saved to {saved_path}")
+        return saved_path
+
     def export_incident_summary(self, path: str | Path | None = None) -> Path:
         """Export a markdown summary report for the active incident."""
         target = Path(path) if path is not None else self.report_path
@@ -249,6 +262,18 @@ class FireITMainWindow(QMainWindow):
             self,
             "Open Incident",
             str(self.load_path.parent),
+            "Incident JSON (*.json);;All Files (*)",
+        )
+        if not selected_path:
+            return None
+        return Path(selected_path)
+
+    def _prompt_for_save_path(self) -> Path | None:
+        """Show a file picker for saving incident files."""
+        selected_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Incident As",
+            str(self.save_path),
             "Incident JSON (*.json);;All Files (*)",
         )
         if not selected_path:

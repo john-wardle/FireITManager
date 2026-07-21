@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QDockWidget,
     QLabel,
     QLineEdit,
+    QListWidget,
     QPushButton,
     QTabWidget,
     QTreeWidget,
@@ -75,11 +76,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     asset_acquisition = window.findChild(QLineEdit, "assetAcquisitionInput")
     asset_barcode = window.findChild(QLineEdit, "assetBarcodeInput")
     asset_assigned_person = window.findChild(QLineEdit, "assetAssignedPersonInput")
+    asset_assigned_person_selector = window.findChild(QComboBox, "assetAssignedPersonSelectorInput")
     asset_status = window.findChild(QComboBox, "assetStatusInput")
     person_name = window.findChild(QLineEdit, "personNameInput")
     person_position = window.findChild(QLineEdit, "personPositionInput")
     person_agency = window.findChild(QLineEdit, "personAgencyInput")
     person_assigned_devices = window.findChild(QLineEdit, "personAssignedDevicesInput")
+    person_device_selector = window.findChild(QComboBox, "personDeviceSelectorInput")
+    person_assigned_device_list = window.findChild(QListWidget, "personAssignedDeviceList")
     building_name = window.findChild(QLineEdit, "buildingNameInput")
     building_location_name = window.findChild(QLineEdit, "buildingLocationNameInput")
     building_latitude = window.findChild(QLineEdit, "buildingLatitudeInput")
@@ -106,11 +110,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert asset_acquisition is not None
     assert asset_barcode is not None
     assert asset_assigned_person is not None
+    assert asset_assigned_person_selector is not None
     assert asset_status is not None
     assert person_name is not None
     assert person_position is not None
     assert person_agency is not None
     assert person_assigned_devices is not None
+    assert person_device_selector is not None
+    assert person_assigned_device_list is not None
     assert building_name is not None
     assert building_location_name is not None
     assert building_latitude is not None
@@ -208,6 +215,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["New Incident"].isEnabled()
     assert actions["Open"].isEnabled()
     assert actions["Save"].isEnabled()
+    assert actions["Save As"].isEnabled()
     assert actions["Validate Workspace"].isEnabled()
     assert actions["About"].isEnabled()
     assert actions["Zoom In"].isEnabled()

@@ -15,6 +15,7 @@ def create_tool_bar(window: QMainWindow) -> QToolBar:
         ("New Incident", True, window.create_new_incident),
         ("Open", True, window.load_workspace),
         ("Save", True, window.save_workspace),
+        ("Save As", True, lambda checked=False: window.save_workspace_as()),
         ("Undo", True, window.canvas.undo),
         ("Redo", True, window.canvas.redo),
         ("Incident Editor", True, window.show_incident_editor),
