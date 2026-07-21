@@ -1,0 +1,1 @@
+"""FireIT Manager package."""
