@@ -18,6 +18,7 @@ from fireitmanager.ui.explorer import IncidentExplorerWidget
 from fireitmanager.ui.incident_editor import IncidentEditorWidget
 from fireitmanager.ui.menu import create_menu_bar
 from fireitmanager.ui.network_editor import NetworkEditorWidget
+from fireitmanager.ui.person_editor import PersonEditorWidget
 from fireitmanager.ui.properties import PropertiesWidget
 from fireitmanager.models.incident import Incident
 from fireitmanager.ui.workspace import (
@@ -88,6 +89,7 @@ class FireITMainWindow(QMainWindow):
         self.incident_editor = IncidentEditorWidget(self.workspace_snapshot.incident)
         self.camp_editor = CampEditorWidget(self.workspace_snapshot.incident)
         self.asset_editor = AssetEditorWidget(self.workspace_snapshot.incident)
+        self.person_editor = PersonEditorWidget(self.workspace_snapshot.incident)
         self.building_editor = BuildingEditorWidget(self.workspace_snapshot.incident)
         self.device_editor = DeviceEditorWidget(self.workspace_snapshot.incident)
         self.network_editor = NetworkEditorWidget(self.workspace_snapshot.incident)
@@ -95,6 +97,7 @@ class FireITMainWindow(QMainWindow):
         self.incident_editor.incident_created.connect(self._handle_incident_created)
         self.camp_editor.camp_updated.connect(self._handle_incident_updated)
         self.asset_editor.asset_updated.connect(self._handle_incident_updated)
+        self.person_editor.person_updated.connect(self._handle_incident_updated)
         self.building_editor.building_updated.connect(self._handle_incident_updated)
         self.device_editor.device_updated.connect(self._handle_incident_updated)
         self.network_editor.network_updated.connect(self._handle_incident_updated)
@@ -104,6 +107,7 @@ class FireITMainWindow(QMainWindow):
         self.workspace_tabs.addTab(self.incident_editor, "Incident Editor")
         self.workspace_tabs.addTab(self.camp_editor, "Camp Editor")
         self.workspace_tabs.addTab(self.asset_editor, "Asset Editor")
+        self.workspace_tabs.addTab(self.person_editor, "Person Editor")
         self.workspace_tabs.addTab(self.building_editor, "Building Editor")
         self.workspace_tabs.addTab(self.device_editor, "Device Editor")
         self.workspace_tabs.addTab(self.network_editor, "Network Editor")
@@ -143,6 +147,10 @@ class FireITMainWindow(QMainWindow):
     def show_asset_editor(self) -> None:
         """Switch the workspace to the asset editor tab."""
         self.workspace_tabs.setCurrentWidget(self.asset_editor)
+
+    def show_person_editor(self) -> None:
+        """Switch the workspace to the person editor tab."""
+        self.workspace_tabs.setCurrentWidget(self.person_editor)
 
     def show_building_editor(self) -> None:
         """Switch the workspace to the building editor tab."""
@@ -240,12 +248,14 @@ class FireITMainWindow(QMainWindow):
         self.incident_editor.load_incident(incident)
         self.camp_editor.bind_incident(incident)
         self.asset_editor.bind_incident(incident)
+        self.person_editor.bind_incident(incident)
         self.building_editor.bind_incident(incident)
         self.device_editor.bind_incident(incident)
         self.network_editor.bind_incident(incident)
         self.incident_editor.sync_from_model()
         self.camp_editor.sync_from_model()
         self.asset_editor.sync_from_model()
+        self.person_editor.sync_from_model()
         self.building_editor.sync_from_model()
         self.device_editor.sync_from_model()
         self.network_editor.sync_from_model()
@@ -262,6 +272,7 @@ class FireITMainWindow(QMainWindow):
             self.incident_editor.load_incident(incident)
         self.camp_editor.sync_from_model()
         self.asset_editor.sync_from_model()
+        self.person_editor.sync_from_model()
         self.building_editor.sync_from_model()
         self.device_editor.sync_from_model()
         self.network_editor.sync_from_model()
