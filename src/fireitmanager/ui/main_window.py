@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -204,6 +205,14 @@ class FireITMainWindow(QMainWindow):
         else:
             self.ready_label.setText("Workspace is valid.")
         return issues
+
+    def show_about(self) -> None:
+        """Show lightweight about information in the status bar."""
+        try:
+            package_version = version("fireitmanager")
+        except PackageNotFoundError:
+            package_version = "unknown"
+        self.ready_label.setText(f"FireIT Manager {package_version}")
 
     def _prompt_for_load_path(self) -> Path | None:
         """Show a file picker for incident files."""

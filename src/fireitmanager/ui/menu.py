@@ -68,6 +68,10 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
     if tools_menu is not None:
         tools_menu.addAction(_create_action("Validate Workspace", window.validate_workspace, window))
 
+    help_menu = menu_bar.actions()[8].menu()
+    if help_menu is not None:
+        help_menu.addAction(_create_action("About", window.show_about, window))
+
     return menu_bar
 
 

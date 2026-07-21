@@ -209,6 +209,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["Open"].isEnabled()
     assert actions["Save"].isEnabled()
     assert actions["Validate Workspace"].isEnabled()
+    assert actions["About"].isEnabled()
     assert actions["Zoom In"].isEnabled()
     assert actions["Zoom Out"].isEnabled()
     assert actions["Center View"].isEnabled()
@@ -229,6 +230,8 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert workspace_tabs.currentWidget().objectName() == "campCanvas"
     actions["Incident Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"
+    actions["About"].trigger()
+    assert window.findChild(QLabel, "readyStatusLabel").text().startswith("FireIT Manager ")
 
     current_zoom = window.canvas.zoom_factor
     actions["Zoom In"].trigger()
