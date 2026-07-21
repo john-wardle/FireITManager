@@ -7,7 +7,8 @@ from pathlib import Path
 from tempfile import gettempdir
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QLabel, QStatusBar, QTabWidget
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QLabel, QMenu, QStatusBar, QTabWidget
 
 from fireitmanager.ui.canvas import CampCanvas
 from fireitmanager.ui.camp_editor import CampEditorWidget
@@ -29,7 +30,11 @@ from fireitmanager.ui.workspace import (
     build_workspace_snapshot,
 )
 from fireitmanager.persistence import IncidentRepository
-from fireitmanager.reports import write_incident_summary_report
+from fireitmanager.reports import (
+    write_incident_summary_csv_report,
+    write_incident_summary_html_report,
+    write_incident_summary_report,
+)
 from fireitmanager.ui.toolbar import create_tool_bar
 
 
@@ -45,6 +50,11 @@ class FireITMainWindow(QMainWindow):
         self.save_path = Path(gettempdir()) / "fireitmanager" / "incident.json"
         self.load_path = self.save_path
         self.report_path = Path(gettempdir()) / "fireitmanager" / "incident-summary.md"
+        self.report_csv_path = self.report_path.with_suffix(".csv")
+        self.report_html_path = self.report_path.with_suffix(".html")
+        self.recent_paths: list[Path] = []
+        self.max_recent_paths = 5
+        self.recent_files_menu: QMenu | None = None
 
         self._setup_central_widget()
         self._setup_menu_bar()
@@ -55,6 +65,7 @@ class FireITMainWindow(QMainWindow):
     def _setup_menu_bar(self) -> None:
         """Create and attach the top-level menu bar."""
         self.setMenuBar(create_menu_bar(self))
+        self._refresh_recent_files_menu()
 
     def _setup_tool_bar(self) -> None:
         """Create and attach the application toolbar."""
@@ -180,21 +191,39 @@ class FireITMainWindow(QMainWindow):
             return
 
         incident = self.repository.load(target)
+        self._record_recent_path(target)
         self._reset_workspace(incident)
         self.load_path = target
         self.save_path = target
         self.ready_label.setText(f"Loaded from {target}")
 
-    def save_workspace(self) -> None:
+    def save_workspace(self) -> Path:
         """Persist the active incident graph to disk."""
         saved_path = self.repository.save(self.workspace_snapshot.incident, self.save_path)
+        self.load_path = saved_path
+        self._record_recent_path(saved_path)
         self.ready_label.setText(f"Saved to {saved_path}")
+        return saved_path
 
     def export_incident_summary(self, path: str | Path | None = None) -> Path:
         """Export a markdown summary report for the active incident."""
         target = Path(path) if path is not None else self.report_path
         saved_path = write_incident_summary_report(self.workspace_snapshot.incident, target)
         self.ready_label.setText(f"Report written to {saved_path}")
+        return saved_path
+
+    def export_incident_summary_csv(self, path: str | Path | None = None) -> Path:
+        """Export a CSV summary report for the active incident."""
+        target = Path(path) if path is not None else self.report_csv_path
+        saved_path = write_incident_summary_csv_report(self.workspace_snapshot.incident, target)
+        self.ready_label.setText(f"CSV report written to {saved_path}")
+        return saved_path
+
+    def export_incident_summary_html(self, path: str | Path | None = None) -> Path:
+        """Export an HTML summary report for the active incident."""
+        target = Path(path) if path is not None else self.report_html_path
+        saved_path = write_incident_summary_html_report(self.workspace_snapshot.incident, target)
+        self.ready_label.setText(f"HTML report written to {saved_path}")
         return saved_path
 
     def validate_workspace(self) -> list[str]:
@@ -225,6 +254,50 @@ class FireITMainWindow(QMainWindow):
         if not selected_path:
             return None
         return Path(selected_path)
+
+    def _register_recent_files_menu(self, menu: QMenu) -> None:
+        """Attach the recent-files submenu created by the menu builder."""
+        self.recent_files_menu = menu
+        self._refresh_recent_files_menu()
+
+    def _refresh_recent_files_menu(self) -> None:
+        """Rebuild the recent-files submenu from the current MRU list."""
+        if self.recent_files_menu is None:
+            return
+
+        self.recent_files_menu.clear()
+        if not self.recent_paths:
+            placeholder = QAction("No recent files", self)
+            placeholder.setEnabled(False)
+            self.recent_files_menu.addAction(placeholder)
+            return
+
+        for recent_path in self.recent_paths:
+            action = QAction(recent_path.name, self)
+            action.setToolTip(str(recent_path))
+            action.triggered.connect(
+                lambda checked=False, path=recent_path: self.open_recent_workspace(path)
+            )
+            self.recent_files_menu.addAction(action)
+
+    def open_recent_workspace(self, path: str | Path) -> None:
+        """Open a workspace from the recent-files list."""
+        target = Path(path)
+        if not target.exists():
+            if target in self.recent_paths:
+                self.recent_paths.remove(target)
+                self._refresh_recent_files_menu()
+            self.ready_label.setText(f"Recent file missing: {target}")
+            return
+        self.load_workspace(target)
+
+    def _record_recent_path(self, path: Path) -> None:
+        """Promote a file path into the MRU list."""
+        resolved = Path(path)
+        self.recent_paths = [existing for existing in self.recent_paths if existing != resolved]
+        self.recent_paths.insert(0, resolved)
+        self.recent_paths = self.recent_paths[: self.max_recent_paths]
+        self._refresh_recent_files_menu()
 
     def _sync_incident_status(self) -> None:
         """Update the incident status labels from the loaded incident."""

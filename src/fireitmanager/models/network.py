@@ -32,6 +32,12 @@ class Network:
             self.devices.append(device)
             self.touch()
 
+    def remove_device(self, device: Device) -> None:
+        """Remove a device from the network."""
+        if device in self.devices:
+            self.devices.remove(device)
+            self.touch()
+
     def add_cable(self, cable: Cable) -> None:
         """Add a cable to the network."""
         if cable not in self.cables:

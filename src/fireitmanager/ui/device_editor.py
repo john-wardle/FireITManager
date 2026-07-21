@@ -68,6 +68,10 @@ class DeviceEditorWidget(QWidget):
         for status in DeviceStatus:
             self.status_input.addItem(status.value, status.value)
 
+        self.networks_value = QLabel("", self)
+        self.networks_value.setObjectName("deviceNetworksValue")
+        self.networks_value.setWordWrap(True)
+
         form.addRow("Hostname", self.hostname_input)
         form.addRow("Manufacturer", self.manufacturer_input)
         form.addRow("Model", self.model_input)
@@ -76,6 +80,7 @@ class DeviceEditorWidget(QWidget):
         form.addRow("MAC Address", self.mac_input)
         form.addRow("Device Type", self.type_input)
         form.addRow("Status", self.status_input)
+        form.addRow("Networks", self.networks_value)
 
         self.message_label = QLabel("", self)
         self.message_label.setObjectName("deviceEditorMessage")
@@ -140,11 +145,13 @@ class DeviceEditorWidget(QWidget):
             max(0, self.status_input.findData(self._device.status.value))
         )
         self._refresh_summary()
+        self._refresh_network_membership()
         self.message_label.setText("")
 
     def sync_from_model(self) -> None:
         """Refresh derived labels without clearing the current feedback message."""
         self._refresh_summary()
+        self._refresh_network_membership()
 
     def create_new_device(self) -> None:
         """Create a fresh device record under the active building."""
@@ -172,6 +179,7 @@ class DeviceEditorWidget(QWidget):
         self._device.status = DeviceStatus(self.status_input.currentData())
         self._device.touch()
         self._refresh_summary()
+        self._refresh_network_membership()
         self.message_label.setText("Device updated in memory.")
         self.device_updated.emit(self._incident)
 
@@ -207,6 +215,15 @@ class DeviceEditorWidget(QWidget):
         self.summary_label.setText(
             f"Editing {self._device.hostname} for {self._incident.summary()}"
         )
+
+    def _refresh_network_membership(self) -> None:
+        """Show the networks that currently include this device."""
+        network_names: list[str] = []
+        for camp in self._incident.camps:
+            for network in camp.networks:
+                if any(existing is self._device for existing in network.devices):
+                    network_names.append(network.name)
+        self.networks_value.setText(", ".join(network_names) or "Unassigned")
 
     def _contains_device(self, device: Device) -> bool:
         """Return True when the building already owns the given device by identity."""

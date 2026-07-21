@@ -30,6 +30,10 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
         file_menu.addAction(_create_action("New Incident", window.create_new_incident, window))
         file_menu.addAction(_create_action("Open", window.load_workspace, window))
         file_menu.addAction(_create_action("Save", window.save_workspace, window))
+        recent_menu = file_menu.addMenu("Recent Files")
+        recent_menu.setObjectName("recentFilesMenu")
+        if hasattr(window, "_register_recent_files_menu"):
+            window._register_recent_files_menu(recent_menu)
 
     edit_menu = menu_bar.actions()[1].menu()
     if edit_menu is not None:
@@ -63,6 +67,12 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
     reports_menu = menu_bar.actions()[6].menu()
     if reports_menu is not None:
         reports_menu.addAction(_create_action("Incident Summary", window.export_incident_summary, window))
+        reports_menu.addAction(
+            _create_action("Incident Summary CSV", window.export_incident_summary_csv, window)
+        )
+        reports_menu.addAction(
+            _create_action("Incident Summary HTML", window.export_incident_summary_html, window)
+        )
 
     tools_menu = menu_bar.actions()[7].menu()
     if tools_menu is not None:
