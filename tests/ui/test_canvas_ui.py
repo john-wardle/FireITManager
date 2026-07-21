@@ -48,3 +48,12 @@ def test_canvas_view_exposes_zoom_state() -> None:
     canvas.zoom(2.0)
 
     assert canvas.zoom_factor > 1.0
+    zoomed = canvas.zoom_factor
+
+    canvas.undo()
+
+    assert canvas.zoom_factor == 1.0
+
+    canvas.redo()
+
+    assert canvas.zoom_factor == zoomed

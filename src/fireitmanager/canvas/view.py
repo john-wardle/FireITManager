@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QFrame
+from PySide6.QtGui import QColor, QPainter, QUndoStack
+from PySide6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
 from fireitmanager.canvas.constants import ZOOM_MAX, ZOOM_MIN, ZOOM_STEP
+from fireitmanager.canvas.commands import CenterSceneCommand, ZoomCanvasCommand
 
 
 class CanvasView(QGraphicsView):
@@ -18,6 +19,7 @@ class CanvasView(QGraphicsView):
         super().__init__(scene, parent)
         self._zoom_factor = 1.0
         self._zoom_step = ZOOM_STEP
+        self._undo_stack = QUndoStack(self)
         self.setRenderHints(
             QPainter.Antialiasing
             | QPainter.TextAntialiasing
@@ -37,6 +39,11 @@ class CanvasView(QGraphicsView):
         """Return the current zoom factor."""
         return self._zoom_factor
 
+    @property
+    def undo_stack(self) -> QUndoStack:
+        """Return the history stack for canvas actions."""
+        return self._undo_stack
+
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         """Zoom the canvas when the user uses the mouse wheel."""
         delta = event.angleDelta().y()
@@ -50,6 +57,10 @@ class CanvasView(QGraphicsView):
 
     def zoom(self, factor: float) -> None:
         """Apply a bounded zoom step."""
+        self._undo_stack.push(ZoomCanvasCommand(self, factor))
+
+    def _apply_zoom(self, factor: float) -> None:
+        """Apply a zoom step without recording history."""
         target_zoom = max(ZOOM_MIN, min(ZOOM_MAX, self._zoom_factor * factor))
         actual_factor = target_zoom / self._zoom_factor
 
@@ -74,9 +85,20 @@ class CanvasView(QGraphicsView):
         self._zoom_factor = 1.0
         self.zoom_changed.emit(self._zoom_factor)
 
-    def center_scene(self) -> None:
+    def center_scene(self, *, record_history: bool = True) -> None:
         """Center the visible view on the current scene."""
+        if record_history:
+            self._undo_stack.push(CenterSceneCommand(self))
+            return
         self.centerOn(self.scene().sceneRect().center())
+
+    def undo(self) -> None:
+        """Undo the most recent canvas action."""
+        self._undo_stack.undo()
+
+    def redo(self) -> None:
+        """Redo the most recently undone canvas action."""
+        self._undo_stack.redo()
 
     def keyPressEvent(self, event) -> None:  # type: ignore[override]
         """Temporarily enable panning with the space bar."""
