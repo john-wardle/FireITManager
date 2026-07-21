@@ -52,6 +52,11 @@ class FireITMainWindow(QMainWindow):
         self.report_path = Path(gettempdir()) / "fireitmanager" / "incident-summary.md"
         self.report_csv_path = self.report_path.with_suffix(".csv")
         self.report_html_path = self.report_path.with_suffix(".html")
+        self.load_dialog_dir = self.load_path.parent
+        self.save_dialog_dir = self.save_path.parent
+        self.report_dialog_dir = self.report_path.parent
+        self.report_csv_dialog_dir = self.report_csv_path.parent
+        self.report_html_dialog_dir = self.report_html_path.parent
         self.recent_paths: list[Path] = []
         self.max_recent_paths = 5
         self.recent_files_menu: QMenu | None = None
@@ -195,6 +200,7 @@ class FireITMainWindow(QMainWindow):
         self._reset_workspace(incident)
         self.load_path = target
         self.save_path = target
+        self.load_dialog_dir = target.parent
         self.ready_label.setText(f"Loaded from {target}")
 
     def save_workspace(self) -> Path:
@@ -214,28 +220,41 @@ class FireITMainWindow(QMainWindow):
         saved_path = self.repository.save(self.workspace_snapshot.incident, target)
         self.save_path = saved_path
         self.load_path = saved_path
+        self.save_dialog_dir = saved_path.parent
         self._record_recent_path(saved_path)
         self.ready_label.setText(f"Saved to {saved_path}")
         return saved_path
 
-    def export_incident_summary(self, path: str | Path | None = None) -> Path:
+    def export_incident_summary(self, path: str | Path | None = None) -> Path | None:
         """Export a markdown summary report for the active incident."""
-        target = Path(path) if path is not None else self.report_path
+        target = Path(path) if path is not None else self._prompt_for_report_path()
+        if target is None:
+            return None
         saved_path = write_incident_summary_report(self.workspace_snapshot.incident, target)
+        self.report_path = saved_path
+        self.report_dialog_dir = saved_path.parent
         self.ready_label.setText(f"Report written to {saved_path}")
         return saved_path
 
-    def export_incident_summary_csv(self, path: str | Path | None = None) -> Path:
+    def export_incident_summary_csv(self, path: str | Path | None = None) -> Path | None:
         """Export a CSV summary report for the active incident."""
-        target = Path(path) if path is not None else self.report_csv_path
+        target = Path(path) if path is not None else self._prompt_for_report_csv_path()
+        if target is None:
+            return None
         saved_path = write_incident_summary_csv_report(self.workspace_snapshot.incident, target)
+        self.report_csv_path = saved_path
+        self.report_csv_dialog_dir = saved_path.parent
         self.ready_label.setText(f"CSV report written to {saved_path}")
         return saved_path
 
-    def export_incident_summary_html(self, path: str | Path | None = None) -> Path:
+    def export_incident_summary_html(self, path: str | Path | None = None) -> Path | None:
         """Export an HTML summary report for the active incident."""
-        target = Path(path) if path is not None else self.report_html_path
+        target = Path(path) if path is not None else self._prompt_for_report_html_path()
+        if target is None:
+            return None
         saved_path = write_incident_summary_html_report(self.workspace_snapshot.incident, target)
+        self.report_html_path = saved_path
+        self.report_html_dialog_dir = saved_path.parent
         self.ready_label.setText(f"HTML report written to {saved_path}")
         return saved_path
 
@@ -261,7 +280,7 @@ class FireITMainWindow(QMainWindow):
         selected_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open Incident",
-            str(self.load_path.parent),
+            str(self.load_dialog_dir),
             "Incident JSON (*.json);;All Files (*)",
         )
         if not selected_path:
@@ -273,8 +292,44 @@ class FireITMainWindow(QMainWindow):
         selected_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save Incident As",
-            str(self.save_path),
+            str(self.save_dialog_dir),
             "Incident JSON (*.json);;All Files (*)",
+        )
+        if not selected_path:
+            return None
+        return Path(selected_path)
+
+    def _prompt_for_report_path(self) -> Path | None:
+        """Show a file picker for markdown report exports."""
+        selected_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Incident Summary",
+            str(self.report_dialog_dir / self.report_path.name),
+            "Markdown (*.md);;All Files (*)",
+        )
+        if not selected_path:
+            return None
+        return Path(selected_path)
+
+    def _prompt_for_report_csv_path(self) -> Path | None:
+        """Show a file picker for CSV report exports."""
+        selected_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Incident Summary CSV",
+            str(self.report_csv_dialog_dir / self.report_csv_path.name),
+            "CSV (*.csv);;All Files (*)",
+        )
+        if not selected_path:
+            return None
+        return Path(selected_path)
+
+    def _prompt_for_report_html_path(self) -> Path | None:
+        """Show a file picker for HTML report exports."""
+        selected_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Incident Summary HTML",
+            str(self.report_html_dialog_dir / self.report_html_path.name),
+            "HTML (*.html);;All Files (*)",
         )
         if not selected_path:
             return None
