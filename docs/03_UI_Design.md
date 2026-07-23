@@ -11,9 +11,12 @@
 - Current top-level folders: Incident, Camp Ops, Inventory, Network, Outputs.
 - Docked explorer and properties panels remain visible beside the workspace.
 - Network map workflows live under Network / Site Map and show draggable buildings,
-  device icons, and cable connections from the active incident graph.
+  cardless device icons and cable connections from the active incident graph.
 - Site Map title text remains pinned to the top of the visible viewport and scales
   with the current zoom level.
+- Site Map summary information remains pinned to the left side of the viewport,
+  scales with the current zoom level, and lists camps, location/device counts,
+  network device/cable counts, and incident asset counts.
 - Site Map location boxes are resizable. Equipment dropped within a location
   anchors to it and moves with the location while preserving relative placement.
 - Menus and toolbars remain persistent at the top of the window.

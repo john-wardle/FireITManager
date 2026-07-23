@@ -7,7 +7,7 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QApplication, QGraphicsItem, QLabel
+from PySide6.QtWidgets import QApplication, QGraphicsItem, QLabel, QWidget
 
 from fireitmanager.canvas.constants import SCENE_RECT
 from fireitmanager.canvas.scene import CanvasScene, SiteMapCableItem, SiteMapNodeItem
@@ -48,6 +48,13 @@ def test_canvas_scene_populates_draggable_network_map() -> None:
     nodes = [item for item in scene.items() if isinstance(item, SiteMapNodeItem)]
     labels = {item.label for item in nodes}
     assert {"IT Staging", "it-router-01", "it-workstation-01"} <= labels
+    scene_texts = {
+        item.toPlainText()
+        for item in scene.items()
+        if hasattr(item, "toPlainText")
+    }
+    assert "Base Camp" not in scene_texts
+    assert "Camp LAN: 2 device(s), 1 cable(s)" not in scene_texts
 
     router = next(item for item in nodes if item.label == "it-router-01")
     workstation = next(item for item in nodes if item.label == "it-workstation-01")
@@ -125,13 +132,29 @@ def test_canvas_view_exposes_zoom_state() -> None:
     assert title_overlay.geometry().x() == 12
     assert title_overlay.geometry().y() == 12
     base_title_size = title_overlay.font().pointSizeF()
+    summary_overlay = canvas.findChild(QWidget, "siteMapSummaryOverlay")
+    assert summary_overlay is not None
+    assert summary_overlay.geometry().x() == 12
+    assert summary_overlay.geometry().top() > title_overlay.geometry().bottom()
+    summary_texts = [
+        label.text()
+        for label in summary_overlay.findChildren(QLabel)
+    ]
+    assert "Base Camp" in summary_texts
+    assert "1 location(s), 2 device(s)" in summary_texts
+    assert "Camp LAN: 2 device(s), 1 cable(s)" in summary_texts
+    assert "Inventory: 1 asset(s)" in summary_texts
+    base_summary_size = summary_overlay.findChild(QLabel, "siteMapSummaryHeading").font().pointSizeF()
 
     canvas.zoom(2.0)
 
     assert canvas.zoom_factor > 1.0
     assert title_overlay.font().pointSizeF() > base_title_size
+    assert summary_overlay.findChild(QLabel, "siteMapSummaryHeading").font().pointSizeF() > base_summary_size
     assert title_overlay.geometry().x() == 12
     assert title_overlay.geometry().y() == 12
+    assert summary_overlay.geometry().x() == 12
+    assert summary_overlay.geometry().top() > title_overlay.geometry().bottom()
     zoomed = canvas.zoom_factor
 
     canvas.undo()

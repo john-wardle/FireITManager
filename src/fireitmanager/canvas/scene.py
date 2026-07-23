@@ -26,7 +26,6 @@ from fireitmanager.canvas.constants import (
     SCENE_RECT,
     Z_BUILDING,
     Z_DEVICE,
-    Z_TEXT,
 )
 from fireitmanager.models.building import Building
 from fireitmanager.models.cable import Cable
@@ -76,7 +75,6 @@ class CanvasScene(QGraphicsScene):
 
         for camp_index, camp in enumerate(incident.camps):
             camp_origin = QPointF(-430.0, -400.0 + (camp_index * 520.0))
-            self._add_title(camp.name, camp_origin, point_size=16)
 
             for building_index, building in enumerate(camp.buildings):
                 building_position = QPointF(
@@ -85,22 +83,7 @@ class CanvasScene(QGraphicsScene):
                 )
                 self._add_building(building, camp.name, building_position)
 
-            for network_index, network in enumerate(camp.networks):
-                network_label = self.addText(
-                    f"{network.name}: {len(network.devices)} device(s), "
-                    f"{len(network.cables)} cable(s)"
-                )
-                font = network_label.font()
-                font.setPointSize(11)
-                font.setBold(True)
-                network_label.setFont(font)
-                network_label.setDefaultTextColor(QColor(205, 214, 226))
-                network_label.setPos(
-                    camp_origin.x(),
-                    camp_origin.y() + 305.0 + (network_index * 30.0),
-                )
-                network_label.setZValue(Z_TEXT)
-
+            for network in camp.networks:
                 if network.cables:
                     for cable in network.cables:
                         self._add_cable(cable, network.name)
@@ -381,16 +364,6 @@ class CanvasScene(QGraphicsScene):
             return fallback
         return QSizeF(size)
 
-    def _add_title(self, text: str, position: QPointF, *, point_size: int) -> None:
-        title = self.addText(text)
-        font = title.font()
-        font.setPointSize(point_size)
-        font.setBold(True)
-        title.setFont(font)
-        title.setDefaultTextColor(QColor(239, 243, 248))
-        title.setPos(position)
-        title.setZValue(Z_TEXT)
-
     def _add_centered_text(
         self,
         text: str,
@@ -505,6 +478,8 @@ class SiteMapNodeItem(QGraphicsObject):
 
     def connection_point(self) -> QPointF:
         bounds = self.boundingRect()
+        if self.kind != "building":
+            return self.scenePos() + QPointF(bounds.width() / 2.0, 32.0)
         return self.scenePos() + QPointF(bounds.width() / 2.0, bounds.height() / 2.0)
 
     def itemChange(self, change, value):  # noqa: N802 - Qt API name
@@ -656,18 +631,18 @@ class SiteMapNodeItem(QGraphicsObject):
 
     def _paint_device(self, painter: QPainter) -> None:
         bounds = self.boundingRect()
-        shadow = bounds.translated(3.0, 4.0)
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QColor(0, 0, 0, 75))
-        painter.drawRoundedRect(shadow, 7.0, 7.0)
+        if self.isSelected():
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(QColor("#3b82f6"), 2.0))
+            painter.drawRoundedRect(bounds.adjusted(3.0, 3.0, -3.0, -3.0), 7.0, 7.0)
 
-        fill = QColor("#f8fafc")
-        border = QColor("#94a3b8" if not self.isSelected() else "#3b82f6")
-        painter.setBrush(fill)
-        painter.setPen(QPen(border, 2.0 if self.isSelected() else 1.0))
-        painter.drawRoundedRect(bounds, 7.0, 7.0)
-
-        icon_rect = QRectF(8.0, 16.0, 48.0, 48.0)
+        icon_size = 52.0
+        icon_rect = QRectF(
+            (bounds.width() - icon_size) / 2.0,
+            6.0,
+            icon_size,
+            icon_size,
+        )
         if not self._paint_svg_icon(painter, icon_rect):
             self._paint_device_icon(painter, icon_rect)
 
@@ -677,23 +652,14 @@ class SiteMapNodeItem(QGraphicsObject):
         font.setBold(True)
         painter.setFont(font)
         painter.drawText(
-            QRectF(64.0, 12.0, bounds.width() - 74.0, 32.0),
-            Qt.TextWordWrap,
+            QRectF(4.0, 58.0, bounds.width() - 8.0, 24.0),
+            Qt.AlignHCenter | Qt.AlignTop | Qt.TextWordWrap,
             self.label,
-        )
-
-        font.setPointSize(8)
-        font.setBold(False)
-        painter.setFont(font)
-        painter.setPen(QColor("#475569"))
-        painter.drawText(
-            QRectF(64.0, 49.0, bounds.width() - 74.0, 18.0),
-            self.device_type.value if self.device_type is not None else "device",
         )
 
         painter.setBrush(_status_color(self.status))
         painter.setPen(QPen(QColor("#ffffff"), 1.0))
-        painter.drawEllipse(QRectF(bounds.width() - 20.0, 10.0, 10.0, 10.0))
+        painter.drawEllipse(QRectF(icon_rect.right() - 6.0, icon_rect.top() + 2.0, 10.0, 10.0))
 
     def _paint_device_icon(self, painter: QPainter, rect: QRectF) -> None:
         painter.setPen(QPen(self.accent.darker(135), 2.0))

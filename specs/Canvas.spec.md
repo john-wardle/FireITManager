@@ -8,6 +8,8 @@ Define the baseline behavior for the camp Site Map workspace.
 - The canvas should support zoom, pan, and selection interactions.
 - The Site Map title should remain pinned to the top of the visible view and scale
   with the current zoom level.
+- Camp and network summary information should remain pinned to the left side of
+  the visible view and scale with the current zoom level.
 - Location boxes should be draggable and resizable.
 - Equipment dropped inside a location box should anchor to it and move with it.
 - Cable connections should follow devices as they move.
