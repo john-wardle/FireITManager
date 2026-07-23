@@ -36,11 +36,12 @@ class CampCanvas(CanvasView):
         self.zoom_changed.connect(self._update_title_scale)
         self._set_title(incident)
 
-    def load_incident(self, incident: Incident) -> None:
+    def load_incident(self, incident: Incident, *, center: bool = True) -> None:
         """Refresh the site map from the active incident graph."""
         self.site_scene.load_incident(incident)
         self._set_title(incident)
-        self.center_scene(record_history=False)
+        if center:
+            self.center_scene(record_history=False)
 
     def resizeEvent(self, event) -> None:  # noqa: N802 - Qt API name
         super().resizeEvent(event)

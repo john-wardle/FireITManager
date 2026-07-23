@@ -3,6 +3,7 @@ from json import loads
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+from PySide6.QtCore import QPointF
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
@@ -18,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from fireitmanager.models.enums import AssetStatus, BuildingType, DeviceStatus, DeviceType
+from fireitmanager.canvas.scene import SiteMapNodeItem
 from fireitmanager.ui.main_window import FireITMainWindow
 
 
@@ -465,6 +467,8 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
 def test_properties_pane_applies_edits_to_selected_objects() -> None:
     app = QApplication.instance() or QApplication([])
     window = FireITMainWindow()
+    window.show()
+    app.processEvents()
 
     explorer_tree = window.findChild(QTreeWidget, "incidentExplorerTree")
     assert explorer_tree is not None
@@ -472,6 +476,15 @@ def test_properties_pane_applies_edits_to_selected_objects() -> None:
     assert root is not None
     camp_item = root.child(1).child(0)
     building_item = camp_item.child(0)
+    site_building = next(
+        item
+        for item in window.canvas.site_scene.items()
+        if isinstance(item, SiteMapNodeItem) and item.kind == "building"
+    )
+    site_building.setPos(QPointF(840.0, 620.0))
+    window.canvas.centerOn(QPointF(1200.0, 900.0))
+    app.processEvents()
+    view_center_before = window.canvas.mapToScene(window.canvas.viewport().rect().center())
     explorer_tree.setCurrentItem(building_item)
 
     properties_name = window.findChild(QLineEdit, "propertiesEditNameInput")
@@ -487,6 +500,7 @@ def test_properties_pane_applies_edits_to_selected_objects() -> None:
         properties_building_type.findText(BuildingType.OPERATIONS.value)
     )
     properties_apply.click()
+    app.processEvents()
 
     assert window.workspace_snapshot.incident.camps[0].buildings[0].name == "Properties Staging"
     assert window.workspace_snapshot.incident.camps[0].buildings[0].building_type == BuildingType.OPERATIONS
@@ -496,6 +510,15 @@ def test_properties_pane_applies_edits_to_selected_objects() -> None:
     assert window.findChild(QLabel, "readyStatusLabel").text() == (
         "Updated Properties Staging from Properties."
     )
+    view_center_after = window.canvas.mapToScene(window.canvas.viewport().rect().center())
+    assert abs(view_center_after.x() - view_center_before.x()) < 1.0
+    assert abs(view_center_after.y() - view_center_before.y()) < 1.0
+    refreshed_site_building = next(
+        item
+        for item in window.canvas.site_scene.items()
+        if isinstance(item, SiteMapNodeItem) and item.kind == "building"
+    )
+    assert refreshed_site_building.scenePos() == QPointF(840.0, 620.0)
 
     explorer_tree = window.findChild(QTreeWidget, "incidentExplorerTree")
     assert explorer_tree is not None

@@ -107,8 +107,6 @@ class CanvasScene(QGraphicsScene):
                 else:
                     self._add_membership_lines(network.devices, network.name)
 
-        self._add_legend()
-
     def remember_item_position(self, item: SiteMapNodeItem) -> None:
         """Remember a dragged node position for the current session."""
         self._layout_positions[item.layout_key] = item.pos()
@@ -368,32 +366,6 @@ class CanvasScene(QGraphicsScene):
             self.addItem(item)
             self._connection_items.append(item)
             item.refresh()
-
-    def _add_legend(self) -> None:
-        legend = self.addRect(
-            QRectF(120.0, -500.0, 350.0, 132.0),
-            QPen(QColor(88, 100, 116), 1.0),
-            QColor(28, 34, 43, 230),
-        )
-        legend.setZValue(Z_TEXT)
-
-        labels = [
-            "Site Map Controls",
-            "Drag equipment into a location to anchor it.",
-            "Resize locations from the bottom-right handle.",
-            "Move a location to carry anchored equipment.",
-        ]
-        for index, text in enumerate(labels):
-            label = self.addText(text)
-            font = label.font()
-            font.setPointSize(12 if index == 0 else 10)
-            font.setBold(index == 0)
-            label.setFont(font)
-            label.setDefaultTextColor(
-                QColor(244, 247, 251) if index == 0 else QColor(202, 210, 222)
-            )
-            label.setPos(142.0, -484.0 + (index * 28.0))
-            label.setZValue(Z_TEXT + 1)
 
     def _position_for(self, layout_key: str, fallback: QPointF) -> QPointF:
         position = self._layout_positions.get(layout_key)

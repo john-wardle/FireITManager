@@ -519,7 +519,7 @@ class FireITMainWindow(QMainWindow):
         self.building_editor.sync_from_model()
         self.device_editor.sync_from_model()
         self.network_editor.sync_from_model()
-        self.canvas.load_incident(incident)
+        self.canvas.load_incident(incident, center=False)
         self._sync_incident_status()
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
         self._sync_current_selection()
