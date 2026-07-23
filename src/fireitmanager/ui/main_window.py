@@ -8,7 +8,7 @@ from tempfile import gettempdir
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QLabel, QMenu, QStatusBar, QTabWidget
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QLabel, QMenu, QStatusBar
 
 from fireitmanager.ui.canvas import CampCanvas
 from fireitmanager.ui.camp_editor import CampEditorWidget
@@ -29,6 +29,7 @@ from fireitmanager.ui.workspace import (
     build_demo_workspace_snapshot,
     build_workspace_snapshot,
 )
+from fireitmanager.ui.workspace_tabs import FolderWorkspaceTabs, WorkspaceActionPage
 from fireitmanager.persistence import IncidentRepository
 from fireitmanager.reports import (
     write_incident_summary_csv_report,
@@ -105,7 +106,7 @@ class FireITMainWindow(QMainWindow):
 
     def _setup_central_widget(self) -> None:
         """Attach the central workspace tabs to the main window."""
-        self.canvas = CampCanvas()
+        self.canvas = CampCanvas(self.workspace_snapshot.incident)
         self.incident_editor = IncidentEditorWidget(self.workspace_snapshot.incident)
         self.camp_editor = CampEditorWidget(self.workspace_snapshot.incident)
         self.asset_editor = AssetEditorWidget(self.workspace_snapshot.incident)
@@ -122,17 +123,60 @@ class FireITMainWindow(QMainWindow):
         self.device_editor.device_updated.connect(self._handle_incident_updated)
         self.network_editor.network_updated.connect(self._handle_incident_updated)
 
-        self.workspace_tabs = QTabWidget(self)
-        self.workspace_tabs.setObjectName("workspaceTabs")
-        self.workspace_tabs.addTab(self.incident_editor, "Incident Editor")
-        self.workspace_tabs.addTab(self.camp_editor, "Camp Editor")
-        self.workspace_tabs.addTab(self.asset_editor, "Asset Editor")
-        self.workspace_tabs.addTab(self.person_editor, "Person Editor")
-        self.workspace_tabs.addTab(self.building_editor, "Building Editor")
-        self.workspace_tabs.addTab(self.device_editor, "Device Editor")
-        self.workspace_tabs.addTab(self.network_editor, "Network Editor")
-        self.workspace_tabs.addTab(self.canvas, "Canvas")
-        self.workspace_tabs.setCurrentIndex(0)
+        self.reports_page = WorkspaceActionPage(
+            "Reports",
+            "Export incident summaries from the active workspace.",
+            [
+                ("Export Summary Markdown", self.export_incident_summary),
+                ("Export Summary CSV", self.export_incident_summary_csv),
+                ("Export Summary HTML", self.export_incident_summary_html),
+            ],
+            self,
+        )
+        self.validation_page = WorkspaceActionPage(
+            "Validation",
+            "Run workspace checks before saving or exporting incident data.",
+            [("Validate Workspace", self.validate_workspace)],
+            self,
+        )
+
+        self.workspace_tabs = FolderWorkspaceTabs(self)
+        self.workspace_tabs.add_folder(
+            "Incident",
+            [
+                ("Details", self.incident_editor),
+                ("Personnel", self.person_editor),
+            ],
+        )
+        self.workspace_tabs.add_folder(
+            "Camp Ops",
+            [
+                ("Camps", self.camp_editor),
+                ("Buildings", self.building_editor),
+            ],
+        )
+        self.workspace_tabs.add_folder(
+            "Inventory",
+            [
+                ("Assets", self.asset_editor),
+                ("Devices", self.device_editor),
+            ],
+        )
+        self.workspace_tabs.add_folder(
+            "Network",
+            [
+                ("Site Map", self.canvas),
+                ("Networks", self.network_editor),
+            ],
+        )
+        self.workspace_tabs.add_folder(
+            "Outputs",
+            [
+                ("Reports", self.reports_page),
+                ("Validation", self.validation_page),
+            ],
+        )
+        self.workspace_tabs.setCurrentWidget(self.incident_editor)
         self.setCentralWidget(self.workspace_tabs)
 
     def _setup_docks(self) -> None:
@@ -149,12 +193,14 @@ class FireITMainWindow(QMainWindow):
         ):
             self.explorer_widget.selection_changed.connect(self.properties_widget.set_details)
             self.explorer_widget.selection_changed.connect(self._update_selection_status)
+            self.canvas.site_item_selected.connect(self.properties_widget.set_details)
+            self.canvas.site_item_selected.connect(self._update_selection_status)
             self.explorer_widget.tree.itemDoubleClicked.connect(self._activate_editor_for_item)
             self._sync_current_selection()
         self.canvas.zoom_changed.connect(self._update_zoom_status)
 
     def show_canvas(self) -> None:
-        """Switch the workspace to the canvas tab."""
+        """Switch the workspace to the site map tab."""
         self.workspace_tabs.setCurrentWidget(self.canvas)
 
     def show_incident_editor(self) -> None:
@@ -441,6 +487,7 @@ class FireITMainWindow(QMainWindow):
         self.building_editor.sync_from_model()
         self.device_editor.sync_from_model()
         self.network_editor.sync_from_model()
+        self.canvas.load_incident(incident)
         self._sync_incident_status()
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
         self._sync_current_selection()
@@ -458,6 +505,7 @@ class FireITMainWindow(QMainWindow):
         self.building_editor.sync_from_model()
         self.device_editor.sync_from_model()
         self.network_editor.sync_from_model()
+        self.canvas.load_incident(incident)
         self._sync_incident_status()
         self.explorer_widget.set_snapshot(self.workspace_snapshot)
         self._sync_current_selection()

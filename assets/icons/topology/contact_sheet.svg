@@ -1,0 +1,338 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1120" viewBox="0 0 960 1120">
+  <rect x="0" y="0" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 18) scale(0.171875)">
+  <rect x="124" y="128" width="264" height="172" rx="14" fill="none" stroke="#2F75B5" stroke-width="28" />
+  <path d="M96 344 H416 L382 392 H130 Z" fill="#2F75B5" />
+  <line x1="188" y1="335" x2="324" y2="335" stroke="#3F4A56" stroke-width="16" stroke-linecap="round" />
+</g>
+  <text x="80" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Laptop</text>
+  <rect x="160" y="0" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 18) scale(0.171875)">
+  <rect x="116" y="116" width="280" height="194" rx="14" fill="none" stroke="#2F75B5" stroke-width="28" />
+  <line x1="256" y1="310" x2="256" y2="368" stroke="#3F4A56" stroke-width="28" stroke-linecap="round" />
+  <line x1="188" y1="390" x2="324" y2="390" stroke="#3F4A56" stroke-width="28" stroke-linecap="round" />
+</g>
+  <text x="240" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Desktop Monitor</text>
+  <rect x="320" y="0" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(356 18) scale(0.171875)">
+  <rect x="174" y="74" width="164" height="360" rx="22" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <line x1="216" y1="150" x2="296" y2="150" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <line x1="216" y1="202" x2="296" y2="202" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <circle cx="256" cy="342" r="26" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="400" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Workstation Tower</text>
+  <rect x="480" y="0" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(516 18) scale(0.171875)">
+  <rect x="118" y="184" width="276" height="148" rx="20" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <rect x="154" y="96" width="204" height="100" rx="10" fill="none" stroke="#3F4A56" stroke-width="22" />
+  <rect x="160" y="304" width="192" height="104" rx="10" fill="#DDEBFA" stroke="#2F75B5" stroke-width="18" />
+  <circle cx="344" cy="246" r="12" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="560" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Printer</text>
+  <rect x="640" y="0" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(676 18) scale(0.171875)">
+  <rect x="132" y="176" width="248" height="160" rx="42" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <path d="M178 228 Q256 168 334 228" fill="none" stroke="#DDEBFA" stroke-width="20" stroke-linecap="round" />
+  <path d="M214 268 Q256 238 298 268" fill="none" stroke="#DDEBFA" stroke-width="20" stroke-linecap="round" />
+  <circle cx="256" cy="300" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="720" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">WiFi Access Point</text>
+  <rect x="800" y="0" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(836 18) scale(0.171875)">
+  <rect x="88" y="202" width="336" height="136" rx="26" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <line x1="170" y1="168" x2="170" y2="118" stroke="#3F4A56" stroke-width="22" stroke-linecap="round" />
+  <line x1="342" y1="168" x2="342" y2="118" stroke="#3F4A56" stroke-width="22" stroke-linecap="round" />
+  <circle cx="170" cy="112" r="16" fill="#3F4A56" stroke="none" stroke-width="0" />
+  <circle cx="342" cy="112" r="16" fill="#3F4A56" stroke="none" stroke-width="0" />
+  <circle cx="156" cy="270" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="216" cy="270" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="276" cy="270" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="336" cy="270" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="880" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Router</text>
+  <rect x="0" y="160" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 178) scale(0.171875)">
+  <rect x="74" y="172" width="364" height="168" rx="22" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <rect x="116" y="242" width="34" height="42" rx="4" fill="#DDEBFA" />
+  <rect x="168" y="242" width="34" height="42" rx="4" fill="#DDEBFA" />
+  <rect x="220" y="242" width="34" height="42" rx="4" fill="#DDEBFA" />
+  <rect x="272" y="242" width="34" height="42" rx="4" fill="#DDEBFA" />
+  <rect x="324" y="242" width="34" height="42" rx="4" fill="#DDEBFA" />
+  <rect x="376" y="242" width="34" height="42" rx="4" fill="#DDEBFA" />
+  <circle cx="390" cy="216" r="12" fill="#16A34A" stroke="none" stroke-width="0" />
+</g>
+  <text x="80" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Network Switch</text>
+  <rect x="160" y="160" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 178) scale(0.171875)">
+  <path d="M256 70 L386 126 V246 C386 334 336 398 256 440 C176 398 126 334 126 246 V126 Z" fill="#2F75B5" />
+  <path d="M180 214 H332 M180 274 H332 M212 154 V334 M300 154 V334" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+</g>
+  <text x="240" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Firewall</text>
+  <rect x="320" y="160" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(356 178) scale(0.171875)">
+  <rect x="166" y="70" width="180" height="372" rx="22" fill="#475569" stroke="#475569" stroke-width="28" />
+  <line x1="206" y1="148" x2="306" y2="148" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <line x1="206" y1="202" x2="306" y2="202" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <line x1="206" y1="256" x2="306" y2="256" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <circle cx="256" cy="354" r="24" fill="#2F75B5" stroke="none" stroke-width="0" />
+</g>
+  <text x="400" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Server Tower</text>
+  <rect x="480" y="160" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(516 178) scale(0.171875)">
+  <rect x="78" y="188" width="356" height="136" rx="16" fill="#475569" stroke="#475569" stroke-width="28" />
+  <rect x="112" y="224" width="198" height="28" rx="6" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="356" cy="238" r="12" fill="#16A34A" stroke="none" stroke-width="0" />
+  <circle cx="392" cy="238" r="12" fill="#16A34A" stroke="none" stroke-width="0" />
+  <line x1="116" y1="284" x2="394" y2="284" stroke="#DDEBFA" stroke-width="16" stroke-linecap="round" />
+</g>
+  <text x="560" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Rack Server</text>
+  <rect x="640" y="160" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(676 178) scale(0.171875)">
+  <rect x="124" y="66" width="264" height="386" rx="20" fill="none" stroke="#3F4A56" stroke-width="22" />
+  <rect x="150" y="98" width="212" height="46" rx="8" fill="#475569" />
+  <rect x="150" y="166" width="212" height="46" rx="8" fill="#475569" />
+  <rect x="150" y="234" width="212" height="46" rx="8" fill="#475569" />
+  <rect x="150" y="302" width="212" height="46" rx="8" fill="#475569" />
+  <rect x="150" y="370" width="212" height="46" rx="8" fill="#475569" />
+  <circle cx="328" cy="121" r="8" fill="#16A34A" />
+  <circle cx="328" cy="189" r="8" fill="#16A34A" />
+  <circle cx="328" cy="257" r="8" fill="#16A34A" />
+  <circle cx="328" cy="325" r="8" fill="#16A34A" />
+  <circle cx="328" cy="393" r="8" fill="#16A34A" />
+</g>
+  <text x="720" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Server Rack</text>
+  <rect x="800" y="160" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(836 178) scale(0.171875)">
+  <path d="M162 128 H350 C382 128 404 150 404 182 V330 C404 362 382 384 350 384 H162 C130 384 108 362 108 330 V182 C108 150 130 128 162 128 Z" fill="#2F75B5" />
+  <rect x="160" y="170" width="134" height="58" rx="10" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <path d="M174 278 C214 314 298 314 338 278" fill="none" stroke="#DDEBFA" stroke-width="24" stroke-linecap="round" />
+  <circle cx="334" cy="192" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="880" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">VoIP Phone</text>
+  <rect x="0" y="320" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 338) scale(0.171875)">
+  <path d="M134 182 C214 96 344 96 424 182 C340 244 218 244 134 182 Z" fill="#2F75B5" />
+  <line x1="278" y1="226" x2="218" y2="346" stroke="#3F4A56" stroke-width="28" stroke-linecap="round" />
+  <line x1="198" y1="390" x2="338" y2="390" stroke="#3F4A56" stroke-width="28" stroke-linecap="round" />
+  <path d="M118 118 Q256 26 394 118" fill="none" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <path d="M154 150 Q256 84 358 150" fill="none" stroke="#3F4A56" stroke-width="16" stroke-linecap="round" />
+</g>
+  <text x="80" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Satellite Dish</text>
+  <rect x="160" y="320" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 338) scale(0.171875)">
+  <line x1="256" y1="96" x2="256" y2="414" stroke="#3F4A56" stroke-width="24" stroke-linecap="round" />
+  <line x1="186" y1="414" x2="326" y2="414" stroke="#3F4A56" stroke-width="24" stroke-linecap="round" />
+  <path d="M188 148 Q256 82 324 148" fill="none" stroke="#2F75B5" stroke-width="22" stroke-linecap="round" />
+  <path d="M152 202 Q256 100 360 202" fill="none" stroke="#2F75B5" stroke-width="18" stroke-linecap="round" />
+  <path d="M116 260 Q256 126 396 260" fill="none" stroke="#2F75B5" stroke-width="14" stroke-linecap="round" />
+</g>
+  <text x="240" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Antenna Mast</text>
+  <rect x="320" y="320" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(356 338) scale(0.171875)">
+  <rect x="166" y="130" width="180" height="250" rx="22" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <line x1="256" y1="130" x2="256" y2="72" stroke="#3F4A56" stroke-width="18" stroke-linecap="round" />
+  <circle cx="256" cy="68" r="13" fill="#3F4A56" stroke="none" stroke-width="0" />
+  <line x1="206" y1="204" x2="306" y2="204" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <line x1="206" y1="254" x2="306" y2="254" stroke="#DDEBFA" stroke-width="18" stroke-linecap="round" />
+  <circle cx="256" cy="320" r="22" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="400" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Radio Repeater</text>
+  <rect x="480" y="320" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(516 338) scale(0.171875)">
+  <rect x="116" y="180" width="280" height="158" rx="26" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <line x1="164" y1="180" x2="130" y2="120" stroke="#3F4A56" stroke-width="18" stroke-linecap="round" />
+  <line x1="348" y1="180" x2="382" y2="120" stroke="#3F4A56" stroke-width="18" stroke-linecap="round" />
+  <circle cx="198" cy="260" r="12" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="246" cy="260" r="12" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="294" cy="260" r="12" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <circle cx="342" cy="260" r="12" fill="#16A34A" stroke="none" stroke-width="0" />
+</g>
+  <text x="560" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Cellular Modem</text>
+  <rect x="640" y="320" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(676 338) scale(0.171875)">
+  <path d="M112 284 C154 172 246 370 302 226 C334 146 398 186 416 250" fill="none" stroke="#3F4A56" stroke-width="26" stroke-linecap="round" />
+  <rect x="70" y="264" width="82" height="70" rx="10" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <rect x="368" y="214" width="82" height="70" rx="10" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <line x1="96" y1="288" x2="126" y2="288" stroke="#DDEBFA" stroke-width="10" stroke-linecap="round" />
+  <line x1="394" y1="238" x2="424" y2="238" stroke="#DDEBFA" stroke-width="10" stroke-linecap="round" />
+</g>
+  <text x="720" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Ethernet Cable</text>
+  <rect x="800" y="320" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(836 338) scale(0.171875)">
+  <path d="M92 300 C160 114 338 398 420 216" fill="none" stroke="#0891B2" stroke-width="24" stroke-linecap="round" />
+  <circle cx="92" cy="300" r="28" fill="#0891B2" stroke="none" stroke-width="0" />
+  <circle cx="420" cy="216" r="28" fill="#0891B2" stroke="none" stroke-width="0" />
+  <line x1="114" y1="300" x2="164" y2="300" stroke="#3F4A56" stroke-width="16" stroke-linecap="round" />
+  <line x1="348" y1="216" x2="398" y2="216" stroke="#3F4A56" stroke-width="16" stroke-linecap="round" />
+</g>
+  <text x="880" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Fiber Cable</text>
+  <rect x="0" y="480" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 498) scale(0.171875)">
+  <circle cx="256" cy="256" r="150" fill="#D8B56A" stroke="#3F4A56" stroke-width="22" />
+  <circle cx="256" cy="256" r="62" fill="#FFFFFF" stroke="#3F4A56" stroke-width="18" />
+  <path d="M142 256 C174 190 238 176 306 194 C352 206 382 232 400 256" fill="none" stroke="#2F75B5" stroke-width="22" stroke-linecap="round" />
+  <line x1="106" y1="418" x2="406" y2="418" stroke="#3F4A56" stroke-width="22" stroke-linecap="round" />
+</g>
+  <text x="80" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Cable Spool</text>
+  <rect x="160" y="480" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 498) scale(0.171875)">
+  <rect x="62" y="164" width="388" height="190" rx="18" fill="#475569" stroke="#475569" stroke-width="28" />
+  <rect x="96" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="150" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="204" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="258" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="312" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="366" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="420" y="206" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="96" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="150" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="204" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="258" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="312" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="366" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+  <rect x="420" y="268" width="36" height="36" rx="4" fill="#DDEBFA" />
+</g>
+  <text x="240" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Patch Panel</text>
+  <rect x="320" y="480" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(356 498) scale(0.171875)">
+  <rect x="142" y="92" width="228" height="328" rx="28" fill="#475569" stroke="#475569" stroke-width="28" />
+  <rect x="184" y="136" width="144" height="58" rx="10" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <path d="M266 224 L226 298 H258 L236 372 L302 274 H268 Z" fill="#16A34A" />
+</g>
+  <text x="400" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">UPS Battery</text>
+  <rect x="480" y="480" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(516 498) scale(0.171875)">
+  <rect x="96" y="178" width="320" height="164" rx="24" fill="#EA580C" stroke="#EA580C" stroke-width="28" />
+  <line x1="132" y1="158" x2="380" y2="158" stroke="#3F4A56" stroke-width="24" stroke-linecap="round" />
+  <circle cx="164" cy="370" r="28" fill="#3F4A56" stroke="none" stroke-width="0" />
+  <circle cx="350" cy="370" r="28" fill="#3F4A56" stroke="none" stroke-width="0" />
+  <rect x="142" y="214" width="118" height="62" rx="10" fill="#DDEBFA" stroke="none" stroke-width="0" />
+  <line x1="300" y1="234" x2="366" y2="234" stroke="#DDEBFA" stroke-width="14" stroke-linecap="round" />
+  <line x1="300" y1="270" x2="366" y2="270" stroke="#DDEBFA" stroke-width="14" stroke-linecap="round" />
+</g>
+  <text x="560" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Generator</text>
+  <rect x="640" y="480" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(676 498) scale(0.171875)">
+  <rect x="132" y="122" width="248" height="284" rx="30" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <rect x="202" y="78" width="108" height="54" rx="16" fill="#3F4A56" stroke="#3F4A56" stroke-width="28" />
+  <path d="M266 178 L214 270 H252 L228 350 L306 246 H266 Z" fill="#DDEBFA" />
+</g>
+  <text x="720" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Portable Battery</text>
+  <rect x="800" y="480" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(836 498) scale(0.171875)">
+  <path d="M72 374 L256 112 L440 374 Z" fill="#D8B56A" stroke="#3F4A56" stroke-width="22" stroke-linejoin="round" />
+  <path d="M256 112 V374" stroke="#3F4A56" stroke-width="18" stroke-linecap="round" />
+  <path d="M188 374 L256 232 L324 374 Z" fill="#2F75B5" />
+</g>
+  <text x="880" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">IT Staging Tent</text>
+  <rect x="0" y="640" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 658) scale(0.171875)">
+  <rect x="82" y="154" width="348" height="172" rx="24" fill="#D8B56A" stroke="#3F4A56" stroke-width="22" />
+  <rect x="126" y="196" width="78" height="64" rx="8" fill="#DDEBFA" stroke="#2F75B5" stroke-width="16" />
+  <rect x="238" y="196" width="104" height="64" rx="8" fill="#DDEBFA" stroke="#2F75B5" stroke-width="16" />
+  <line x1="430" y1="270" x2="468" y2="270" stroke="#3F4A56" stroke-width="18" stroke-linecap="round" />
+  <circle cx="158" cy="358" r="30" fill="#3F4A56" stroke="none" stroke-width="0" />
+  <circle cx="354" cy="358" r="30" fill="#3F4A56" stroke="none" stroke-width="0" />
+</g>
+  <text x="80" y="772" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Command Post Trailer</text>
+  <rect x="160" y="640" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 658) scale(0.171875)">
+  <rect x="94" y="164" width="324" height="210" rx="24" fill="#475569" stroke="#475569" stroke-width="28" />
+  <rect x="202" y="116" width="108" height="64" rx="18" fill="none" stroke="#3F4A56" stroke-width="20" />
+  <line x1="112" y1="234" x2="400" y2="234" stroke="#DDEBFA" stroke-width="14" stroke-linecap="round" />
+  <rect x="224" y="244" width="64" height="46" rx="8" fill="#2F75B5" stroke="none" stroke-width="0" />
+</g>
+  <text x="240" y="772" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Equipment Case</text>
+  <rect x="320" y="640" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(356 658) scale(0.171875)">
+  <path d="M74 160 H202 L232 112 H438 C460 112 474 126 474 148 V380 C474 402 460 416 438 416 H74 C52 416 38 402 38 380 V196 C38 174 52 160 74 160 Z" fill="#D8B56A" />
+  <path d="M38 204 H474" stroke="#3F4A56" stroke-width="18" stroke-linecap="round" />
+</g>
+  <text x="400" y="772" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Folder</text>
+  <rect x="480" y="640" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(516 658) scale(0.171875)">
+  <rect x="80" y="116" width="142" height="100" rx="10" fill="none" stroke="#2F75B5" stroke-width="20" />
+  <rect x="290" y="296" width="142" height="100" rx="10" fill="none" stroke="#2F75B5" stroke-width="20" />
+  <line x1="151" y1="216" x2="151" y2="260" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <line x1="151" y1="260" x2="361" y2="260" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <line x1="361" y1="260" x2="361" y2="296" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <line x1="112" y1="242" x2="190" y2="242" stroke="#2F75B5" stroke-width="20" stroke-linecap="round" />
+  <line x1="322" y1="422" x2="400" y2="422" stroke="#2F75B5" stroke-width="20" stroke-linecap="round" />
+</g>
+  <text x="560" y="772" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Connected Computers</text>
+  <rect x="640" y="640" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(676 658) scale(0.171875)">
+  <rect x="72" y="250" width="164" height="106" rx="10" fill="none" stroke="#2F75B5" stroke-width="20" />
+  <path d="M52 384 H256 L236 418 H72 Z" fill="#2F75B5" />
+  <rect x="338" y="96" width="94" height="288" rx="14" fill="#2F75B5" stroke="#2F75B5" stroke-width="28" />
+  <line x1="236" y1="306" x2="306" y2="306" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <line x1="306" y1="306" x2="306" y2="238" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <line x1="306" y1="238" x2="338" y2="238" stroke="#3F4A56" stroke-width="20" stroke-linecap="round" />
+  <line x1="362" y1="156" x2="408" y2="156" stroke="#DDEBFA" stroke-width="12" stroke-linecap="round" />
+  <line x1="362" y1="202" x2="408" y2="202" stroke="#DDEBFA" stroke-width="12" stroke-linecap="round" />
+  <circle cx="386" cy="304" r="14" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="720" y="772" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Laptop to Server</text>
+  <rect x="800" y="640" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(836 658) scale(0.171875)">
+  <rect x="96" y="192" width="320" height="192" rx="18" fill="#D8B56A" stroke="#3F4A56" stroke-width="20" />
+  <path d="M76 198 L256 92 L436 198 Z" fill="#2F75B5" />
+  <rect x="132" y="238" width="92" height="72" rx="8" fill="#DDEBFA" stroke="#2F75B5" stroke-width="14" />
+  <rect x="288" y="238" width="92" height="146" rx="8" fill="#DDEBFA" stroke="#2F75B5" stroke-width="14" />
+</g>
+  <text x="880" y="772" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Command Post</text>
+  <rect x="0" y="800" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 818) scale(0.171875)">
+  <circle cx="256" cy="256" r="150" fill="#16A34A" stroke="none" stroke-width="0" />
+  <path d="M190 258 L238 306 L330 208" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+  <text x="80" y="932" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Online Status</text>
+  <rect x="160" y="800" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 818) scale(0.171875)">
+  <circle cx="256" cy="256" r="150" fill="#DC2626" stroke="none" stroke-width="0" />
+  <line x1="202" y1="202" x2="310" y2="310" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" />
+  <line x1="310" y1="202" x2="202" y2="310" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" />
+</g>
+  <text x="240" y="932" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Offline Status</text>
+  <rect x="320" y="800" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(356 818) scale(0.171875)">
+  <path d="M256 90 L430 392 H82 Z" fill="#F59E0B" />
+  <line x1="256" y1="188" x2="256" y2="286" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" />
+  <circle cx="256" cy="340" r="18" fill="#FFFFFF" stroke="none" stroke-width="0" />
+</g>
+  <text x="400" y="932" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Degraded Status</text>
+  <rect x="480" y="800" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(516 818) scale(0.171875)">
+  <circle cx="256" cy="256" r="150" fill="#3B82F6" stroke="none" stroke-width="0" />
+  <path d="M190 322 L310 202" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" />
+  <path d="M302 176 L342 216 L314 244 L274 204 Z" fill="#FFFFFF" />
+  <path d="M170 316 L196 342 L166 372 L140 346 Z" fill="#FFFFFF" />
+</g>
+  <text x="560" y="932" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Maintenance Status</text>
+  <rect x="640" y="800" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(676 818) scale(0.171875)">
+  <circle cx="256" cy="256" r="150" fill="#94A3B8" stroke="none" stroke-width="0" />
+  <path d="M214 212 C218 164 294 160 304 208 C312 244 260 250 260 288" fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" />
+  <circle cx="256" cy="344" r="18" fill="#FFFFFF" stroke="none" stroke-width="0" />
+</g>
+  <text x="720" y="932" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Unknown Status</text>
+  <rect x="800" y="800" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(836 818) scale(0.171875)">
+  <circle cx="256" cy="256" r="150" fill="#EA580C" stroke="none" stroke-width="0" />
+  <line x1="256" y1="168" x2="256" y2="286" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" />
+  <circle cx="256" cy="346" r="19" fill="#FFFFFF" stroke="none" stroke-width="0" />
+</g>
+  <text x="880" y="932" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Warning Status</text>
+  <rect x="0" y="960" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(36 978) scale(0.171875)">
+  <rect x="72" y="72" width="368" height="368" rx="48" fill="none" stroke="#3B82F6" stroke-width="28" stroke-dasharray="48 28" />
+</g>
+  <text x="80" y="1092" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Selected Outline</text>
+  <rect x="160" y="960" width="160" height="160" fill="#F8FAFC" stroke="#E5E7EB" />
+  <g transform="translate(196 978) scale(0.171875)">
+  <rect x="132" y="226" width="248" height="170" rx="24" fill="#3F4A56" stroke="#3F4A56" stroke-width="28" />
+  <path d="M178 226 V174 C178 126 210 94 256 94 C302 94 334 126 334 174 V226" fill="none" stroke="#3F4A56" stroke-width="34" stroke-linecap="round" />
+  <circle cx="256" cy="306" r="22" fill="#DDEBFA" stroke="none" stroke-width="0" />
+</g>
+  <text x="240" y="1092" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1F2937">Locked Status</text>
+</svg>

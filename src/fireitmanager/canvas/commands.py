@@ -43,6 +43,9 @@ class CenterSceneCommand(CanvasCommand):
 
     def redo(self) -> None:  # noqa: D401 - Qt override
         """Center the scene."""
+        if hasattr(self._view, "_center_target"):
+            self._view.centerOn(self._view._center_target())  # type: ignore[attr-defined]
+            return
         self._view.centerOn(self._view.scene().sceneRect().center())
 
     def undo(self) -> None:  # noqa: D401 - Qt override

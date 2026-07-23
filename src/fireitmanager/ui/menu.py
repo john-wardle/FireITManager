@@ -45,7 +45,7 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
 
     view_menu = menu_bar.actions()[2].menu()
     if view_menu is not None:
-        view_menu.addAction(_create_action("Canvas", window.show_canvas, window))
+        view_menu.addAction(_create_action("Site Map", window.show_canvas, window))
         view_menu.addAction(_create_action("Incident Editor", window.show_incident_editor, window))
         view_menu.addAction(_create_action("Camp Editor", window.show_camp_editor, window))
         view_menu.addAction(_create_action("Asset Editor", window.show_asset_editor, window))

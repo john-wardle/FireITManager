@@ -32,7 +32,7 @@ class CanvasView(QGraphicsView):
         self.setResizeAnchor(QGraphicsView.AnchorViewCenter)
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
-        self.centerOn(scene.sceneRect().center())
+        self.centerOn(self._center_target())
 
     @property
     def zoom_factor(self) -> float:
@@ -90,7 +90,19 @@ class CanvasView(QGraphicsView):
         if record_history:
             self._undo_stack.push(CenterSceneCommand(self))
             return
-        self.centerOn(self.scene().sceneRect().center())
+        self.centerOn(self._center_target())
+
+    def _center_target(self):
+        """Return the best center point for the current scene contents."""
+        if hasattr(self.scene(), "map_content_rect"):
+            map_bounds = self.scene().map_content_rect()  # type: ignore[attr-defined]
+            if map_bounds.isValid() and not map_bounds.isEmpty():
+                return map_bounds.center()
+
+        item_bounds = self.scene().itemsBoundingRect()
+        if item_bounds.isValid() and not item_bounds.isEmpty():
+            return item_bounds.center()
+        return self.scene().sceneRect().center()
 
     def undo(self) -> None:
         """Undo the most recent canvas action."""

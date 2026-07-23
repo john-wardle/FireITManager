@@ -7,7 +7,11 @@
 - Ensure the interface can grow into richer incident planning experiences.
 
 ## Layouts
-- Main workspace uses a central canvas with docked explorer and properties panels.
+- Main workspace uses folder-style navigation with top-level workflow folders and second-level task tabs.
+- Current top-level folders: Incident, Camp Ops, Inventory, Network, Outputs.
+- Docked explorer and properties panels remain visible beside the workspace.
+- Network map workflows live under Network / Site Map and show draggable buildings,
+  device icons, and cable connections from the active incident graph.
 - Menus and toolbars remain persistent at the top of the window.
 - Status information remains visible in the bottom status bar.
 
@@ -31,7 +35,8 @@
 - Help
 
 ## Toolbars
-- Actions include incident creation, open/save actions, and navigation controls.
+- Actions include incident creation, open/save actions, undo/redo, and canvas view controls.
+- Editor navigation belongs in the workspace folder tabs and View menu, not the primary toolbar.
 - Placeholder actions should remain disabled until implemented.
 
 ## Keyboard shortcuts

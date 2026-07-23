@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QPushButton,
     QTabWidget,
+    QToolBar,
     QTreeWidget,
 )
 
@@ -29,8 +30,36 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert window.centralWidget().objectName() == "workspaceTabs"
     workspace_tabs = window.findChild(QTabWidget, "workspaceTabs")
     assert workspace_tabs is not None
-    assert workspace_tabs.count() == 8
+    assert workspace_tabs.count() == 10
+    assert workspace_tabs.folder_count() == 5
+    assert [
+        workspace_tabs.tabText(index) for index in range(workspace_tabs.folder_count())
+    ] == ["Incident", "Camp Ops", "Inventory", "Network", "Outputs"]
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"
+    folder_task_tabs = {
+        task_tabs.objectName(): task_tabs
+        for task_tabs in window.findChildren(QTabWidget)
+    }
+    assert [
+        folder_task_tabs["incidentTaskTabs"].tabText(index)
+        for index in range(folder_task_tabs["incidentTaskTabs"].count())
+    ] == ["Details", "Personnel"]
+    assert [
+        folder_task_tabs["campOpsTaskTabs"].tabText(index)
+        for index in range(folder_task_tabs["campOpsTaskTabs"].count())
+    ] == ["Camps", "Buildings"]
+    assert [
+        folder_task_tabs["inventoryTaskTabs"].tabText(index)
+        for index in range(folder_task_tabs["inventoryTaskTabs"].count())
+    ] == ["Assets", "Devices"]
+    assert [
+        folder_task_tabs["networkTaskTabs"].tabText(index)
+        for index in range(folder_task_tabs["networkTaskTabs"].count())
+    ] == ["Site Map", "Networks"]
+    assert [
+        folder_task_tabs["outputsTaskTabs"].tabText(index)
+        for index in range(folder_task_tabs["outputsTaskTabs"].count())
+    ] == ["Reports", "Validation"]
 
     dock_titles = {dock.windowTitle() for dock in window.findChildren(QDockWidget)}
     assert "Incident Explorer" in dock_titles
@@ -211,7 +240,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["Building Editor"].isEnabled()
     assert actions["Device Editor"].isEnabled()
     assert actions["Network Editor"].isEnabled()
-    assert actions["Canvas"].isEnabled()
+    assert actions["Site Map"].isEnabled()
     assert actions["New Incident"].isEnabled()
     assert actions["Open"].isEnabled()
     assert actions["Save"].isEnabled()
@@ -221,6 +250,21 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["Zoom In"].isEnabled()
     assert actions["Zoom Out"].isEnabled()
     assert actions["Center View"].isEnabled()
+
+    main_toolbar = window.findChild(QToolBar, "mainToolbar")
+    assert main_toolbar is not None
+    toolbar_actions = [action.text() for action in main_toolbar.actions() if action.text()]
+    assert toolbar_actions == [
+        "New Incident",
+        "Open",
+        "Save",
+        "Save As",
+        "Undo",
+        "Redo",
+        "Zoom In",
+        "Zoom Out",
+        "Center View",
+    ]
 
     actions["Camp Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "campEditorWidget"
@@ -234,7 +278,7 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert workspace_tabs.currentWidget().objectName() == "deviceEditorWidget"
     actions["Network Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "networkEditorWidget"
-    actions["Canvas"].trigger()
+    actions["Site Map"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "campCanvas"
     actions["Incident Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"

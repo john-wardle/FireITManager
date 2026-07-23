@@ -1,0 +1,344 @@
+[
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Laptop",
+    "file": "laptop.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Portable workstation"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Desktop Monitor",
+    "file": "desktop_monitor.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Monitor or desktop endpoint"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Workstation Tower",
+    "file": "workstation_tower.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Desktop tower endpoint"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Printer",
+    "file": "printer.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Network printer"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "WiFi Access Point",
+    "file": "wifi_access_point.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Wireless access point"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Router",
+    "file": "router.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Router"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Network Switch",
+    "file": "network_switch.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Switch"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Firewall",
+    "file": "firewall.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Firewall appliance"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Server Tower",
+    "file": "server_tower.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Tower server"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Rack Server",
+    "file": "rack_server.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Rack server"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Server Rack",
+    "file": "server_rack.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Server rack or cabinet"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "VoIP Phone",
+    "file": "voip_phone.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "VoIP handset"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Satellite Dish",
+    "file": "satellite_dish.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Satellite internet terminal"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Antenna Mast",
+    "file": "antenna_mast.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Antenna mast"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Radio Repeater",
+    "file": "radio_repeater.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Radio repeater"
+  },
+  {
+    "category": "Core Network Equipment",
+    "display_name": "Cellular Modem",
+    "file": "cellular_modem.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Cellular modem"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "Ethernet Cable",
+    "file": "ethernet_cable.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Copper network cable"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "Fiber Cable",
+    "file": "fiber_cable.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Fiber network cable"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "Cable Spool",
+    "file": "cable_spool.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Cable spool"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "Patch Panel",
+    "file": "patch_panel.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Patch panel"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "UPS Battery",
+    "file": "ups_battery.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "UPS battery backup"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "Generator",
+    "file": "generator.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Generator"
+  },
+  {
+    "category": "Cabling and Power",
+    "display_name": "Portable Battery",
+    "file": "portable_battery.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Portable power pack"
+  },
+  {
+    "category": "Incident Site Objects",
+    "display_name": "IT Staging Tent",
+    "file": "it_staging_tent.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "IT staging tent"
+  },
+  {
+    "category": "Incident Site Objects",
+    "display_name": "Command Post Trailer",
+    "file": "command_post_trailer.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Command post trailer"
+  },
+  {
+    "category": "Incident Site Objects",
+    "display_name": "Equipment Case",
+    "file": "equipment_case.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Equipment case"
+  },
+  {
+    "category": "Incident Site Objects",
+    "display_name": "Folder",
+    "file": "folder.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Folder or workspace group"
+  },
+  {
+    "category": "Network Diagrams",
+    "display_name": "Connected Computers",
+    "file": "connected_computers.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Two connected endpoints"
+  },
+  {
+    "category": "Network Diagrams",
+    "display_name": "Laptop to Server",
+    "file": "laptop_to_server.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Endpoint connected to server"
+  },
+  {
+    "category": "Incident Site Objects",
+    "display_name": "Command Post",
+    "file": "command_post.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Command post building"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Online Status",
+    "file": "online_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Online state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Offline Status",
+    "file": "offline_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Offline state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Degraded Status",
+    "file": "degraded_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Degraded state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Maintenance Status",
+    "file": "maintenance_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Maintenance state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Unknown Status",
+    "file": "unknown_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Unknown state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Warning Status",
+    "file": "warning_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Warning state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Selected Outline",
+    "file": "selected_outline.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Selection state overlay"
+  },
+  {
+    "category": "Status Overlays",
+    "display_name": "Locked Status",
+    "file": "locked_status.svg",
+    "format": "svg",
+    "size": "512x512",
+    "transparent_background": true,
+    "use": "Locked item overlay"
+  }
+]
