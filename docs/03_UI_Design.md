@@ -12,6 +12,10 @@
 - Docked explorer and properties panels remain visible beside the workspace.
 - Network map workflows live under Network / Site Map and show draggable buildings,
   device icons, and cable connections from the active incident graph.
+- Site Map title text remains pinned to the top of the visible viewport and scales
+  with the current zoom level.
+- Site Map location boxes are resizable. Equipment dropped within a location
+  anchors to it and moves with the location while preserving relative placement.
 - Menus and toolbars remain persistent at the top of the window.
 - Status information remains visible in the bottom status bar.
 
@@ -22,6 +26,9 @@
 ## Dock windows
 - Left dock: Incident Explorer
 - Right dock: Properties
+- The Properties dock shows read-only selection context plus editable fields for
+  concrete incident objects. Apply commits changes back to the active in-memory
+  incident model and refreshes dependent views.
 
 ## Menus
 - File

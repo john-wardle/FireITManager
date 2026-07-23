@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from math import floor
+from pathlib import Path
 
-from PySide6.QtCore import QLineF, QPointF, QRectF, Qt, Signal
+from PySide6.QtCore import QLineF, QPointF, QRectF, QSizeF, Qt, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
+from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (
     QGraphicsItem,
     QGraphicsLineItem,
@@ -37,11 +39,14 @@ class CanvasScene(QGraphicsScene):
     """Scene with a grid background and draggable incident network items."""
 
     site_item_selected = Signal(str, str, str, str, str)
+    site_object_selected = Signal(object)
 
     def __init__(self, incident: Incident | None = None, parent=None) -> None:
         super().__init__(parent)
         self.setSceneRect(SCENE_RECT)
         self._layout_positions: dict[str, QPointF] = {}
+        self._layout_sizes: dict[str, QSizeF] = {}
+        self._layout_anchors: dict[str, str] = {}
         self._device_items: dict[str, SiteMapNodeItem] = {}
         self._building_items: dict[str, SiteMapNodeItem] = {}
         self._connection_items: list[SiteMapCableItem] = []
@@ -58,12 +63,6 @@ class CanvasScene(QGraphicsScene):
         self._device_items = {}
         self._building_items = {}
         self._connection_items = []
-
-        self._add_title(
-            f"Site Map - {incident.summary()}",
-            QPointF(-430.0, -500.0),
-            point_size=22,
-        )
 
         if not incident.camps:
             self._add_centered_text(
@@ -114,6 +113,10 @@ class CanvasScene(QGraphicsScene):
         """Remember a dragged node position for the current session."""
         self._layout_positions[item.layout_key] = item.pos()
 
+    def remember_item_size(self, item: SiteMapNodeItem) -> None:
+        """Remember a resized node size for the current session."""
+        self._layout_sizes[item.layout_key] = QSizeF(item.width, item.height)
+
     def map_content_rect(self) -> QRectF:
         """Return the bounds of the draggable site-map content."""
         bounds: QRectF | None = None
@@ -128,9 +131,69 @@ class CanvasScene(QGraphicsScene):
     def refresh_connections_for_item(self, item: SiteMapNodeItem) -> None:
         """Update all cable lines attached to a moved map item."""
         self.remember_item_position(item)
+        if item.kind == "building":
+            self.refresh_all_connections()
+            return
+
         for connection in self._connection_items:
             if connection.source_item is item or connection.destination_item is item:
                 connection.refresh()
+
+    def refresh_all_connections(self) -> None:
+        """Update every cable line in the scene."""
+        for connection in self._connection_items:
+            connection.refresh()
+
+    def anchor_item_to_container(self, item: SiteMapNodeItem) -> None:
+        """Anchor a non-location item to the location containing its center point."""
+        if item.kind == "building":
+            return
+
+        center = item.sceneBoundingRect().center()
+        for building in self._building_items.values():
+            if building.sceneBoundingRect().contains(center):
+                self._anchor_item_to_building(item, building)
+                return
+
+        self.detach_item_from_container(item)
+
+    def anchor_items_inside(self, building: SiteMapNodeItem) -> None:
+        """Anchor all top-level equipment nodes currently inside a location box."""
+        if building.kind != "building":
+            return
+
+        for item in self._device_items.values():
+            if item is building or item.parentItem() is building:
+                continue
+            if building.sceneBoundingRect().contains(item.sceneBoundingRect().center()):
+                self._anchor_item_to_building(item, building)
+
+    def detach_item_from_container(self, item: SiteMapNodeItem) -> None:
+        """Detach an item from its parent location while preserving scene position."""
+        if item.kind == "building" or item.parentItem() is None:
+            return
+
+        scene_pos = item.scenePos()
+        item.setParentItem(None)
+        item.setPos(scene_pos)
+        item.setZValue(Z_DEVICE)
+        self._layout_anchors.pop(item.layout_key, None)
+        self.remember_item_position(item)
+        self.refresh_connections_for_item(item)
+
+    def _anchor_item_to_building(
+        self,
+        item: SiteMapNodeItem,
+        building: SiteMapNodeItem,
+    ) -> None:
+        """Parent an equipment node to a building while preserving its scene position."""
+        scene_pos = item.scenePos()
+        item.setParentItem(building)
+        item.setPos(building.mapFromScene(scene_pos))
+        item.setZValue(Z_DEVICE)
+        self._layout_anchors[item.layout_key] = building.layout_key
+        self.remember_item_position(item)
+        self.refresh_connections_for_item(item)
 
     def _build_empty_state(self) -> None:
         """Create the centered card shown before data is loaded."""
@@ -186,6 +249,7 @@ class CanvasScene(QGraphicsScene):
 
     def _add_building(self, building: Building, camp_name: str, position: QPointF) -> None:
         layout_key = f"building:{building.building_id}"
+        size = self._size_for(layout_key, QSizeF(320.0, 210.0))
         item = SiteMapNodeItem(
             layout_key=layout_key,
             label=building.name,
@@ -196,9 +260,12 @@ class CanvasScene(QGraphicsScene):
                 f"Type: {building.building_type.value}\n"
                 f"Devices: {len(building.devices)}"
             ),
-            width=320.0,
-            height=210.0,
+            width=size.width(),
+            height=size.height(),
             accent=QColor("#d6b25f"),
+            icon_name=_building_icon_name(building),
+            resizable=True,
+            target=building,
         )
         item.setPos(self._position_for(layout_key, position))
         item.setZValue(Z_BUILDING)
@@ -212,7 +279,7 @@ class CanvasScene(QGraphicsScene):
                 position.x() + 30.0 + (column * 142.0),
                 position.y() + 76.0 + (row * 96.0),
             )
-            self._add_device(device, camp_name, building.name, device_position)
+            self._add_device(device, camp_name, building.name, device_position, item)
 
     def _add_device(
         self,
@@ -220,6 +287,7 @@ class CanvasScene(QGraphicsScene):
         camp_name: str,
         building_name: str,
         position: QPointF,
+        building_item: SiteMapNodeItem | None = None,
     ) -> None:
         layout_key = f"device:{device.device_id}"
         details = [
@@ -246,10 +314,20 @@ class CanvasScene(QGraphicsScene):
             accent=_device_accent(device.device_type),
             device_type=device.device_type,
             status=device.status,
+            icon_name=_device_icon_name(device.device_type),
+            target=device,
         )
-        item.setPos(self._position_for(layout_key, position))
         item.setZValue(Z_DEVICE)
-        self.addItem(item)
+
+        if building_item is not None:
+            self._layout_anchors.setdefault(layout_key, building_item.layout_key)
+            item.setParentItem(building_item)
+            local_position = building_item.mapFromScene(position)
+            item.setPos(self._position_for(layout_key, local_position))
+        else:
+            item.setPos(self._position_for(layout_key, position))
+            self.addItem(item)
+
         self._device_items[str(device.device_id)] = item
 
     def _add_cable(self, cable: Cable, network_name: str) -> None:
@@ -301,9 +379,9 @@ class CanvasScene(QGraphicsScene):
 
         labels = [
             "Site Map Controls",
-            "Drag devices/buildings to arrange the map.",
-            "Click an item to inspect it in Properties.",
-            "Cable lines follow connected devices.",
+            "Drag equipment into a location to anchor it.",
+            "Resize locations from the bottom-right handle.",
+            "Move a location to carry anchored equipment.",
         ]
         for index, text in enumerate(labels):
             label = self.addText(text)
@@ -323,6 +401,13 @@ class CanvasScene(QGraphicsScene):
             self._layout_positions[layout_key] = QPointF(fallback)
             return fallback
         return QPointF(position)
+
+    def _size_for(self, layout_key: str, fallback: QSizeF) -> QSizeF:
+        size = self._layout_sizes.get(layout_key)
+        if size is None:
+            self._layout_sizes[layout_key] = QSizeF(fallback)
+            return fallback
+        return QSizeF(size)
 
     def _add_title(self, text: str, position: QPointF, *, point_size: int) -> None:
         title = self.addText(text)
@@ -359,7 +444,9 @@ class CanvasScene(QGraphicsScene):
         for item in self.selectedItems():
             if isinstance(item, SiteMapNodeItem):
                 self.site_item_selected.emit(*item.site_details())
+                self.site_object_selected.emit(item.target)
                 return
+        self.site_object_selected.emit(None)
 
     def drawBackground(self, painter: QPainter, rect: QRectF) -> None:
         """Draw the grid background for the visible scene area."""
@@ -406,6 +493,9 @@ class SiteMapNodeItem(QGraphicsObject):
         accent: QColor,
         device_type: DeviceType | None = None,
         status: DeviceStatus | None = None,
+        icon_name: str | None = None,
+        resizable: bool = False,
+        target: object | None = None,
     ) -> None:
         super().__init__()
         self.layout_key = layout_key
@@ -419,6 +509,14 @@ class SiteMapNodeItem(QGraphicsObject):
         self.accent = accent
         self.device_type = device_type
         self.status = status
+        self.icon_name = icon_name
+        self.icon_renderer = _load_icon_renderer(icon_name)
+        self.resizable = resizable
+        self.target = target
+        self._is_resizing = False
+        self._resize_start_scene_pos = QPointF()
+        self._resize_start_size = QSizeF(width, height)
+        self._min_size = QSizeF(260.0, 170.0) if resizable else QSizeF(width, height)
         self.setFlags(
             QGraphicsItem.ItemIsMovable
             | QGraphicsItem.ItemIsSelectable
@@ -444,13 +542,83 @@ class SiteMapNodeItem(QGraphicsObject):
                 scene.refresh_connections_for_item(self)
         return super().itemChange(change, value)
 
+    def resize_to(self, width: float, height: float) -> None:
+        """Resize the node, respecting its minimum dimensions."""
+        if not self.resizable:
+            return
+
+        new_width = max(self._min_size.width(), width)
+        new_height = max(self._min_size.height(), height)
+        if new_width == self.width and new_height == self.height:
+            return
+
+        self.prepareGeometryChange()
+        self.width = new_width
+        self.height = new_height
+        scene = self.scene()
+        if hasattr(scene, "remember_item_size"):
+            scene.remember_item_size(self)
+        if hasattr(scene, "refresh_connections_for_item"):
+            scene.refresh_connections_for_item(self)
+        self.update()
+
+    def resize_handle_rect(self) -> QRectF:
+        """Return the bottom-right resize handle bounds."""
+        return QRectF(self.width - 28.0, self.height - 28.0, 20.0, 20.0)
+
     def hoverEnterEvent(self, event) -> None:  # noqa: N802 - Qt API name
         self.setCursor(Qt.ClosedHandCursor)
         super().hoverEnterEvent(event)
 
+    def hoverMoveEvent(self, event) -> None:  # noqa: N802 - Qt API name
+        if self.resizable and self.resize_handle_rect().contains(event.pos()):
+            self.setCursor(Qt.SizeFDiagCursor)
+        else:
+            self.setCursor(Qt.ClosedHandCursor)
+        super().hoverMoveEvent(event)
+
     def hoverLeaveEvent(self, event) -> None:  # noqa: N802 - Qt API name
         self.setCursor(Qt.OpenHandCursor)
         super().hoverLeaveEvent(event)
+
+    def mousePressEvent(self, event) -> None:  # noqa: N802 - Qt API name
+        if self.resizable and self.resize_handle_rect().contains(event.pos()):
+            self._is_resizing = True
+            self._resize_start_scene_pos = event.scenePos()
+            self._resize_start_size = QSizeF(self.width, self.height)
+            self.setSelected(True)
+            self.setCursor(Qt.SizeFDiagCursor)
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event) -> None:  # noqa: N802 - Qt API name
+        if self._is_resizing:
+            delta = event.scenePos() - self._resize_start_scene_pos
+            self.resize_to(
+                self._resize_start_size.width() + delta.x(),
+                self._resize_start_size.height() + delta.y(),
+            )
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event) -> None:  # noqa: N802 - Qt API name
+        if self._is_resizing:
+            self._is_resizing = False
+            scene = self.scene()
+            if hasattr(scene, "anchor_items_inside"):
+                scene.anchor_items_inside(self)
+            self.setCursor(Qt.OpenHandCursor)
+            event.accept()
+            return
+
+        super().mouseReleaseEvent(event)
+        scene = self.scene()
+        if self.kind == "building" and hasattr(scene, "anchor_items_inside"):
+            scene.anchor_items_inside(self)
+        elif hasattr(scene, "anchor_item_to_container"):
+            scene.anchor_item_to_container(self)
 
     def paint(
         self,
@@ -501,10 +669,18 @@ class SiteMapNodeItem(QGraphicsObject):
         painter.setFont(font)
         painter.setPen(QColor("#5f5138"))
         painter.drawText(
-            QRectF(14.0, 58.0, bounds.width() - 28.0, 58.0),
+            QRectF(14.0, 58.0, bounds.width() - 96.0, 58.0),
             Qt.TextWordWrap,
             self.details,
         )
+
+        icon_rect = QRectF(bounds.width() - 82.0, 62.0, 56.0, 56.0)
+        if not self._paint_svg_icon(painter, icon_rect):
+            painter.setBrush(QColor("#fff8e6"))
+            painter.setPen(QPen(QColor("#9e7e3f"), 2.0))
+            painter.drawRoundedRect(icon_rect, 8.0, 8.0)
+
+        self._paint_resize_handle(painter)
 
     def _paint_device(self, painter: QPainter) -> None:
         bounds = self.boundingRect()
@@ -519,8 +695,9 @@ class SiteMapNodeItem(QGraphicsObject):
         painter.setPen(QPen(border, 2.0 if self.isSelected() else 1.0))
         painter.drawRoundedRect(bounds, 7.0, 7.0)
 
-        icon_rect = QRectF(11.0, 12.0, 38.0, 38.0)
-        self._paint_device_icon(painter, icon_rect)
+        icon_rect = QRectF(8.0, 16.0, 48.0, 48.0)
+        if not self._paint_svg_icon(painter, icon_rect):
+            self._paint_device_icon(painter, icon_rect)
 
         painter.setPen(QColor("#1f2937"))
         font = painter.font()
@@ -528,7 +705,7 @@ class SiteMapNodeItem(QGraphicsObject):
         font.setBold(True)
         painter.setFont(font)
         painter.drawText(
-            QRectF(56.0, 12.0, bounds.width() - 66.0, 32.0),
+            QRectF(64.0, 12.0, bounds.width() - 74.0, 32.0),
             Qt.TextWordWrap,
             self.label,
         )
@@ -538,7 +715,7 @@ class SiteMapNodeItem(QGraphicsObject):
         painter.setFont(font)
         painter.setPen(QColor("#475569"))
         painter.drawText(
-            QRectF(56.0, 49.0, bounds.width() - 66.0, 18.0),
+            QRectF(64.0, 49.0, bounds.width() - 74.0, 18.0),
             self.device_type.value if self.device_type is not None else "device",
         )
 
@@ -601,6 +778,36 @@ class SiteMapNodeItem(QGraphicsObject):
             diamond.closeSubpath()
             painter.drawPath(diamond)
 
+    def _paint_svg_icon(self, painter: QPainter, rect: QRectF) -> bool:
+        if self.icon_renderer is None or not self.icon_renderer.isValid():
+            return False
+
+        painter.save()
+        self.icon_renderer.render(painter, rect)
+        painter.restore()
+        return True
+
+    def _paint_resize_handle(self, painter: QPainter) -> None:
+        if not self.resizable:
+            return
+
+        handle = self.resize_handle_rect()
+        painter.setPen(QPen(QColor("#8c6c31"), 1.4))
+        painter.setBrush(QColor("#f8e6b5"))
+        painter.drawRoundedRect(handle, 4.0, 4.0)
+        painter.drawLine(
+            handle.left() + 5.0,
+            handle.bottom() - 4.0,
+            handle.right() - 4.0,
+            handle.top() + 5.0,
+        )
+        painter.drawLine(
+            handle.left() + 10.0,
+            handle.bottom() - 4.0,
+            handle.right() - 4.0,
+            handle.top() + 10.0,
+        )
+
 
 class SiteMapCableItem(QGraphicsLineItem):
     """Cable line that follows two draggable site-map nodes."""
@@ -647,6 +854,46 @@ def _device_accent(device_type: DeviceType) -> QColor:
         DeviceType.OTHER: QColor("#64748b"),
     }
     return colors.get(device_type, QColor("#64748b"))
+
+
+def _device_icon_name(device_type: DeviceType) -> str:
+    icons = {
+        DeviceType.ROUTER: "router.svg",
+        DeviceType.SWITCH: "network_switch.svg",
+        DeviceType.ACCESS_POINT: "wifi_access_point.svg",
+        DeviceType.SERVER: "server_tower.svg",
+        DeviceType.WORKSTATION: "laptop.svg",
+        DeviceType.PHONE: "voip_phone.svg",
+        DeviceType.OTHER: "workstation_tower.svg",
+    }
+    return icons.get(device_type, "workstation_tower.svg")
+
+
+def _building_icon_name(building: Building) -> str:
+    name = building.name.lower()
+    if "tent" in name or "staging" in name:
+        return "it_staging_tent.svg"
+    if "trailer" in name:
+        return "command_post_trailer.svg"
+    return "command_post.svg"
+
+
+def _load_icon_renderer(icon_name: str | None) -> QSvgRenderer | None:
+    if icon_name is None:
+        return None
+    icon_path = _icon_path(icon_name)
+    if icon_path is None:
+        return None
+    renderer = QSvgRenderer(str(icon_path))
+    return renderer if renderer.isValid() else None
+
+
+def _icon_path(icon_name: str) -> Path | None:
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "assets" / "icons" / "topology" / icon_name
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def _status_color(status: DeviceStatus | None) -> QColor:

@@ -19,6 +19,7 @@ class IncidentExplorerWidget(QWidget):
     """Simple tree-based explorer for incident workspace structure."""
 
     selection_changed = Signal(str, str, str, str, str)
+    selection_target_changed = Signal(object)
 
     def __init__(self, snapshot: WorkspaceSnapshot, parent=None) -> None:
         super().__init__(parent)
@@ -103,3 +104,32 @@ class IncidentExplorerWidget(QWidget):
             data.description,
             "\n".join(f"{key}: {value}" for key, value in data.details.items()),
         )
+        self.selection_target_changed.emit(data.target)
+
+    def select_target(self, target: object) -> bool:
+        """Select the tree item backed by the given model object."""
+        top_level = self.tree.topLevelItem(0)
+        if top_level is None:
+            return False
+
+        item = self._find_item_by_target(top_level, target)
+        if item is None:
+            return False
+
+        self.tree.setCurrentItem(item)
+        return True
+
+    def _find_item_by_target(
+        self,
+        item: QTreeWidgetItem,
+        target: object,
+    ) -> QTreeWidgetItem | None:
+        node = item.data(0, Qt.UserRole)
+        if isinstance(node, WorkspaceNode) and node.target is target:
+            return item
+
+        for index in range(item.childCount()):
+            match = self._find_item_by_target(item.child(index), target)
+            if match is not None:
+                return match
+        return None

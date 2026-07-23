@@ -192,9 +192,14 @@ class FireITMainWindow(QMainWindow):
             self.properties_widget, PropertiesWidget
         ):
             self.explorer_widget.selection_changed.connect(self.properties_widget.set_details)
+            self.explorer_widget.selection_target_changed.connect(
+                self.properties_widget.set_target
+            )
             self.explorer_widget.selection_changed.connect(self._update_selection_status)
             self.canvas.site_item_selected.connect(self.properties_widget.set_details)
+            self.canvas.site_object_selected.connect(self.properties_widget.set_target)
             self.canvas.site_item_selected.connect(self._update_selection_status)
+            self.properties_widget.object_updated.connect(self._handle_properties_updated)
             self.explorer_widget.tree.itemDoubleClicked.connect(self._activate_editor_for_item)
             self._sync_current_selection()
         self.canvas.zoom_changed.connect(self._update_zoom_status)
@@ -450,6 +455,7 @@ class FireITMainWindow(QMainWindow):
             node.description,
             details,
         )
+        self.properties_widget.set_target(node.target)
         self._update_selection_status(
             node.label,
             node.kind,
@@ -469,6 +475,14 @@ class FireITMainWindow(QMainWindow):
         if not isinstance(incident, type(self.workspace_snapshot.incident)):
             return
         self._reset_workspace(incident)
+
+    def _handle_properties_updated(self, target: object) -> None:
+        """Refresh workspace views after direct edits in the properties pane."""
+        self.workspace_snapshot.incident.touch()
+        self._sync_workspace(self.workspace_snapshot.incident, preserve_messages=True)
+        if isinstance(self.explorer_widget, IncidentExplorerWidget):
+            self.explorer_widget.select_target(target)
+        self.ready_label.setText(f"Updated {self._target_label(target)} from Properties.")
 
     def _reset_workspace(self, incident: Incident) -> None:
         """Bind the workspace widgets to a new incident model and reset messages."""
@@ -545,3 +559,11 @@ class FireITMainWindow(QMainWindow):
         editor = tab_map.get(node.kind)
         if editor is not None:
             self.workspace_tabs.setCurrentWidget(editor)
+
+    def _target_label(self, target: object) -> str:
+        """Return a concise display label for an edited object."""
+        for attribute in ("name", "hostname"):
+            value = getattr(target, attribute, "")
+            if value:
+                return str(value)
+        return target.__class__.__name__

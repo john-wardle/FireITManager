@@ -4,6 +4,8 @@
 - Create and manage incident records
 - Link incidents to camps, assets, and personnel
 - Track incident status and operational context
+- Edit selected incident objects directly from the Properties pane when a concrete
+  object is selected.
 
 ## Inventory
 - Track equipment, supplies, and consumables
@@ -13,7 +15,8 @@
 ## Networking
 - Model incident network topology
 - Represent devices, cables, and their relationships
-- Support future visualization and troubleshooting workflows
+- Visualize topology with draggable devices, resizable location boxes, anchored
+  equipment, cable connections, and a pinned site-map title.
 
 ## Reports
 - Produce incident summaries and operational reports

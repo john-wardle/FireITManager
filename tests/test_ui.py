@@ -460,3 +460,70 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
 
     window.close()
     app.quit()
+
+
+def test_properties_pane_applies_edits_to_selected_objects() -> None:
+    app = QApplication.instance() or QApplication([])
+    window = FireITMainWindow()
+
+    explorer_tree = window.findChild(QTreeWidget, "incidentExplorerTree")
+    assert explorer_tree is not None
+    root = explorer_tree.topLevelItem(0)
+    assert root is not None
+    camp_item = root.child(1).child(0)
+    building_item = camp_item.child(0)
+    explorer_tree.setCurrentItem(building_item)
+
+    properties_name = window.findChild(QLineEdit, "propertiesEditNameInput")
+    properties_building_type = window.findChild(QComboBox, "propertiesEditBuildingTypeInput")
+    properties_apply = window.findChild(QPushButton, "applyPropertiesButton")
+    assert properties_name is not None
+    assert properties_building_type is not None
+    assert properties_apply is not None
+    assert properties_apply.isEnabled()
+
+    properties_name.setText("Properties Staging")
+    properties_building_type.setCurrentIndex(
+        properties_building_type.findText(BuildingType.OPERATIONS.value)
+    )
+    properties_apply.click()
+
+    assert window.workspace_snapshot.incident.camps[0].buildings[0].name == "Properties Staging"
+    assert window.workspace_snapshot.incident.camps[0].buildings[0].building_type == BuildingType.OPERATIONS
+    assert window.findChild(QLabel, "buildingEditorSummary").text() == (
+        "Editing Properties Staging (operations) for Pine Gulch Incident (CA-INC-2026-041)"
+    )
+    assert window.findChild(QLabel, "readyStatusLabel").text() == (
+        "Updated Properties Staging from Properties."
+    )
+
+    explorer_tree = window.findChild(QTreeWidget, "incidentExplorerTree")
+    assert explorer_tree is not None
+    building_item = explorer_tree.topLevelItem(0).child(1).child(0).child(0)
+    assert building_item.text(0) == "Properties Staging"
+    device_item = building_item.child(0)
+    explorer_tree.setCurrentItem(device_item)
+
+    properties_hostname = window.findChild(QLineEdit, "propertiesEditHostnameInput")
+    properties_status = window.findChild(QComboBox, "propertiesEditStatusInput")
+    properties_apply = window.findChild(QPushButton, "applyPropertiesButton")
+    assert properties_hostname is not None
+    assert properties_status is not None
+    assert properties_apply is not None
+
+    properties_hostname.setText("properties-router-01")
+    properties_status.setCurrentIndex(properties_status.findText(DeviceStatus.DEGRADED.value))
+    properties_apply.click()
+
+    device = window.workspace_snapshot.incident.camps[0].buildings[0].devices[0]
+    assert device.hostname == "properties-router-01"
+    assert device.status == DeviceStatus.DEGRADED
+    assert window.findChild(QLabel, "deviceEditorSummary").text() == (
+        "Editing properties-router-01 for Pine Gulch Incident (CA-INC-2026-041)"
+    )
+    assert window.findChild(QLabel, "readyStatusLabel").text() == (
+        "Updated properties-router-01 from Properties."
+    )
+
+    window.close()
+    app.quit()

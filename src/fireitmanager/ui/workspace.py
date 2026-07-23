@@ -25,6 +25,7 @@ class WorkspaceNode:
     description: str
     details: dict[str, str] = field(default_factory=dict)
     children: list["WorkspaceNode"] = field(default_factory=list)
+    target: object | None = None
 
 
 @dataclass(slots=True)
@@ -72,6 +73,7 @@ def _build_incident_node(incident: Incident) -> WorkspaceNode:
             "Personnel": str(len(incident.personnel)),
             "Assets": str(len(incident.assets)),
         },
+        target=incident,
     )
 
 
@@ -102,6 +104,7 @@ def _build_camp_node(camp: Camp, index: int) -> WorkspaceNode:
             "Networks": str(len(camp.networks)),
         },
         children=building_nodes + network_nodes,
+        target=camp,
     )
 
 
@@ -132,6 +135,7 @@ def _build_building_node(building: Building, camp_path: str) -> WorkspaceNode:
             "Longitude": longitude,
         },
         children=device_nodes,
+        target=building,
     )
 
 
@@ -146,6 +150,7 @@ def _build_device_node(device: Device, building_path: str) -> WorkspaceNode:
             "Model": device.model,
             "Status": device.status.value,
         },
+        target=device,
     )
 
 
@@ -180,6 +185,7 @@ def _build_network_node(network: Network, camp_path: str) -> WorkspaceNode:
                     cable.destination_device.hostname if cable.destination_device else "Unassigned"
                 ),
             },
+            target=cable,
         )
         for index, cable in enumerate(network.cables, start=1)
     ]
@@ -193,6 +199,7 @@ def _build_network_node(network: Network, camp_path: str) -> WorkspaceNode:
             "Cables": str(len(network.cables)),
         },
         children=cable_nodes,
+        target=network,
     )
 
 
@@ -217,6 +224,7 @@ def _build_assets_node(incident: Incident) -> WorkspaceNode:
                         asset.assigned_person.name if asset.assigned_person is not None else "Unassigned"
                     ),
                 },
+                target=asset,
             )
             for asset in incident.assets
         ],
@@ -241,6 +249,7 @@ def _build_personnel_node(incident: Incident) -> WorkspaceNode:
                     "Agency": person.agency,
                     "Assigned Devices": str(len(person.assigned_devices)),
                 },
+                target=person,
             )
             for person in incident.personnel
         ],

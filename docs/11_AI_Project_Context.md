@@ -31,12 +31,17 @@ Completed
 - Toolbar
 - Dock panels
 - Domain models
+- Folder-style workspace navigation
+- Incident, camp, asset, person, building, device, network, persistence, reports,
+  and validation workflows
+- Site Map canvas with SVG topology icons, draggable devices, cable lines,
+  resizable location boxes, and anchored equipment
+- Direct Properties pane editing for selected concrete objects
 
 Next
-- Canvas engine
-- Inventory workflows
-- Network topology
-- Reporting
+- Persisting user-customized Site Map layout data beyond the current session
+- Deeper network topology editing on the Site Map
+- Expanded inventory and reporting workflows
 
 ## Architecture guidance
 - Use PySide6 for UI components.

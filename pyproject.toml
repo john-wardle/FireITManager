@@ -16,3 +16,6 @@ dependencies = [
     "PySide6>=6.9",
     "networkx>=3.5"
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
