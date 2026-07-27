@@ -18,6 +18,7 @@ FireIT Manager.
 - [Deployment](10_Deployment.md)
 - [AI Project Context](11_AI_Project_Context.md)
 - [Principles](11_Principles.md)
+- [ITSS Live Incident Network Checklist](12_ITSS_Live_Incident_Network_Checklist.md)
 
 ## Architecture Decisions
 
