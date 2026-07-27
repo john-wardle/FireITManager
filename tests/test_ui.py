@@ -234,21 +234,75 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert selection_label.text() == "Selected: Workspace (workspace)"
     assert operational_label.text() == "OP: Operational Period 1"
 
+    menu_bar = window.menuBar()
+    assert [
+        action.text()
+        for action in menu_bar.actions()
+    ] == [
+        "File",
+        "Edit",
+        "View",
+        "Incident",
+        "Camp Ops",
+        "Inventory",
+        "Network",
+        "Outputs",
+        "Help",
+    ]
+    menu_actions = {
+        action.text(): [
+            child_action.text()
+            for child_action in action.menu().actions()
+            if child_action.text()
+        ]
+        for action in menu_bar.actions()
+        if action.menu() is not None
+    }
+    assert menu_actions["File"] == [
+        "New Incident",
+        "Open",
+        "Save",
+        "Save As",
+        "Recent Files",
+    ]
+    assert menu_actions["Edit"] == [
+        "Undo",
+        "Redo",
+        "Cut",
+        "Copy",
+        "Paste",
+        "Delete",
+        "Select All",
+    ]
+    assert menu_actions["View"] == ["Zoom In", "Zoom Out", "Center View"]
+    assert menu_actions["Incident"] == ["Details", "Personnel"]
+    assert menu_actions["Camp Ops"] == ["Camps", "Buildings"]
+    assert menu_actions["Inventory"] == ["Assets", "Devices"]
+    assert menu_actions["Network"] == ["Site Map", "Networks"]
+    assert menu_actions["Outputs"] == ["Reports", "Validation"]
+    assert menu_actions["Help"] == ["About"]
+
     actions = {action.text(): action for action in window.findChildren(QAction)}
-    assert actions["Incident Editor"].isEnabled()
-    assert actions["Camp Editor"].isEnabled()
-    assert actions["Asset Editor"].isEnabled()
-    assert actions["Person Editor"].isEnabled()
-    assert actions["Building Editor"].isEnabled()
-    assert actions["Device Editor"].isEnabled()
-    assert actions["Network Editor"].isEnabled()
+    assert actions["Details"].isEnabled()
+    assert actions["Camps"].isEnabled()
+    assert actions["Assets"].isEnabled()
+    assert actions["Personnel"].isEnabled()
+    assert actions["Buildings"].isEnabled()
+    assert actions["Devices"].isEnabled()
+    assert actions["Networks"].isEnabled()
     assert actions["Site Map"].isEnabled()
     assert actions["New Incident"].isEnabled()
     assert actions["Open"].isEnabled()
     assert actions["Save"].isEnabled()
     assert actions["Save As"].isEnabled()
-    assert actions["Validate Workspace"].isEnabled()
+    assert actions["Reports"].isEnabled()
+    assert actions["Validation"].isEnabled()
     assert actions["About"].isEnabled()
+    assert actions["Cut"].isEnabled()
+    assert actions["Copy"].isEnabled()
+    assert actions["Paste"].isEnabled()
+    assert actions["Delete"].isEnabled()
+    assert actions["Select All"].isEnabled()
     main_toolbar = window.findChild(QToolBar, "mainToolbar")
     assert main_toolbar is None
 
@@ -271,27 +325,51 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert canvas_buttons["zoomOutButton"].text() == "Zoom Out"
     assert canvas_buttons["centerViewButton"].text() == "Center View"
 
-    actions["Camp Editor"].trigger()
+    editor_name.setText("Clipboard Source")
+    editor_name.setFocus()
+    app.processEvents()
+    editor_name.selectAll()
+    actions["Copy"].trigger()
+    assert QApplication.clipboard().text() == "Clipboard Source"
+    editor_name.setText("")
+    actions["Paste"].trigger()
+    assert editor_name.text() == "Clipboard Source"
+    actions["Select All"].trigger()
+    assert editor_name.selectedText() == "Clipboard Source"
+    actions["Cut"].trigger()
+    assert editor_name.text() == ""
+    assert QApplication.clipboard().text() == "Clipboard Source"
+    editor_name.setText("Delete Source")
+    editor_name.setSelection(0, 7)
+    actions["Delete"].trigger()
+    assert editor_name.text() == "Source"
+    editor_name.setText("Pine Gulch Incident")
+
+    actions["Camps"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "campEditorWidget"
-    actions["Asset Editor"].trigger()
+    actions["Assets"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "assetEditorWidget"
-    actions["Person Editor"].trigger()
+    actions["Personnel"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "personEditorWidget"
-    actions["Building Editor"].trigger()
+    actions["Buildings"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "buildingEditorWidget"
-    actions["Device Editor"].trigger()
+    actions["Devices"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "deviceEditorWidget"
-    actions["Network Editor"].trigger()
+    actions["Networks"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "networkEditorWidget"
     actions["Site Map"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "canvasWithControlsWidget"
-    actions["Incident Editor"].trigger()
+    actions["Details"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"
+    actions["Reports"].trigger()
+    assert workspace_tabs.currentWidget().objectName() == "reportsPage"
+    actions["Validation"].trigger()
+    assert workspace_tabs.currentWidget().objectName() == "validationPage"
     actions["About"].trigger()
     assert window.findChild(QLabel, "readyStatusLabel").text().startswith("FireIT Manager ")
 
     current_zoom = window.canvas.zoom_factor
-    canvas_buttons["zoomInButton"].click()
+    actions["Zoom In"].trigger()
     assert window.canvas.zoom_factor > current_zoom
     assert zoom_label.text() == "Zoom: 115%"
 

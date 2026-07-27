@@ -231,6 +231,42 @@ class FireITMainWindow(QMainWindow):
         """Switch the workspace to the network editor tab."""
         self.workspace_tabs.setCurrentWidget(self.network_editor)
 
+    def show_reports_page(self) -> None:
+        """Switch the workspace to the reports tab."""
+        self.workspace_tabs.setCurrentWidget(self.reports_page)
+
+    def show_validation_page(self) -> None:
+        """Switch the workspace to the validation tab."""
+        self.workspace_tabs.setCurrentWidget(self.validation_page)
+
+    def edit_undo(self) -> None:
+        """Undo in the focused editor, falling back to the site map canvas."""
+        self._dispatch_edit_operation("undo", fallback=self.canvas.undo)
+
+    def edit_redo(self) -> None:
+        """Redo in the focused editor, falling back to the site map canvas."""
+        self._dispatch_edit_operation("redo", fallback=self.canvas.redo)
+
+    def edit_cut(self) -> None:
+        """Cut selected text from the focused editor."""
+        self._dispatch_edit_operation("cut")
+
+    def edit_copy(self) -> None:
+        """Copy selected text from the focused editor."""
+        self._dispatch_edit_operation("copy")
+
+    def edit_paste(self) -> None:
+        """Paste clipboard text into the focused editor."""
+        self._dispatch_edit_operation("paste")
+
+    def edit_delete(self) -> None:
+        """Delete selected text from the focused editor."""
+        self._dispatch_edit_operation("delete")
+
+    def edit_select_all(self) -> None:
+        """Select all text in the focused editor."""
+        self._dispatch_edit_operation("select_all")
+
     def create_new_incident(self) -> None:
         """Start a new incident record for manual entry."""
         self.incident_editor.create_new_incident()
@@ -320,6 +356,55 @@ class FireITMainWindow(QMainWindow):
         except PackageNotFoundError:
             package_version = "unknown"
         self.ready_label.setText(f"FireIT Manager {package_version}")
+
+    def _dispatch_edit_operation(self, operation: str, *, fallback=None) -> None:
+        """Run a standard edit operation against the focused widget."""
+        widget = self.focusWidget()
+        callback = self._edit_operation_callback(widget, operation)
+        if callback is not None:
+            callback()
+            return
+        if fallback is not None:
+            fallback()
+
+    def _edit_operation_callback(self, widget, operation: str):
+        """Return a callable for a supported edit operation on ``widget``."""
+        if widget is None:
+            return None
+
+        method_names = {
+            "undo": "undo",
+            "redo": "redo",
+            "cut": "cut",
+            "copy": "copy",
+            "paste": "paste",
+            "select_all": "selectAll",
+        }
+        method_name = method_names.get(operation)
+        if method_name is not None:
+            callback = getattr(widget, method_name, None)
+            if callable(callback):
+                return callback
+
+        if operation == "delete":
+            delete_callback = getattr(widget, "del_", None)
+            if callable(delete_callback):
+                return delete_callback
+
+            text_cursor = getattr(widget, "textCursor", None)
+            set_text_cursor = getattr(widget, "setTextCursor", None)
+            if callable(text_cursor) and callable(set_text_cursor):
+                def delete_text_cursor_selection() -> None:
+                    cursor = text_cursor()
+                    if cursor.hasSelection():
+                        cursor.removeSelectedText()
+                    else:
+                        cursor.deleteChar()
+                    set_text_cursor(cursor)
+
+                return delete_text_cursor_selection
+
+        return None
 
     def _prompt_for_load_path(self) -> Path | None:
         """Show a file picker for incident files."""

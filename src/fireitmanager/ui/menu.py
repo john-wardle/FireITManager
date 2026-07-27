@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu
 
 
@@ -15,82 +15,94 @@ def create_menu_bar(window: QMainWindow) -> QMenuBar:
         "Edit",
         "View",
         "Incident",
-        "Network",
+        "Camp Ops",
         "Inventory",
-        "Reports",
-        "Tools",
+        "Network",
+        "Outputs",
         "Help",
     ]
 
+    menus: dict[str, QMenu] = {}
     for name in menu_names:
-        menu_bar.addMenu(QMenu(name, window))
+        menu = QMenu(name, window)
+        menus[name] = menu
+        menu_bar.addMenu(menu)
 
-    file_menu = menu_bar.actions()[0].menu()
-    if file_menu is not None:
-        file_menu.addAction(_create_action("New Incident", window.create_new_incident, window))
-        file_menu.addAction(_create_action("Open", window.load_workspace, window))
-        file_menu.addAction(_create_action("Save", window.save_workspace, window))
-        file_menu.addAction(
-            _create_action("Save As", lambda checked=False: window.save_workspace_as(), window)
+    file_menu = menus["File"]
+    file_menu.addAction(
+        _create_action("New Incident", window.create_new_incident, window, "Ctrl+N")
+    )
+    file_menu.addAction(_create_action("Open", window.load_workspace, window, "Ctrl+O"))
+    file_menu.addAction(_create_action("Save", window.save_workspace, window, "Ctrl+S"))
+    file_menu.addAction(
+        _create_action(
+            "Save As",
+            lambda checked=False: window.save_workspace_as(),
+            window,
+            "Ctrl+Shift+S",
         )
-        recent_menu = file_menu.addMenu("Recent Files")
-        recent_menu.setObjectName("recentFilesMenu")
-        if hasattr(window, "_register_recent_files_menu"):
-            window._register_recent_files_menu(recent_menu)
+    )
+    recent_menu = file_menu.addMenu("Recent Files")
+    recent_menu.setObjectName("recentFilesMenu")
+    if hasattr(window, "_register_recent_files_menu"):
+        window._register_recent_files_menu(recent_menu)
 
-    edit_menu = menu_bar.actions()[1].menu()
-    if edit_menu is not None:
-        edit_menu.addAction(_create_action("Undo", window.canvas.undo, window))
-        edit_menu.addAction(_create_action("Redo", window.canvas.redo, window))
+    edit_menu = menus["Edit"]
+    edit_menu.addAction(_create_action("Undo", window.edit_undo, window, "Ctrl+Z"))
+    edit_menu.addAction(_create_action("Redo", window.edit_redo, window, "Ctrl+Y"))
+    edit_menu.addSeparator()
+    edit_menu.addAction(_create_action("Cut", window.edit_cut, window, "Ctrl+X"))
+    edit_menu.addAction(_create_action("Copy", window.edit_copy, window, "Ctrl+C"))
+    edit_menu.addAction(_create_action("Paste", window.edit_paste, window, "Ctrl+V"))
+    edit_menu.addAction(_create_action("Delete", window.edit_delete, window, "Del"))
+    edit_menu.addSeparator()
+    edit_menu.addAction(
+        _create_action("Select All", window.edit_select_all, window, "Ctrl+A")
+    )
 
-    view_menu = menu_bar.actions()[2].menu()
-    if view_menu is not None:
-        view_menu.addAction(_create_action("Site Map", window.show_canvas, window))
-        view_menu.addAction(_create_action("Incident Editor", window.show_incident_editor, window))
-        view_menu.addAction(_create_action("Camp Editor", window.show_camp_editor, window))
-        view_menu.addAction(_create_action("Asset Editor", window.show_asset_editor, window))
-        view_menu.addAction(_create_action("Person Editor", window.show_person_editor, window))
-        view_menu.addAction(_create_action("Building Editor", window.show_building_editor, window))
-        view_menu.addAction(_create_action("Device Editor", window.show_device_editor, window))
-        view_menu.addAction(_create_action("Network Editor", window.show_network_editor, window))
+    view_menu = menus["View"]
+    view_menu.addAction(_create_action("Zoom In", window.canvas.zoom_in, window, "Ctrl++"))
+    view_menu.addAction(_create_action("Zoom Out", window.canvas.zoom_out, window, "Ctrl+-"))
+    view_menu.addAction(
+        _create_action("Center View", window.canvas.center_scene, window, "Ctrl+0")
+    )
 
-    incident_menu = menu_bar.actions()[3].menu()
-    if incident_menu is not None:
-        incident_menu.addAction(_create_action("Person Editor", window.show_person_editor, window))
+    incident_menu = menus["Incident"]
+    incident_menu.addAction(_create_action("Details", window.show_incident_editor, window))
+    incident_menu.addAction(_create_action("Personnel", window.show_person_editor, window))
 
-    network_menu = menu_bar.actions()[4].menu()
-    if network_menu is not None:
-        network_menu.addAction(_create_action("Network Editor", window.show_network_editor, window))
+    camp_ops_menu = menus["Camp Ops"]
+    camp_ops_menu.addAction(_create_action("Camps", window.show_camp_editor, window))
+    camp_ops_menu.addAction(_create_action("Buildings", window.show_building_editor, window))
 
-    inventory_menu = menu_bar.actions()[5].menu()
-    if inventory_menu is not None:
-        inventory_menu.addAction(_create_action("Asset Editor", window.show_asset_editor, window))
-        inventory_menu.addAction(_create_action("Device Editor", window.show_device_editor, window))
+    inventory_menu = menus["Inventory"]
+    inventory_menu.addAction(_create_action("Assets", window.show_asset_editor, window))
+    inventory_menu.addAction(_create_action("Devices", window.show_device_editor, window))
 
-    reports_menu = menu_bar.actions()[6].menu()
-    if reports_menu is not None:
-        reports_menu.addAction(_create_action("Incident Summary", window.export_incident_summary, window))
-        reports_menu.addAction(
-            _create_action("Incident Summary CSV", window.export_incident_summary_csv, window)
-        )
-        reports_menu.addAction(
-            _create_action("Incident Summary HTML", window.export_incident_summary_html, window)
-        )
+    network_menu = menus["Network"]
+    network_menu.addAction(_create_action("Site Map", window.show_canvas, window))
+    network_menu.addAction(_create_action("Networks", window.show_network_editor, window))
 
-    tools_menu = menu_bar.actions()[7].menu()
-    if tools_menu is not None:
-        tools_menu.addAction(_create_action("Validate Workspace", window.validate_workspace, window))
+    outputs_menu = menus["Outputs"]
+    outputs_menu.addAction(_create_action("Reports", window.show_reports_page, window))
+    outputs_menu.addAction(_create_action("Validation", window.show_validation_page, window))
 
-    help_menu = menu_bar.actions()[8].menu()
-    if help_menu is not None:
-        help_menu.addAction(_create_action("About", window.show_about, window))
+    help_menu = menus["Help"]
+    help_menu.addAction(_create_action("About", window.show_about, window))
 
     return menu_bar
 
 
-def _create_action(text: str, callback, parent: QMainWindow) -> QAction:
+def _create_action(
+    text: str,
+    callback,
+    parent: QMainWindow,
+    shortcut: str | None = None,
+) -> QAction:
     """Create a menu action with a stable object name."""
     action = QAction(text, parent)
     action.setObjectName(text.lower().replace(" ", "_"))
+    if shortcut is not None:
+        action.setShortcut(QKeySequence(shortcut))
     action.triggered.connect(callback)
     return action
