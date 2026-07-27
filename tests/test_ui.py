@@ -249,24 +249,27 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     assert actions["Save As"].isEnabled()
     assert actions["Validate Workspace"].isEnabled()
     assert actions["About"].isEnabled()
-    assert actions["Zoom In"].isEnabled()
-    assert actions["Zoom Out"].isEnabled()
-    assert actions["Center View"].isEnabled()
-
     main_toolbar = window.findChild(QToolBar, "mainToolbar")
-    assert main_toolbar is not None
-    toolbar_actions = [action.text() for action in main_toolbar.actions() if action.text()]
-    assert toolbar_actions == [
-        "New Incident",
-        "Open",
-        "Save",
-        "Save As",
-        "Undo",
-        "Redo",
-        "Zoom In",
-        "Zoom Out",
-        "Center View",
-    ]
+    assert main_toolbar is None
+
+    incident_buttons = {
+        button.objectName(): button
+        for button in window.incident_editor.findChildren(QPushButton)
+    }
+    assert incident_buttons["newIncidentToolbarButton"].text() == "New Incident"
+    assert incident_buttons["openIncidentToolbarButton"].text() == "Open"
+    assert incident_buttons["saveIncidentToolbarButton"].text() == "Save"
+    assert incident_buttons["saveAsIncidentToolbarButton"].text() == "Save As"
+
+    canvas_buttons = {
+        button.objectName(): button
+        for button in window.canvas_widget.findChildren(QPushButton)
+    }
+    assert canvas_buttons["undoButton"].text() == "Undo"
+    assert canvas_buttons["redoButton"].text() == "Redo"
+    assert canvas_buttons["zoomInButton"].text() == "Zoom In"
+    assert canvas_buttons["zoomOutButton"].text() == "Zoom Out"
+    assert canvas_buttons["centerViewButton"].text() == "Center View"
 
     actions["Camp Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "campEditorWidget"
@@ -281,14 +284,14 @@ def test_main_window_contains_expected_panels(tmp_path) -> None:
     actions["Network Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "networkEditorWidget"
     actions["Site Map"].trigger()
-    assert workspace_tabs.currentWidget().objectName() == "campCanvas"
+    assert workspace_tabs.currentWidget().objectName() == "canvasWithControlsWidget"
     actions["Incident Editor"].trigger()
     assert workspace_tabs.currentWidget().objectName() == "incidentEditorWidget"
     actions["About"].trigger()
     assert window.findChild(QLabel, "readyStatusLabel").text().startswith("FireIT Manager ")
 
     current_zoom = window.canvas.zoom_factor
-    actions["Zoom In"].trigger()
+    canvas_buttons["zoomInButton"].click()
     assert window.canvas.zoom_factor > current_zoom
     assert zoom_label.text() == "Zoom: 115%"
 

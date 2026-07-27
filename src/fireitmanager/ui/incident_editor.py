@@ -22,14 +22,48 @@ class IncidentEditorWidget(QWidget):
     incident_updated = Signal(object)
     incident_created = Signal(object)
 
-    def __init__(self, incident: Incident, parent=None) -> None:
+    def __init__(self, incident: Incident, parent=None, window=None) -> None:
         super().__init__(parent)
         self.setObjectName("incidentEditorWidget")
         self._incident = incident
+        self._window = window
 
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(12, 12, 12, 12)
         root_layout.setSpacing(12)
+
+        # Add file operation toolbar at the top
+        file_toolbar = QHBoxLayout()
+        file_toolbar.setSpacing(8)
+        file_toolbar.setContentsMargins(0, 0, 0, 0)
+
+        new_incident_button = QPushButton("New Incident", self)
+        new_incident_button.setObjectName("newIncidentToolbarButton")
+        new_incident_button.setMaximumWidth(120)
+        new_incident_button.clicked.connect(self._handle_new_incident_toolbar)
+
+        open_button = QPushButton("Open", self)
+        open_button.setObjectName("openIncidentToolbarButton")
+        open_button.setMaximumWidth(80)
+        open_button.clicked.connect(self._handle_open_toolbar)
+
+        save_button = QPushButton("Save", self)
+        save_button.setObjectName("saveIncidentToolbarButton")
+        save_button.setMaximumWidth(80)
+        save_button.clicked.connect(self._handle_save_toolbar)
+
+        save_as_button = QPushButton("Save As", self)
+        save_as_button.setObjectName("saveAsIncidentToolbarButton")
+        save_as_button.setMaximumWidth(100)
+        save_as_button.clicked.connect(self._handle_save_as_toolbar)
+
+        file_toolbar.addWidget(new_incident_button)
+        file_toolbar.addWidget(open_button)
+        file_toolbar.addWidget(save_button)
+        file_toolbar.addWidget(save_as_button)
+        file_toolbar.addStretch(1)
+
+        root_layout.addLayout(file_toolbar)
 
         title = QLabel("Incident Editor", self)
         title.setObjectName("incidentEditorTitle")
@@ -78,11 +112,8 @@ class IncidentEditorWidget(QWidget):
         self.apply_button.setObjectName("applyIncidentChangesButton")
         self.reset_button = QPushButton("Reset", self)
         self.reset_button.setObjectName("resetIncidentButton")
-        self.new_button = QPushButton("New Incident", self)
-        self.new_button.setObjectName("newIncidentButton")
         button_row.addWidget(self.apply_button)
         button_row.addWidget(self.reset_button)
-        button_row.addWidget(self.new_button)
         button_row.addStretch(1)
 
         root_layout.addWidget(title)
@@ -95,8 +126,28 @@ class IncidentEditorWidget(QWidget):
 
         self.apply_button.clicked.connect(self.apply_changes)
         self.reset_button.clicked.connect(lambda: self.load_incident())
-        self.new_button.clicked.connect(self.create_new_incident)
         self.load_incident()
+
+    def _handle_new_incident_toolbar(self) -> None:
+        """Handle new incident from toolbar."""
+        self.create_new_incident()
+        if self._window is not None:
+            self._window.show_incident_editor()
+
+    def _handle_open_toolbar(self) -> None:
+        """Handle open from toolbar."""
+        if self._window is not None:
+            self._window.load_workspace()
+
+    def _handle_save_toolbar(self) -> None:
+        """Handle save from toolbar."""
+        if self._window is not None:
+            self._window.save_workspace()
+
+    def _handle_save_as_toolbar(self) -> None:
+        """Handle save as from toolbar."""
+        if self._window is not None:
+            self._window.save_workspace_as()
 
     @property
     def incident(self) -> Incident:

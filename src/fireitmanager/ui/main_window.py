@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QLabel, QMenu, QStatusBar
 
-from fireitmanager.ui.canvas import CampCanvas
+from fireitmanager.ui.canvas_widget import CanvasWithControlsWidget
 from fireitmanager.ui.camp_editor import CampEditorWidget
 from fireitmanager.ui.asset_editor import AssetEditorWidget
 from fireitmanager.ui.building_editor import BuildingEditorWidget
@@ -36,7 +36,6 @@ from fireitmanager.reports import (
     write_incident_summary_html_report,
     write_incident_summary_report,
 )
-from fireitmanager.ui.toolbar import create_tool_bar
 
 
 class FireITMainWindow(QMainWindow):
@@ -64,7 +63,6 @@ class FireITMainWindow(QMainWindow):
 
         self._setup_central_widget()
         self._setup_menu_bar()
-        self._setup_tool_bar()
         self._setup_status_bar()
         self._setup_docks()
 
@@ -72,10 +70,6 @@ class FireITMainWindow(QMainWindow):
         """Create and attach the top-level menu bar."""
         self.setMenuBar(create_menu_bar(self))
         self._refresh_recent_files_menu()
-
-    def _setup_tool_bar(self) -> None:
-        """Create and attach the application toolbar."""
-        self.addToolBar(create_tool_bar(self))
 
     def _setup_status_bar(self) -> None:
         """Create and populate the status bar with the requested labels."""
@@ -106,8 +100,9 @@ class FireITMainWindow(QMainWindow):
 
     def _setup_central_widget(self) -> None:
         """Attach the central workspace tabs to the main window."""
-        self.canvas = CampCanvas(self.workspace_snapshot.incident)
-        self.incident_editor = IncidentEditorWidget(self.workspace_snapshot.incident)
+        self.canvas_widget = CanvasWithControlsWidget(self.workspace_snapshot.incident, self)
+        self.canvas = self.canvas_widget.canvas
+        self.incident_editor = IncidentEditorWidget(self.workspace_snapshot.incident, window=self)
         self.camp_editor = CampEditorWidget(self.workspace_snapshot.incident)
         self.asset_editor = AssetEditorWidget(self.workspace_snapshot.incident)
         self.person_editor = PersonEditorWidget(self.workspace_snapshot.incident)
@@ -165,7 +160,7 @@ class FireITMainWindow(QMainWindow):
         self.workspace_tabs.add_folder(
             "Network",
             [
-                ("Site Map", self.canvas),
+                ("Site Map", self.canvas_widget),
                 ("Networks", self.network_editor),
             ],
         )
@@ -206,7 +201,7 @@ class FireITMainWindow(QMainWindow):
 
     def show_canvas(self) -> None:
         """Switch the workspace to the site map tab."""
-        self.workspace_tabs.setCurrentWidget(self.canvas)
+        self.workspace_tabs.setCurrentWidget(self.canvas_widget)
 
     def show_incident_editor(self) -> None:
         """Switch the workspace to the incident editor tab."""
