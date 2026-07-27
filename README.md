@@ -36,6 +36,7 @@ See [docs/README.md](docs/README.md) for the full documentation index.
 
 ## Documentation
 
+- [User Documentation](docs/user/README.md)
 - [Project Charter](docs/00_Project_Charter.md)
 - [System Architecture](docs/01_System_Architecture.md)
 - [Requirements](docs/02_Requirements.md)

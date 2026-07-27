@@ -38,16 +38,17 @@
 - Edit
 - View
 - Incident
-- Network
+- Camp Ops
 - Inventory
-- Reports
-- Tools
+- Network
+- Outputs
 - Help
 
 ## Toolbars
-- Actions include incident creation, open/save actions, undo/redo, and canvas view controls.
-- Editor navigation belongs in the workspace folder tabs and View menu, not the primary toolbar.
-- Placeholder actions should remain disabled until implemented.
+- Incident file actions live at the top of Incident / Details.
+- Site Map view controls live at the bottom of Network / Site Map.
+- Editor navigation belongs in workspace folder tabs and matching top-level menus.
+- The redundant primary toolbar row is removed.
 
 ## Keyboard shortcuts
 - Ctrl+N
