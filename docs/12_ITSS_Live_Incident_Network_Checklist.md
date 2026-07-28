@@ -43,10 +43,10 @@ Goal: Keep current progress useful while the long-term architecture is designed.
 - [ ] Confirm the current Python app remains the working prototype.
 - [ ] Keep current GitHub repository clean and committed after each meaningful change.
 - [ ] Maintain passing tests before making large changes.
-- [ ] Document current screens and workflows with screenshots.
-- [ ] Identify which prototype features must exist in the future C# version.
-- [ ] Identify which prototype features are temporary and can be discarded later.
-- [ ] Avoid adding large new systems to the Python app unless they clarify the product.
+- [x] Document current screens and workflows with screenshots.
+- [x] Identify which prototype features must exist in the future C# version.
+- [x] Identify which prototype features are temporary and can be discarded later.
+- [x] Avoid adding large new systems to the Python app unless they clarify the product.
 
 Done when:
 

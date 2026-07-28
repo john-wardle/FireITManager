@@ -19,6 +19,10 @@ FireIT Manager.
 - [AI Project Context](11_AI_Project_Context.md)
 - [Principles](11_Principles.md)
 - [ITSS Live Incident Network Checklist](12_ITSS_Live_Incident_Network_Checklist.md)
+- [Current Python Prototype Workflows](13_Current_Python_Prototype_Workflows.md)
+- [C# Carry-Forward Features](14_CSharp_Carry_Forward_Features.md)
+- [Temporary Prototype Features](15_Temporary_Prototype_Features.md)
+- [Python Prototype Guardrails](16_Python_Prototype_Guardrails.md)
 
 ## User Documentation
 
