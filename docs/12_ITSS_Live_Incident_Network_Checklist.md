@@ -100,17 +100,17 @@ Goal: Make the shared data model solid before rebuilding the application.
 Data rules to decide:
 
 - [x] What fields are required.
-- [ ] What fields are optional.
-- [ ] What values are controlled lists.
-- [ ] What values can be free text.
-- [ ] What records can be archived instead of deleted.
-- [ ] What changes must create audit history.
-- [ ] What objects can be created from the mobile tool.
+- [x] What fields are optional.
+- [x] What values are controlled lists.
+- [x] What values can be free text.
+- [x] What records can be archived instead of deleted.
+- [x] What changes must create audit history.
+- [x] What objects can be created from the mobile tool.
 
 Done when:
 
-- [ ] The model can represent a real camp network, not just a demo.
-- [ ] The model can support multi-user editing without relying on shared JSON files.
+- [x] The model can represent a real camp network, not just a demo.
+- [x] The model can support multi-user editing without relying on shared JSON files.
 
 ## Phase 4: Choose The Long-Term Technical Stack
 

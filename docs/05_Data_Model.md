@@ -785,3 +785,271 @@ present and valid.
   record status is `planned`, `unknown`, or otherwise explicitly unverified.
 - Required fields may not be removed by mobile sync, import, or conflict
   resolution.
+
+### Optional Fields
+
+Optional fields add operational detail, search value, map context, reporting
+context, or troubleshooting evidence without being required to create a valid
+record. Optional does not mean unvalidated: when optional values are present,
+they must still use the right format, relationship scope, and controlled-list
+values.
+
+#### Optional Field Policy
+
+- Optional fields may be blank during setup, import, mobile draft creation, or
+  early incident operations.
+- Optional relationship fields must still reference records in the same
+  incident scope unless the field explicitly references a global template.
+- Optional timestamps must still be timezone-aware when present.
+- Optional numeric fields must still satisfy range rules when present.
+- Optional fields needed for official closure may become conditionally required
+  during closeout, export, or validation workflows.
+- Optional fields should not block quick field capture unless missing data
+  would make the record misleading or unsafe.
+
+#### Optional Fields By Record Type
+
+| Record Type | Optional Fields |
+| --- | --- |
+| Incident | `situation_summary`, `it_owner_person_id`; `incident_number`, `lead_agency`, `start_datetime`, and `end_datetime` are conditional rather than always required |
+| Camp | `primary_location_id`, `address_or_directions`, `latitude`, `longitude`, `capacity`, `it_contact_person_id`, `notes` |
+| Building / Location | `parent_location_id`, map coordinates and dimensions, `latitude`, `longitude`, `elevation_ft`, `address_or_directions`, `capacity`, `access_notes`, `notes` |
+| Person | contact methods, `agency`, `qualification`, camp/location assignments, notes |
+| Device | `location_id`, `manufacturer`, `model`, `serial_number`, `primary_ip_assignment_id`, MAC addresses, `asset_id`, notes |
+| Asset | `owner`, `acquisition_type`, `barcode`, `assigned_person_id`, `location_id`, `device_id`, `condition`, notes |
+| Network | `camp_id`, `description`, VLAN/subnet memberships, service dependencies |
+| Physical Link | second endpoint for planned or handoff links, length, label, path, port names, notes, attachments |
+| Virtual Link | rule/path description, dependency notes, related service, related WAN link |
+| Service | owner/contact, published endpoint, dependency notes, troubleshooting notes |
+| VLAN / Subnet | `vlan_id`, `cidr`, `gateway_ip`, DHCP scope, DNS servers, purpose, notes |
+| IP Address Assignment | subnet, device, service, interface, MAC, hostname, lease times, notes |
+| Wireless Link | endpoints, SSID, frequency, channel, signal, throughput, antenna/alignment notes |
+| Satellite / WAN Link | account/reference, modem/device, network, location, public IP, bandwidth, data limit, failover priority, support contact, notes |
+| Link State History | latency, packet loss, throughput, signal, reason, notes, related checklist run, manual override flag |
+| Checklist Template | purpose, owner role, required tools, safety notes, prerequisites, troubleshooting hints, required photo/note flags, tags |
+| Checklist Run / Completed Checklist | assignee, target object, blockers, notes, photos, follow-up work, link observations |
+| Attachment / Photo / Note | caption, visibility, captured time, device/location metadata, tags, related audit/link/checklist records |
+| Audit Event | changed fields, old/new values, reason, source client, correlation ID, related records, IP/device metadata |
+
+### Controlled Lists
+
+Controlled lists are values that must be selected from an approved set so
+filtering, reporting, validation, map styling, synchronization, and audit rules
+stay consistent across desktop, server, and mobile clients.
+
+#### Controlled List Policy
+
+- Controlled-list fields must store stable machine values, not only display
+  labels.
+- Unknown or uncommon field values should use `other` plus a free-text detail
+  field when the user must proceed.
+- Draft and imported records may temporarily use `unknown` when the real value
+  is not available.
+- Closed, archived, exported, or official records should not contain invalid
+  controlled-list values.
+- Controlled lists should be versioned so future value changes do not break
+  old incident exports.
+
+#### Controlled List Fields
+
+| Category | Fields |
+| --- | --- |
+| Lifecycle and archive state | `status`, `record_state`, checklist run status, template status, link state |
+| Type/category fields | `incident_type`, `camp_type`, `location_type`, `person.role`, `device_type`, `asset.category`, `network_type`, `link_type`, `service_type`, `segment_type`, `assignment_type`, `entry_type`, `audit.action` |
+| Source fields | link state source, audit actor type, import/sync source, attachment type |
+| Quality/condition fields | asset condition, device status, service status, network status, link status |
+| Security/visibility fields | attachment visibility, checklist publish state, closed-record override reason category when added |
+
+Initial controlled lists are defined in the individual entity sections above.
+They should be promoted into code, database lookup tables, or server
+configuration during the implementation phases.
+
+### Free Text Values
+
+Free text is allowed where field users need to record context that cannot be
+reliably modeled as a small list.
+
+#### Free Text Policy
+
+- Free text should capture explanation, field context, directions, notes,
+  reasons, labels, and human-readable summaries.
+- Free text should not be used for values that drive validation, permissions,
+  map styling, status rollups, or report grouping.
+- Free text fields should preserve line breaks where useful for notes and
+  operational summaries.
+- Free text fields used in audit or official reports should capture who made
+  the change through audit metadata, not by asking users to type their name.
+- Search should index important free-text fields, but workflows should not
+  depend on exact spelling in free text.
+
+#### Free Text Fields
+
+| Record Area | Free Text Values |
+| --- | --- |
+| Incident | `name`, `incident_number`, `operational_period`, situation summary, closeout notes |
+| Camp | `name`, directions, notes, limited/closeout explanation |
+| Building / Location | `name`, directions, access notes, notes, map labels |
+| Person | display name, position/detail, contact notes, qualification detail |
+| Device | hostname, manufacturer, model, serial number, interface name, notes |
+| Asset | name, owner, acquisition type, barcode, condition notes |
+| Network and links | names, labels, ports, path descriptions, provider handoff notes, troubleshooting notes |
+| VLAN / IP | hostname, interface name, purpose, reservation notes |
+| Checklist | titles, expected results, hints, safety notes, blocker notes, completion notes |
+| Attachment / Note | note text, captions, observation text, tags when tags are not controlled |
+| Audit | summary, reason, administrator explanation |
+
+### Archive Instead Of Delete
+
+Official incident data should normally be archived rather than deleted.
+Archiving preserves operational history, supports closeout reporting, and keeps
+audit trails meaningful.
+
+#### Archive Policy
+
+- Records with child records, attachments, checklist activity, link history, or
+  audit history must be archived instead of deleted.
+- Closed incident records are archived, not deleted.
+- Delete is allowed for empty drafts, duplicate setup mistakes, failed imports
+  before acceptance, and administrator-approved data repair.
+- Archive actions must record actor, time, target, reason when required, and
+  enough summary text to explain the change later.
+- Archived records are hidden from normal active views but remain available for
+  search, audit, export, restore, and historical reference.
+- Restoring archived records must create audit history.
+
+#### Records To Archive
+
+Archive instead of delete for:
+
+- Incident
+- Camp
+- Building / Location
+- Person assignments and incident-scoped person records
+- Device
+- Asset
+- Network
+- Physical, virtual, wireless, and WAN links
+- Service
+- VLAN / Subnet
+- IP address assignment
+- Checklist template versions
+- Checklist runs and completed checklists
+- Attachments, photos, notes, and observations
+
+Never normally delete:
+
+- Audit events
+- Link state history
+- Completed checklist evidence used as official incident documentation
+
+Delete may be permitted for:
+
+- Unsynced local UI drafts
+- Empty records created accidentally and never referenced
+- Duplicate imports rejected before becoming official
+- Temporary files whose durable attachment record has already been archived or
+  replaced
+- Administrator-approved data repair with a required audit event
+
+### Audit History Triggers
+
+Audit history records who changed what, when, and why enough for incident
+closeout, troubleshooting, data repair, and future multi-user conflict review.
+
+#### Audit Policy
+
+- Create, update, archive, restore, delete, import, export, override, sync, and
+  status transitions must create audit events when they affect official
+  incident data.
+- Relationship changes are auditable even when no scalar field changes.
+- Mobile sync must create server-side audit events when offline work becomes
+  part of the incident record.
+- Data repair and administrator overrides must include a reason.
+- Audit events are append-only and are exported with the incident record.
+- Routine read/view operations do not need audit events in the first version
+  unless security requirements later demand access logging.
+
+#### Changes That Must Create Audit History
+
+| Change Area | Audit Required For |
+| --- | --- |
+| Incident lifecycle | create, activate, demobilize, close, reopen, archive, restore, delete |
+| Identity fields | names, identifiers, numbers, hostnames, serial numbers, barcodes, provider/account references |
+| Scope relationships | incident, camp, location, network, target object, template, assignee |
+| Assignments | person-device, person-asset, device-location, asset-location, service dependencies |
+| Network topology | network membership, physical/virtual/wireless/WAN link endpoints, VLAN/subnet membership, IP assignment target |
+| Status and state | incident/camp/location/device/asset/network/service/link/checklist status, record state, manual overrides |
+| Checklist work | template publish/archive, run start, assignment, blocker, completion, cancellation, reopen |
+| Evidence | attachment/photo/note add, edit, replace, archive, delete |
+| Imports/exports | accepted import, rejected import with data changes, official export, backup, restore |
+| Multi-user behavior | conflict detection, conflict resolution, stale write rejection, sync acceptance |
+| Administrator actions | destructive action, data repair, override of closed/archived record |
+
+### Mobile-Created Objects
+
+The first mobile/tablet tool should favor field evidence and checklist work
+over authoritative structure changes. Mobile-created records should sync into
+the server with clear source metadata and audit history.
+
+#### Mobile Creation Policy
+
+- Mobile may create operational evidence records directly when attached to an
+  existing incident object.
+- Mobile may create checklist runs and checklist step results from published
+  templates.
+- Mobile may create draft field-discovered objects only when the server marks
+  them unverified and routes them for desktop/server review.
+- Mobile should not create, close, archive, delete, or re-parent core
+  structural records in the first version.
+- Offline mobile creation must preserve local created time, sync time, actor,
+  device/source, and conflict state.
+- Server acceptance of mobile-created records must create audit events.
+
+#### Mobile May Create Directly
+
+- Checklist runs from published templates
+- Checklist step completions
+- Checklist notes, blocker notes, and follow-up observations
+- Attachments, photos, notes, and observations
+- Link state observations from manual checks or checklist steps
+- Audit events related to mobile sync acceptance
+
+#### Mobile May Create As Draft / Unverified
+
+- Field-discovered Building / Location
+- Field-discovered Device
+- Field-discovered Asset
+- Field-discovered Physical Link
+- Field-discovered Wireless Link
+- Draft IP address observation
+- Draft service issue or service observation
+
+Draft/unverified mobile records must show review state in the desktop/server
+workflow before becoming official incident structure.
+
+#### Mobile Should Not Create In Version One
+
+- Incident records
+- Camp records
+- Authoritative Person records
+- Network records
+- Virtual links
+- VLAN / Subnet records
+- Official IP assignments
+- Satellite / WAN provisioning records
+- Checklist templates
+- Audit events outside normal mobile sync actions
+
+## Phase 3 Completion Evidence
+
+- The model can represent a real camp network because it now includes incident,
+  camp, Building/Location, person, device, asset, network, physical link,
+  virtual link, service, VLAN/subnet, IP assignment, wireless link, WAN link,
+  link state history, checklist, attachment/note, and audit event concepts.
+- The model can support multi-user editing without relying on shared JSON files
+  because persistent records define stable identifiers, incident scope,
+  timestamps, optimistic concurrency tokens, controlled lifecycle state,
+  append-only audit history, mobile sync rules, and conflict-safe required
+  fields. The current Python prototype can still use JSON as a temporary
+  import/export format until later implementation phases build the shared
+  server.
