@@ -34,6 +34,15 @@ app.MapGet("/api/incident-summary", async (
         : Results.Ok(incidentSummary);
 });
 
+app.MapGet("/api/camps", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var camps = await incidentDatabase.ListCampsAsync(cancellationToken);
+
+    return Results.Ok(camps);
+});
+
 await app.RunAsync();
 
 internal sealed record HealthResponse(

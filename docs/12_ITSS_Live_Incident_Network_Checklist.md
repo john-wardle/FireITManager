@@ -147,7 +147,7 @@ Goal: Create the central authority for shared incident data.
 - [x] Add database connection.
 - [x] Add schema migrations.
 - [x] Add API endpoint for incident summary.
-- [ ] Add API endpoint for camps.
+- [x] Add API endpoint for camps.
 - [ ] Add API endpoint for devices.
 - [ ] Add API endpoint for networks.
 - [ ] Add API endpoint for links.

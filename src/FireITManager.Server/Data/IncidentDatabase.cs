@@ -41,6 +41,49 @@ internal sealed class IncidentDatabase
             CREATE INDEX IF NOT EXISTS idx_audit_events_occurred_at_utc
                 ON audit_events(occurred_at_utc);
             """),
+        new(
+            "002_camp_store",
+            """
+            CREATE TABLE IF NOT EXISTS camps (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                camp_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                primary_location_id TEXT NULL,
+                address_or_directions TEXT NOT NULL DEFAULT '',
+                latitude REAL NULL,
+                longitude REAL NULL,
+                capacity INTEGER NULL,
+                it_contact_person_id TEXT NULL,
+                notes TEXT NOT NULL DEFAULT '',
+                record_state TEXT NOT NULL DEFAULT 'active',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_camps_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT ck_camps_name_not_blank
+                    CHECK (length(trim(name)) > 0),
+                CONSTRAINT ck_camps_coordinates_complete
+                    CHECK ((latitude IS NULL AND longitude IS NULL)
+                        OR (latitude IS NOT NULL AND longitude IS NOT NULL)),
+                CONSTRAINT ck_camps_capacity_not_negative
+                    CHECK (capacity IS NULL OR capacity >= 0),
+                CONSTRAINT ck_camps_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_camps_incident_name
+                ON camps(incident_id, name COLLATE NOCASE);
+
+            CREATE INDEX IF NOT EXISTS idx_camps_incident
+                ON camps(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_camps_status
+                ON camps(status, record_state);
+            """),
     ];
 
     private readonly string _connectionString;
@@ -150,6 +193,61 @@ internal sealed class IncidentDatabase
             UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 7));
     }
 
+    public async Task<IReadOnlyList<CampSummary>> ListCampsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                name,
+                camp_type,
+                status,
+                primary_location_id,
+                address_or_directions,
+                latitude,
+                longitude,
+                capacity,
+                it_contact_person_id,
+                notes,
+                record_state,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM camps
+            ORDER BY name COLLATE NOCASE ASC, created_at_utc ASC;
+            """;
+
+        var camps = new List<CampSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            camps.Add(new CampSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                Name: reader.GetString(2),
+                CampType: reader.GetString(3),
+                Status: reader.GetString(4),
+                PrimaryLocationId: ReadOptionalString(reader, 5),
+                AddressOrDirections: reader.GetString(6),
+                Latitude: ReadOptionalDouble(reader, 7),
+                Longitude: ReadOptionalDouble(reader, 8),
+                Capacity: ReadOptionalInt32(reader, 9),
+                ItContactPersonId: ReadOptionalString(reader, 10),
+                Notes: reader.GetString(11),
+                RecordState: reader.GetString(12),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 13),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 14),
+                Version: reader.GetInt32(15)));
+        }
+
+        return camps;
+    }
+
     private static async Task<bool> MigrationHasBeenAppliedAsync(
         SqliteConnection connection,
         string migrationId,
@@ -237,6 +335,27 @@ internal sealed class IncidentDatabase
         return ReadDateTimeOffset(reader.GetString(ordinal));
     }
 
+    private static string? ReadOptionalString(SqliteDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal)
+            ? null
+            : reader.GetString(ordinal);
+    }
+
+    private static double? ReadOptionalDouble(SqliteDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal)
+            ? null
+            : reader.GetDouble(ordinal);
+    }
+
+    private static int? ReadOptionalInt32(SqliteDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal)
+            ? null
+            : reader.GetInt32(ordinal);
+    }
+
     private static DateTimeOffset ReadDateTimeOffset(string value)
     {
         return DateTimeOffset.Parse(
@@ -269,3 +388,21 @@ internal sealed record IncidentSummary(
     DateTimeOffset? OperationalPeriodEndUtc,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc);
+
+internal sealed record CampSummary(
+    string Id,
+    string IncidentId,
+    string Name,
+    string CampType,
+    string Status,
+    string? PrimaryLocationId,
+    string AddressOrDirections,
+    double? Latitude,
+    double? Longitude,
+    int? Capacity,
+    string? ItContactPersonId,
+    string Notes,
+    string RecordState,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
