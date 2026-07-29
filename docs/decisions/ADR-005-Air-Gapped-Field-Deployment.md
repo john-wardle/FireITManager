@@ -36,6 +36,8 @@ For the first shared-server field version:
 - Mobile/tablet tool: browser-based PWA served by the incident server.
 - First shared-server database: SQLite owned by the incident server process.
 - Offline desktop cache: local SQLite file per client.
+- Real-time updates: SignalR notifications from the incident server after
+  successful authoritative writes.
 - Export bundle: local compressed archive containing the incident database
   export, attachments, generated reports, and audit trail.
 - External cloud services: none required for normal incident operation.
@@ -50,6 +52,12 @@ For the first shared-server field version:
   simple backup/export behavior.
 - Keeping SQLite behind the server API avoids the unsafe pattern of multiple
   clients editing a shared database file directly.
+- The expected first field shape is one active incident per incident server.
+  Archived or exported past incidents may be retained for lookup or handoff,
+  but the first server is not a multi-live-incident regional platform.
+- SQLite is expected to be comfortable for small incident teams and likely
+  acceptable for moderate teams when all writes are API-mediated, short-lived,
+  and tested under realistic field load.
 - Local SQLite desktop caches allow offline field work and later sync without
   treating local files as the incident source of truth.
 - A PWA mobile/tablet client avoids app store deployment, MDM setup, and
@@ -73,6 +81,33 @@ For the first shared-server field version:
 - Bind only to the incident LAN interface by default.
 - Own the authoritative SQLite database file and attachment storage folder.
 - Provide backup, restore, and export commands before field testing.
+
+### SQLite Scope
+- Treat SQLite as the first shared-server database for an air-gapped incident
+  field server.
+- Keep one active incident environment per server in the first version.
+- Support archived or exported past incidents without optimizing for multiple
+  simultaneously live incidents.
+- Route all writes through the ASP.NET Core API; never let clients edit a
+  shared SQLite database file directly.
+- Keep write transactions short and batch telemetry or link-state samples when
+  needed.
+- Reevaluate PostgreSQL or SQL Server if field tests show 30 or more active
+  users, multiple live incidents on one server, heavy telemetry writes,
+  complex cross-incident reporting, or operational database tooling needs.
+
+### Real-Time Updates
+- Use SignalR for server-to-client notifications on the incident LAN.
+- Broadcast changes only after the authoritative API/database write succeeds.
+- Use SignalR for invalidation, refresh hints, live status, and user feedback;
+  do not use it as the persistence mechanism.
+- WPF and PWA clients reconnect after local network drops and resync current
+  state through API endpoints before applying live updates again.
+- Offline edits sync through the API first; accepted changes then create audit
+  events and SignalR broadcasts.
+- Initial broadcast categories should include incident, camp, location, device,
+  asset, network, link status, checklist run, note/photo, and audit summary
+  changes.
 
 ### Offline Sync
 - The WPF client may continue working from a local SQLite cache when the server
@@ -110,6 +145,21 @@ Both are stronger long-term shared database options, but they add setup,
 service management, backup, and administrator complexity. They remain viable
 later if field testing proves SQLite is too constrained.
 
+### Polling for real-time updates
+Rejected as the primary real-time mechanism. Polling is simple, but it adds
+latency and unnecessary LAN traffic for link-state, checklist, and multi-user
+editing updates. It can remain as a fallback refresh strategy.
+
+### Raw WebSockets
+Rejected for the first version because SignalR provides the needed ASP.NET Core
+integration, reconnect handling, and client abstractions with less custom
+protocol work.
+
+### Message broker
+Rejected for the first air-gapped version. RabbitMQ, MQTT, or similar brokers
+may be useful later for telemetry-heavy deployments, but they add another
+server dependency that is not needed for the first field server.
+
 ### Direct shared SQLite file
 Rejected. It is simpler than a server but does not provide a safe source of
 truth for multi-user editing across incident laptops.
@@ -137,6 +187,9 @@ only if later requirements justify the Windows App SDK deployment tradeoffs.
 - If concurrent field use exceeds SQLite's practical limits, the server data
   layer must be replaceable with PostgreSQL or SQL Server behind the same API
   contracts.
+- SignalR connection loss must be visible to users, but lost SignalR
+  connectivity must not imply lost data if API sync and local cache state are
+  healthy.
 - Offline sync and conflict handling must be designed early enough that local
   caches do not become unofficial competing sources of truth.
 - PWA offline behavior must be intentionally scoped; long-duration offline work

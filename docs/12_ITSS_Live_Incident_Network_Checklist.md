@@ -120,7 +120,7 @@ Goal: Make an intentional architecture decision before a rewrite.
 - [x] Decide whether the first C# version must run only on Windows.
 - [x] Decide whether the mobile/tablet tool is web/PWA first.
 - [x] Choose database: PostgreSQL, SQL Server, or SQLite for first shared-server version.
-- [ ] Choose real-time update mechanism.
+- [x] Choose real-time update mechanism.
 - [ ] Choose authentication approach for incident-local use.
 - [x] Choose installer/deployment approach for the desktop client.
 - [ ] Write an architecture decision record before starting the rewrite.
@@ -129,7 +129,7 @@ Recommended default:
 
 - [x] Desktop client: C# WPF first, unless WinUI 3 features are required.
 - [x] Server: ASP.NET Core.
-- [ ] Live updates: SignalR.
+- [x] Live updates: SignalR.
 - [x] Database: SQLite for first air-gapped shared server and local/offline cache; PostgreSQL or SQL Server later if field testing proves the need.
 - [x] Mobile/tablet checklist client: browser-based PWA served by the incident server.
 
