@@ -143,7 +143,7 @@ Done when:
 
 Goal: Create the central authority for shared incident data.
 
-- [ ] Create server project.
+- [x] Create server project.
 - [ ] Add database connection.
 - [ ] Add schema migrations.
 - [ ] Add API endpoint for incident summary.
@@ -154,7 +154,7 @@ Goal: Create the central authority for shared incident data.
 - [ ] Add API endpoint for checklist templates.
 - [ ] Add API endpoint for checklist runs.
 - [ ] Add audit logging for create, update, delete.
-- [ ] Add server health endpoint.
+- [x] Add server health endpoint.
 - [ ] Add backup/export command.
 - [ ] Add restore/import command.
 

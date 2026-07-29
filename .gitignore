@@ -122,6 +122,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# .NET
+bin/
+obj/
+
 # IDE
 .vscode/
 .idea/
