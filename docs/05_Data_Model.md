@@ -107,10 +107,114 @@ first mobile version.
   both.
 
 ### Camp
-- Attributes: identifier, name, location, status, capacity
-- Relationships: belongs to an incident; contains buildings and equipment
-- Ownership: belongs to one incident
-- Lifecycle: planned, active, decommissioned
+- Definition: an incident-scoped operating area, camp, ICP, staging area,
+  spike camp, communications site, warehouse, or other named place where ITSS
+  work, users, assets, devices, networks, and checklists are organized.
+- Current prototype mapping: `Camp` in `src/fireitmanager/models/camp.py`
+  currently covers `camp_id`, `name`, `buildings`, `networks`, `created_at`,
+  and `updated_at`.
+- Long-term model note: the shared-server model must distinguish camp identity
+  from physical buildings/locations. A camp can contain many locations and
+  networks, and an incident can have more than one camp or operating area.
+
+#### Camp Fields
+
+| Field | Required | Value Type | Notes |
+| --- | --- | --- | --- |
+| `camp_id` | Yes | UUID | Stable internal identifier. Generated once and never reused. |
+| `incident_id` | Yes | Relationship | Parent Incident. A camp belongs to exactly one incident in the first shared-server model. |
+| `name` | Yes | Free text | Human-readable camp or operating-area name. Must be unique within the parent incident. |
+| `camp_type` | Yes | Controlled list | First list: `base_camp`, `icp`, `staging_area`, `spike_camp`, `communications_site`, `warehouse`, `helibase`, `other`. |
+| `status` | Yes | Controlled list | `planned`, `mobilizing`, `active`, `limited`, `demobilizing`, `closed`, `archived`. |
+| `primary_location_id` | No | Relationship | Optional primary Building/Location used for map centering, reports, and mobile summaries. |
+| `address_or_directions` | No | Free text | Field-friendly directions when a formal address is unavailable. |
+| `latitude` | No | Decimal | Optional approximate camp coordinate for map and navigation context. |
+| `longitude` | No | Decimal | Optional approximate camp coordinate for map and navigation context. |
+| `capacity` | No | Integer | Optional operational capacity, such as personnel or work area capacity. |
+| `it_contact_person_id` | No | Relationship | ITSS or other contact responsible for this camp, if known. |
+| `notes` | No | Free text | Operational notes that do not belong to a more specific building, network, or asset. |
+| `record_state` | Yes | Controlled list | `active` or `archived`; archival is preferred over deletion once a camp has child records. |
+| `created_at` | Yes | Datetime | System-created timestamp. |
+| `updated_at` | Yes | Datetime | System-updated timestamp. |
+| `version` | Yes in shared-server model | Integer or token | Used for optimistic concurrency and conflict detection. |
+
+#### Camp Relationships
+
+- Belongs to exactly one Incident.
+- Contains Buildings/Locations, networks, devices through locations and
+  networks, physical links, wireless links, WAN links, camp-scoped checklist
+  runs, attachments, photos, notes, and audit events.
+- Can reference one primary location for map centering and field summaries, but
+  that reference does not replace the full list of locations.
+- Can reference one IT contact person for ownership and escalation. That person
+  must be part of the parent incident's personnel or assignment set.
+- Child records must remain scoped to the same parent incident as the camp.
+  Cross-incident child records are not allowed in the first shared-server
+  model.
+
+#### Camp Lifecycle
+
+- `planned`: expected operating area, not yet built or verified.
+- `mobilizing`: setup work has started.
+- `active`: camp is in normal operational use.
+- `limited`: camp is operating with known constraints, partial service, or
+  restricted access.
+- `demobilizing`: closeout or teardown is in progress.
+- `closed`: camp is no longer operational but remains part of the incident
+  record.
+- `archived`: hidden from normal active views but retained for reporting,
+  audit, export, and historical reference.
+
+Camp records with buildings, networks, devices, checklists, notes, attachments,
+or audit history should be archived instead of deleted. Deletion is allowed
+only for empty drafts or duplicate setup mistakes before the camp has official
+child records.
+
+#### Camp Validation Rules
+
+- `camp_id`, `incident_id`, `name`, `camp_type`, `status`, `record_state`,
+  `created_at`, and `updated_at` are always required.
+- `name` must be unique within the parent incident, ignoring case and leading
+  or trailing whitespace.
+- `primary_location_id`, when set, must reference a Building/Location contained
+  by the same camp.
+- `it_contact_person_id`, when set, must reference a person assigned to the
+  same parent incident.
+- `latitude` and `longitude` must either both be blank or both be present.
+- `capacity`, when set, must be zero or greater.
+- A camp cannot move to `active` unless it has at least one Building/Location.
+- A camp cannot move to `closed` while child networks or links are still marked
+  active unless a closeout workflow records the reason.
+- The shared-server model must enforce optimistic concurrency on camp updates
+  so clients cannot silently overwrite camp status, map context, or ownership.
+
+#### Camp Audit Rules
+
+Create audit history when:
+
+- a camp is created, activated, limited, closed, reopened, archived, or deleted
+- `name`, `camp_type`, `status`, `primary_location_id`,
+  `address_or_directions`, `latitude`, `longitude`, `capacity`,
+  `it_contact_person_id`, or `notes` changes
+- a Building/Location, network, link, checklist run, attachment, photo, or note
+  is added to or removed from the camp
+- an override allows deleting or editing a closed or archived camp
+
+#### Mobile Rules
+
+The mobile/tablet tool may view camps, camp summaries, camp maps, and assigned
+camp checklists. It may create camp-scoped notes, photos, checklist runs, and
+follow-up observations. It should not create, close, archive, delete, or
+re-parent Camp records in the first mobile version.
+
+#### Open Decisions
+
+- Final controlled list for `camp_type`.
+- Whether camp coordinates live directly on Camp or only through the primary
+  Building/Location.
+- Whether capacity should track people, beds, workstations, network drops, or a
+  broader operational capacity record.
+- Whether `limited` status needs structured reason codes.
 
 ### Building
 - Attributes: identifier, name, type, location, capacity

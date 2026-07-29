@@ -78,7 +78,7 @@ Done when:
 Goal: Make the shared data model solid before rebuilding the application.
 
 - [x] Define Incident.
-- [ ] Define Camp.
+- [x] Define Camp.
 - [ ] Define Building / Location.
 - [ ] Define Person.
 - [ ] Define Device.
