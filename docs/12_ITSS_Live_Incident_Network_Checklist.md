@@ -80,22 +80,22 @@ Goal: Make the shared data model solid before rebuilding the application.
 - [x] Define Incident.
 - [x] Define Camp.
 - [x] Define Building / Location.
-- [ ] Define Person.
-- [ ] Define Device.
-- [ ] Define Asset.
-- [ ] Define Network.
-- [ ] Define Physical Link.
-- [ ] Define Virtual Link.
-- [ ] Define Service.
-- [ ] Define VLAN / subnet.
-- [ ] Define IP address assignment.
-- [ ] Define wireless link.
-- [ ] Define satellite / WAN link.
-- [ ] Define link state history.
-- [ ] Define checklist template.
-- [ ] Define checklist run / completed checklist.
-- [ ] Define attachment / photo / note.
-- [ ] Define audit event.
+- [x] Define Person.
+- [x] Define Device.
+- [x] Define Asset.
+- [x] Define Network.
+- [x] Define Physical Link.
+- [x] Define Virtual Link.
+- [x] Define Service.
+- [x] Define VLAN / subnet.
+- [x] Define IP address assignment.
+- [x] Define wireless link.
+- [x] Define satellite / WAN link.
+- [x] Define link state history.
+- [x] Define checklist template.
+- [x] Define checklist run / completed checklist.
+- [x] Define attachment / photo / note.
+- [x] Define audit event.
 
 Data rules to decide:
 

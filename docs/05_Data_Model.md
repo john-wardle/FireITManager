@@ -345,44 +345,375 @@ version.
 - Whether field-discovered mobile locations should be allowed in version one or
   deferred until review workflows exist.
 
-### Network
-- Attributes: identifier, name, type, description
-- Relationships: contains devices and cables; belongs to an incident or camp
-- Ownership: may be scoped to an incident or camp
-- Lifecycle: active, changed, archived
+### Person
+- Definition: an incident-scoped person or contact who may use equipment,
+  receive support, own follow-up work, approve changes, or appear in reports.
+- Current prototype mapping: `Person` covers `person_id`, `name`, `position`,
+  `agency`, `assigned_devices`, `created_at`, and `updated_at`.
+
+| Field | Required | Value Type | Notes |
+| --- | --- | --- | --- |
+| `person_id` | Yes | UUID | Stable internal identifier. |
+| `incident_id` | Yes | Relationship | Parent Incident assignment scope. |
+| `display_name` | Yes | Free text | Prototype field is `name`. |
+| `role` | Yes | Controlled list with free-text detail | First list: `itss`, `coml`, `comt`, `trainee`, `logistics`, `operations`, `vendor`, `observer`, `other`. |
+| `agency` | No | Controlled list with free-text fallback | Owning or home agency. |
+| `contact_methods` | No | Structured list | Phone, email, radio, or local contact note. |
+| `qualification` | No | Free text or controlled list | Incident qualification or relevant capability. |
+| `status` | Yes | Controlled list | `active`, `demobilized`, `inactive`, `archived`. |
+| `created_at`, `updated_at`, `version` | Yes | Timestamp/token | Audit and concurrency fields. |
+
+- Relationships: assigned devices, assigned assets, checklist ownership,
+  notes, audit actor references, and optional camp/location assignments.
+- Validation: name, role, status, incident, timestamps, and version are
+  required; assigned devices and assets must belong to the same incident.
+- Audit: create history for role/status/contact changes and for assigning or
+  clearing devices, assets, or checklist ownership.
+- Mobile: mobile may view people and select assignees for notes/checklists, but
+  should not create or archive people in the first version.
 
 ### Device
-- Attributes: identifier, name, type, serial number, status
-- Relationships: participates in network topology; owned by a person, asset, or location
-- Ownership: may be assigned to a person or asset
-- Lifecycle: deployed, repaired, retired
+- Definition: a networked, powered, or operational technology endpoint tracked
+  during the incident, including routers, switches, access points, servers,
+  printers, workstations, phones, radios with IP dependencies, and other IT
+  equipment.
+- Current prototype mapping: `Device` covers `device_id`, `hostname`,
+  `manufacturer`, `model`, `serial_number`, `ip_address`, `mac_address`,
+  `device_type`, `status`, `assigned_building`, `created_at`, and `updated_at`.
 
-### Cable
-- Attributes: identifier, type, length, status, endpoints
-- Relationships: connects devices and network segments
-- Ownership: belongs to a network or incident
-- Lifecycle: installed, replaced, removed
+| Field | Required | Value Type | Notes |
+| --- | --- | --- | --- |
+| `device_id` | Yes | UUID | Stable internal identifier. |
+| `incident_id` | Yes | Relationship | Parent incident scope. |
+| `hostname` | Yes | Free text | Unique within the incident when practical. |
+| `device_type` | Yes | Controlled list | Start from prototype `DeviceType`; expand for printer, firewall, modem, camera, radio_gateway, sensor, and other. |
+| `status` | Yes | Controlled list | `unknown`, `planned`, `online`, `degraded`, `offline`, `maintenance`, `retired`, `archived`. |
+| `location_id` | No | Relationship | Current Building/Location assignment. |
+| `manufacturer`, `model`, `serial_number` | No | Free text | Asset/inventory identity fields. |
+| `primary_ip_assignment_id` | No | Relationship | Preferred IP assignment for display and search. |
+| `mac_addresses` | No | Structured list | One or more interfaces. Prototype has one `mac_address`. |
+| `asset_id` | No | Relationship | Optional inventory asset record for the same equipment. |
+| `created_at`, `updated_at`, `version` | Yes | Timestamp/token | Audit and concurrency fields. |
+
+- Relationships: belongs to one incident; may be assigned to one
+  Building/Location, one person, one asset, many networks, many IP assignments,
+  many links, and many service checks.
+- Validation: hostname, type, status, incident, timestamps, and version are
+  required; active devices assigned to closed locations need a closeout reason.
+- Audit: create history for identity, status, location, person, asset, network,
+  IP, and link changes.
+- Mobile: mobile may view devices and add notes/photos/checklist evidence; it
+  may create unverified field-discovered devices only through a review workflow.
 
 ### Asset
-- Attributes: identifier, name, category, condition, location
-- Relationships: associated with incidents, camps, buildings, and persons
-- Ownership: may be assigned to a user or organization context
-- Lifecycle: active, borrowed, repaired, disposed
+- Definition: incident-scoped equipment, supply, vehicle, kit, consumable, or
+  tracked resource that may or may not be a network device.
+- Current prototype mapping: `Asset` covers `asset_id`, `name`, `owner`,
+  `acquisition_type`, `barcode`, `status`, `assigned_person`, `created_at`,
+  and `updated_at`.
 
-### Person
-- Attributes: identifier, name, role, contact information, qualification
-- Relationships: linked to incidents, assets, tickets, and rentals
-- Ownership: not owned by a single entity; references are shared
-- Lifecycle: active, inactive, removed
+| Field | Required | Value Type | Notes |
+| --- | --- | --- | --- |
+| `asset_id` | Yes | UUID | Stable internal identifier. |
+| `incident_id` | Yes | Relationship | Parent incident scope. |
+| `name` | Yes | Free text | Human-readable asset name. |
+| `category` | Yes | Controlled list | `network_equipment`, `computer`, `printer`, `power`, `tool`, `vehicle`, `supply`, `consumable`, `other`. |
+| `status` | Yes | Controlled list | Start from prototype `AssetStatus`; add `archived` for long-term records. |
+| `owner`, `acquisition_type`, `barcode` | No | Free text | Prototype identity and ownership fields. |
+| `assigned_person_id`, `location_id`, `device_id` | No | Relationships | Current assignment links. |
+| `condition` | No | Controlled list | `new`, `good`, `fair`, `poor`, `damaged`, `unknown`. |
+| `created_at`, `updated_at`, `version` | Yes | Timestamp/token | Audit and concurrency fields. |
 
-### Rental
-- Attributes: identifier, item, start date, end date, status
-- Relationships: linked to assets and people
-- Ownership: belongs to the incident or owning party
-- Lifecycle: requested, active, returned, closed
+- Relationships: belongs to one incident; may be assigned to a person,
+  Building/Location, device record, checklist run, attachment, or note.
+- Validation: name, category, status, incident, timestamps, and version are
+  required; assigned person/location/device must be in the same incident.
+- Audit: create history for status, assignment, ownership, barcode, condition,
+  and archive/delete changes.
+- Mobile: mobile may view assets, scan/search identifiers, and attach
+  notes/photos; asset creation should be draft-only until reviewed.
 
-### Ticket
-- Attributes: identifier, title, priority, status, description
-- Relationships: linked to incidents, assets, devices, and persons
-- Ownership: belongs to an incident or support workflow
-- Lifecycle: open, in progress, resolved, closed
+### Network
+- Definition: an incident or camp scoped logical network grouping used for
+  topology, membership, IP plans, services, links, reporting, and map filters.
+- Current prototype mapping: `Network` covers `network_id`, `name`, `devices`,
+  `cables`, `created_at`, and `updated_at`.
+
+| Field | Required | Value Type | Notes |
+| --- | --- | --- | --- |
+| `network_id` | Yes | UUID | Stable internal identifier. |
+| `incident_id` | Yes | Relationship | Parent incident scope. |
+| `camp_id` | No | Relationship | Optional camp scope for camp-local networks. |
+| `name` | Yes | Free text | Unique within the incident or camp scope. |
+| `network_type` | Yes | Controlled list | `lan`, `wan`, `wifi`, `management`, `voice`, `printer`, `iot`, `service`, `other`. |
+| `status` | Yes | Controlled list | `planned`, `active`, `degraded`, `down`, `maintenance`, `disabled`, `archived`. |
+| `description` | No | Free text | Operational purpose or notes. |
+| `created_at`, `updated_at`, `version` | Yes | Timestamp/token | Audit and concurrency fields. |
+
+- Relationships: contains devices, physical links, virtual links, VLAN/subnets,
+  IP assignments, wireless/WAN links, and services.
+- Validation: name, type, status, incident, timestamps, and version are
+  required; camp-scoped networks must belong to the same incident as the camp.
+- Audit: create history for status, scope, membership, link, IP, VLAN/subnet,
+  and service changes.
+- Mobile: mobile may view network summaries, link states, and device lists; it
+  should not create or archive networks in the first version.
+
+### Physical Link
+- Definition: a tangible or directly field-verifiable connection between
+  endpoints, such as copper cable, fiber, patch cable, powerline bridge, or
+  documented wired handoff.
+- Current prototype mapping: `Cable` covers `cable_id`, `cable_type`,
+  `source_device`, `destination_device`, `length`, `notes`, `created_at`, and
+  `updated_at`.
+
+Required fields: `physical_link_id`, `incident_id`, `network_id`, `link_type`,
+`status`, at least one endpoint, `created_at`, `updated_at`, and `version`.
+Controlled `link_type` starts with `copper`, `fiber`, `patch`, `uplink`,
+`handoff`, `other`; controlled `status` is `unknown`, `planned`, `up`,
+`degraded`, `down`, `disabled`, `maintenance`, `archived`.
+
+- Relationships: connects source/destination devices or explicit endpoint
+  records, belongs to one network, and may reference locations, ports, cable
+  labels, attachments, notes, and link state history.
+- Validation: endpoint records must belong to the same incident; active links
+  should have two endpoints unless documented as a handoff or pending install.
+- Audit: create history for endpoint, type, label, length, path, status, and
+  archive/delete changes.
+- Mobile: mobile may verify, photograph, label, and note physical links, but
+  should create only draft field-discovered links until reviewed.
+
+### Virtual Link
+- Definition: a logical dependency or tunnel between network endpoints that
+  does not represent a single physical cable, such as VPN, VLAN trunk path,
+  route, firewall path, NAT path, overlay, or service dependency.
+
+Required fields: `virtual_link_id`, `incident_id`, `network_id`, `link_type`,
+`source_ref`, `destination_ref`, `status`, `created_at`, `updated_at`, and
+`version`. Controlled `link_type` starts with `vpn`, `vlan_trunk`, `route`,
+`firewall_rule`, `nat`, `overlay`, `service_dependency`, `other`.
+
+- Relationships: references devices, networks, VLAN/subnets, services, WAN
+  links, or other approved endpoint records within the same incident.
+- Validation: source and destination cannot be identical; active virtual links
+  need a purpose or rule/path description.
+- Audit: create history for endpoint, dependency, status, rule, and path
+  changes.
+- Mobile: mobile may view virtual links for troubleshooting but should not
+  create or modify them in the first version.
+
+### Service
+- Definition: an incident-scoped technology service that users depend on, such
+  as internet access, printing, Wi-Fi SSID, file share, VoIP, radio gateway,
+  DNS, DHCP, camera feed, or application access.
+
+Required fields: `service_id`, `incident_id`, `name`, `service_type`, `status`,
+`created_at`, `updated_at`, and `version`. Controlled `service_type` starts
+with `internet`, `wifi_ssid`, `printing`, `dhcp`, `dns`, `file_share`, `voip`,
+`radio_gateway`, `camera`, `application`, `other`.
+
+- Relationships: may depend on devices, networks, VLAN/subnets, IP
+  assignments, physical links, virtual links, WAN links, people contacts, and
+  checklist templates.
+- Validation: active services need at least one dependency or owning contact;
+  service names should be unique within the incident.
+- Audit: create history for status, dependency, owner, published endpoint, and
+  archive/delete changes.
+- Mobile: mobile may view services, status, troubleshooting notes, and
+  checklists; service creation/modification stays desktop/server-side first.
+
+### VLAN / Subnet
+- Definition: a network segment or addressing domain used to group devices,
+  route traffic, isolate services, or document an incident network plan.
+
+Required fields: `vlan_subnet_id`, `incident_id`, `network_id`, `name`,
+`segment_type`, `status`, `created_at`, `updated_at`, and `version`.
+Controlled `segment_type` starts with `vlan`, `subnet`, `management`,
+`guest_wifi`, `operations`, `printer`, `voice`, `iot`, `other`.
+
+Optional fields include `vlan_id`, `cidr`, `gateway_ip`, `dhcp_scope`,
+`dns_servers`, `purpose`, and `notes`.
+
+- Relationships: belongs to one network and contains IP address assignments,
+  services, virtual links, and devices through interfaces.
+- Validation: `vlan_id`, when set, must be 1-4094; CIDR and gateway must be
+  valid when present; overlapping active subnets require an explicit reason.
+- Audit: create history for VLAN ID, CIDR, gateway, DHCP, DNS, status, and
+  membership changes.
+- Mobile: mobile may view VLAN/subnet details for troubleshooting and search.
+
+### IP Address Assignment
+- Definition: a record that assigns or reserves an IP address for a device
+  interface, service endpoint, gateway, printer, WAN handoff, or manual note.
+
+Required fields: `ip_assignment_id`, `incident_id`, `address`, `assignment_type`,
+`status`, `created_at`, `updated_at`, and `version`. Controlled
+`assignment_type` starts with `static`, `dhcp`, `reservation`, `gateway`,
+`service`, `wan`, `unknown`.
+
+Optional fields include `vlan_subnet_id`, `device_id`, `interface_name`,
+`service_id`, `mac_address`, `hostname`, `lease_start`, `lease_end`, and
+`notes`.
+
+- Relationships: may link to one VLAN/subnet, device, service, WAN link, or
+  observed MAC address.
+- Validation: IP address must be valid; duplicate active assignments in the
+  same subnet require an override; assignments must stay within the same
+  incident.
+- Audit: create history for address, target, MAC, hostname, status, lease, and
+  archive/delete changes.
+- Mobile: mobile may search and view IP assignments; creating assignments from
+  mobile should be draft-only until reviewed.
+
+### Wireless Link
+- Definition: a wireless point-to-point, point-to-multipoint, mesh, Wi-Fi
+  uplink, or radio-backed network connection used by the incident.
+
+Required fields: `wireless_link_id`, `incident_id`, `network_id`, `link_type`,
+`status`, `created_at`, `updated_at`, and `version`. Controlled `link_type`
+starts with `wifi_ptp`, `wifi_ptmp`, `mesh`, `microwave`, `lte_bridge`,
+`radio_gateway`, `other`.
+
+Optional fields include source/destination device IDs, source/destination
+location IDs, SSID, frequency band, channel, signal strength, expected
+throughput, antenna notes, and alignment notes.
+
+- Relationships: connects devices or locations and may support networks,
+  services, WAN links, virtual links, and link state history.
+- Validation: active wireless links need at least one endpoint pair or a
+  documented survey note; signal metrics must include units.
+- Audit: create history for endpoint, SSID, channel, signal, status, alignment,
+  and archive/delete changes.
+- Mobile: mobile may add photos, signal observations, and notes from the field;
+  new links should remain draft until reviewed.
+
+### Satellite / WAN Link
+- Definition: an external connectivity path such as satellite internet,
+  cellular modem, microwave backhaul, agency WAN handoff, commercial ISP, or
+  other internet/WAN service.
+
+Required fields: `wan_link_id`, `incident_id`, `link_type`, `provider_or_owner`,
+`status`, `created_at`, `updated_at`, and `version`. Controlled `link_type`
+starts with `satellite`, `starlink`, `cellular`, `microwave`, `agency_wan`,
+`commercial_isp`, `fiber_handoff`, `other`.
+
+Optional fields include account/reference, modem/device ID, network ID,
+location ID, public IP, bandwidth, data limit, failover priority, support
+contact, and service notes.
+
+- Relationships: may attach to one device, network, location, service, virtual
+  link, wireless link, and link state history.
+- Validation: active WAN links need provider/owner and either a device,
+  location, or handoff note; public IP values must be valid when entered.
+- Audit: create history for provider, status, bandwidth, public IP, failover,
+  support contact, and archive/delete changes.
+- Mobile: mobile may view setup details, checklists, status, notes, and photos;
+  provisioning changes stay desktop/server-side first.
+
+### Link State History
+- Definition: append-only status observations for physical links, virtual
+  links, wireless links, WAN links, services, or monitored devices.
+
+Required fields: `link_state_id`, `incident_id`, `observed_at`,
+`target_type`, `target_id`, `state`, `source`, `created_at`, and `created_by`.
+Controlled `state` is `unknown`, `up`, `degraded`, `down`, `disabled`,
+`planned`, `maintenance`; controlled `source` is `manual`, `mobile_checklist`,
+`ping`, `snmp`, `http_check`, `system`, `import`.
+
+Optional fields include latency, packet loss, throughput, signal, reason,
+notes, related checklist run, and manual override flag.
+
+- Relationships: references exactly one monitored target within the same
+  incident and may link to audit events, notes, photos, or checklist runs.
+- Validation: history is append-only; corrections create new events rather than
+  editing old observations except for administrator-approved data repair.
+- Audit: manual overrides and data repair must create audit events.
+- Mobile: mobile may create manual observations and checklist-linked state
+  records.
+
+### Checklist Template
+- Definition: reusable checklist content for ITSS setup, troubleshooting,
+  daily checks, closeout, documentation, safety, or field verification.
+
+Required fields: `template_id`, `title`, `template_type`, `version_label`,
+`status`, `steps`, `created_at`, `updated_at`, and `version`. Controlled
+`template_type` starts with `setup`, `daily_check`, `troubleshooting`,
+`maintenance`, `closeout`, `documentation`, `safety`, `other`.
+
+Each step needs a stable `step_id`, title, order, completion mode, and expected
+result. Optional step fields include role, required photo/note flag,
+troubleshooting hint, safety note, related object type, and blocker behavior.
+
+- Relationships: may be global, incident-scoped, camp-scoped, service-scoped,
+  device-type-scoped, or network-type-scoped.
+- Validation: published templates require at least one step, stable step IDs,
+  ordered steps, and a version label.
+- Audit: create history for publish/archive/version changes and step edits.
+- Mobile: mobile may download and run published templates; editing templates is
+  desktop/server-side first.
+
+### Checklist Run / Completed Checklist
+- Definition: an incident record of a person or team performing a checklist
+  against an incident, camp, location, device, network, link, service, or other
+  approved target.
+
+Required fields: `checklist_run_id`, `incident_id`, `template_id`, `status`,
+`started_at`, `created_at`, `updated_at`, and `version`. Controlled `status`
+is `not_started`, `in_progress`, `blocked`, `completed`, `cancelled`,
+`archived`.
+
+Run steps record step ID, completion state, completed_at, completed_by,
+required notes/photos, blocker notes, and field observations.
+
+- Relationships: references template version, assignee/person, target object,
+  notes, photos, attachments, link state observations, and follow-up work.
+- Validation: completed runs must satisfy required steps, required notes/photos,
+  and completion criteria from the template version used.
+- Audit: create history for start, assignment, blocker, completion,
+  cancellation, reopen, and archive changes.
+- Mobile: mobile may start, update, complete, and sync checklist runs.
+
+### Attachment / Photo / Note
+- Definition: supporting incident evidence or documentation attached to an
+  incident object, checklist run, checklist step, link observation, device,
+  asset, person, camp, or location.
+
+Required fields: `entry_id`, `incident_id`, `entry_type`, `target_type`,
+`target_id`, `created_at`, `created_by`, and `version`. Controlled
+`entry_type` is `note`, `photo`, `file`, `link`, `observation`.
+
+Notes require text. Photos/files require storage reference, filename, media
+type, size, and checksum when available. Optional fields include caption,
+visibility, captured_at, device/location metadata, and tags.
+
+- Relationships: belongs to exactly one incident and one target object; may
+  link to checklist runs, audit events, or link state history.
+- Validation: target must exist in the same incident; files need a storage
+  reference; official records should archive rather than delete attachments.
+- Audit: create history for add, edit note text, replace file, archive, and
+  administrator delete.
+- Mobile: mobile may create notes/photos/files while offline and sync them when
+  connected.
+
+### Audit Event
+- Definition: immutable record of meaningful user, system, import, sync, or
+  administrator action affecting incident data.
+
+Required fields: `audit_event_id`, `incident_id`, `occurred_at`, `actor_type`,
+`actor_id`, `action`, `target_type`, `target_id`, and `summary`. Controlled
+`action` starts with `create`, `update`, `status_change`, `assign`, `unassign`,
+`archive`, `delete`, `restore`, `override`, `import`, `export`, `sync`,
+`login`, `logout`.
+
+Optional fields include changed fields, old/new values, reason, source client,
+correlation ID, related checklist run, related link state, and IP/device
+metadata.
+
+- Relationships: belongs to one incident and references one primary target;
+  may reference related records for grouped operations.
+- Validation: audit events are append-only; data repair requires a new audit
+  event explaining the correction.
+- Retention: audit events are never normally deleted and must export with the
+  incident record.
+- Mobile: mobile creates audit events for synced checklist, note, photo, and
+  field observation changes.
