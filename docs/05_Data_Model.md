@@ -216,11 +216,134 @@ re-parent Camp records in the first mobile version.
   broader operational capacity record.
 - Whether `limited` status needs structured reason codes.
 
-### Building
-- Attributes: identifier, name, type, location, capacity
-- Relationships: belongs to a camp; contains rooms or assets
-- Ownership: belongs to one camp
-- Lifecycle: active, maintenance, retired
+### Building / Location
+- Definition: a camp-scoped physical place used to organize devices, assets,
+  users, links, map layout, field work, and checklist activity. It may be a
+  building, tent, trailer, cache, pad, communications site, room, outdoor work
+  area, or map-only location.
+- Current prototype mapping: `Building` in
+  `src/fireitmanager/models/building.py` currently covers `building_id`,
+  `name`, `building_type`, optional `location`, `devices`, `created_at`, and
+  `updated_at`. `Location` in `src/fireitmanager/models/location.py` currently
+  covers `location_id`, `name`, `latitude`, `longitude`, `elevation_ft`,
+  `notes`, `created_at`, and `updated_at`.
+- Long-term model note: the shared-server model should treat Building/Location
+  as the camp's operational place record. Physical buildings, rooms, tents,
+  trailers, pads, and map-only locations should use the same relationship
+  rules so network maps, inventory, and mobile checklists do not need separate
+  concepts for every field layout.
+
+#### Building / Location Fields
+
+| Field | Required | Value Type | Notes |
+| --- | --- | --- | --- |
+| `location_id` | Yes | UUID | Stable internal identifier. Generated once and never reused. This may replace or map from prototype `building_id` during migration. |
+| `camp_id` | Yes | Relationship | Parent Camp. A Building/Location belongs to exactly one camp in the first shared-server model. |
+| `name` | Yes | Free text | Human-readable place name used in maps, explorer views, reports, and mobile checklists. Must be unique within the parent camp when practical. |
+| `location_type` | Yes | Controlled list | First list: `command_post`, `operations`, `communications`, `logistics`, `medical`, `storage`, `lodging`, `warehouse`, `helibase`, `tent`, `trailer`, `outdoor_area`, `room`, `other`. |
+| `status` | Yes | Controlled list | `planned`, `active`, `limited`, `maintenance`, `closed`, `archived`. |
+| `parent_location_id` | No | Relationship | Optional parent place for room, tent, trailer, or sub-area nesting. Must stay within the same camp. |
+| `map_x` | No | Decimal | Optional site-map coordinate for desktop and future shared map layout. |
+| `map_y` | No | Decimal | Optional site-map coordinate for desktop and future shared map layout. |
+| `map_width` | No | Decimal | Optional rendered width for map containers. |
+| `map_height` | No | Decimal | Optional rendered height for map containers. |
+| `latitude` | No | Decimal | Optional geographic coordinate for field navigation and GIS context. |
+| `longitude` | No | Decimal | Optional geographic coordinate for field navigation and GIS context. |
+| `elevation_ft` | No | Decimal | Optional elevation in feet. |
+| `address_or_directions` | No | Free text | Field-friendly directions when a formal address is unavailable. |
+| `capacity` | No | Integer | Optional operating capacity, such as workstations, beds, personnel, or equipment footprint. |
+| `access_notes` | No | Free text | Access instructions, gate notes, safety notes, or restricted-entry context. |
+| `notes` | No | Free text | General place notes. |
+| `record_state` | Yes | Controlled list | `active` or `archived`; archival is preferred over deletion once child records exist. |
+| `created_at` | Yes | Datetime | System-created timestamp. |
+| `updated_at` | Yes | Datetime | System-updated timestamp. |
+| `version` | Yes in shared-server model | Integer or token | Used for optimistic concurrency and conflict detection. |
+
+#### Building / Location Relationships
+
+- Belongs to exactly one Camp and therefore exactly one Incident through that
+  camp.
+- May contain devices, assets, rooms or sub-locations, checklist runs,
+  attachments, photos, notes, and audit events.
+- May be the endpoint context for physical links, wireless links, WAN links, or
+  service availability, but links should still connect explicit devices or
+  link endpoints when known.
+- May have a parent Building/Location for room or sub-area structure. Parent
+  and child records must remain in the same camp.
+- Devices and assets assigned to a Building/Location must belong to the same
+  parent incident as the location.
+- Camp `primary_location_id` can reference one Building/Location for map
+  centering and summaries.
+
+#### Building / Location Lifecycle
+
+- `planned`: expected place or layout object, not yet verified.
+- `active`: place is operational and available for ITSS use.
+- `limited`: place is usable with known constraints, access limits, or partial
+  service.
+- `maintenance`: place is temporarily unavailable or undergoing work.
+- `closed`: place is no longer operational but remains part of the incident
+  record.
+- `archived`: hidden from normal active views but retained for reporting,
+  audit, export, and historical reference.
+
+Building/Location records with devices, assets, links, checklists, notes,
+attachments, or audit history should be archived instead of deleted. Deletion
+is allowed only for empty drafts or duplicate setup mistakes before the place
+has official child records.
+
+#### Building / Location Validation Rules
+
+- `location_id`, `camp_id`, `name`, `location_type`, `status`, `record_state`,
+  `created_at`, and `updated_at` are always required.
+- `name` should be unique within the parent camp, ignoring case and leading or
+  trailing whitespace.
+- `parent_location_id`, when set, must reference another Building/Location in
+  the same camp and must not create a cycle.
+- `map_x` and `map_y` must either both be blank or both be present.
+- `map_width` and `map_height`, when set, must be greater than zero.
+- `latitude` and `longitude` must either both be blank or both be present.
+- `capacity`, when set, must be zero or greater.
+- A Building/Location cannot move to `closed` while assigned devices, assets,
+  or links are still active unless a closeout workflow records the reason.
+- The shared-server model must enforce optimistic concurrency on
+  Building/Location updates so clients cannot silently overwrite map placement,
+  status, or assignments.
+
+#### Building / Location Audit Rules
+
+Create audit history when:
+
+- a Building/Location is created, activated, limited, moved to maintenance,
+  closed, reopened, archived, or deleted
+- `name`, `location_type`, `status`, `parent_location_id`, map coordinates,
+  dimensions, latitude, longitude, elevation, capacity, access notes, or notes
+  change
+- a device, asset, checklist run, attachment, photo, note, or child location is
+  added to or removed from the Building/Location
+- an override allows deleting or editing a closed or archived Building/Location
+
+#### Mobile Rules
+
+The mobile/tablet tool may view Building/Location details, map summaries,
+assigned devices, assigned assets, checklists, notes, and photos. It may create
+field notes, photos, checklist runs, and follow-up observations for a selected
+Building/Location. It may create a draft field-discovered location only if the
+desktop/server workflow clearly marks it as unverified. It should not delete,
+archive, close, or re-parent Building/Location records in the first mobile
+version.
+
+#### Open Decisions
+
+- Whether the long-term class/table name is `Location`, `Place`,
+  `CampLocation`, or keeps `Building` for prototype continuity.
+- Final controlled list for `location_type`.
+- Whether nested rooms/sub-locations are required in the first shared-server
+  milestone.
+- Whether map coordinates should be incident-wide, camp-relative, or tied to a
+  future map layer record.
+- Whether field-discovered mobile locations should be allowed in version one or
+  deferred until review workflows exist.
 
 ### Network
 - Attributes: identifier, name, type, description
