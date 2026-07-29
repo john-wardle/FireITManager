@@ -118,7 +118,7 @@ Goal: Make an intentional architecture decision before a rewrite.
 
 - [x] Decide between WPF and WinUI 3 for the Windows desktop client.
 - [x] Decide whether the first C# version must run only on Windows.
-- [ ] Decide whether the mobile/tablet tool is web/PWA first.
+- [x] Decide whether the mobile/tablet tool is web/PWA first.
 - [x] Choose database: PostgreSQL, SQL Server, or SQLite for first shared-server version.
 - [ ] Choose real-time update mechanism.
 - [ ] Choose authentication approach for incident-local use.
@@ -131,7 +131,7 @@ Recommended default:
 - [x] Server: ASP.NET Core.
 - [ ] Live updates: SignalR.
 - [x] Database: SQLite for first air-gapped shared server and local/offline cache; PostgreSQL or SQL Server later if field testing proves the need.
-- [ ] Mobile/tablet checklist client: browser-based PWA served by the incident server.
+- [x] Mobile/tablet checklist client: browser-based PWA served by the incident server.
 
 Done when:
 

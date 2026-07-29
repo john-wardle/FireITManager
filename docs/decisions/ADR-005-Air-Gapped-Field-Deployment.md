@@ -33,6 +33,7 @@ For the first shared-server field version:
 
 - Desktop client: C# WPF, Windows-only, self-contained single-file publish.
 - Incident server: ASP.NET Core Web API hosted on the incident LAN.
+- Mobile/tablet tool: browser-based PWA served by the incident server.
 - First shared-server database: SQLite owned by the incident server process.
 - Offline desktop cache: local SQLite file per client.
 - Export bundle: local compressed archive containing the incident database
@@ -51,6 +52,9 @@ For the first shared-server field version:
   clients editing a shared database file directly.
 - Local SQLite desktop caches allow offline field work and later sync without
   treating local files as the incident source of truth.
+- A PWA mobile/tablet client avoids app store deployment, MDM setup, and
+  platform-specific native mobile builds while still supporting incident-LAN
+  use, touch-friendly checklists, local caching, and server sync.
 - Local report/export libraries can produce PDFs, spreadsheets, and archive
   bundles without using cloud conversion endpoints.
 
@@ -77,6 +81,19 @@ For the first shared-server field version:
   conflict state.
 - Server acceptance of offline changes must create audit events.
 
+### Mobile / Tablet PWA
+- Serve the PWA from the same incident server used by the WPF desktop clients.
+- Support phones and tablets on the incident LAN without requiring internet or
+  app store access.
+- Cache published checklist templates and in-progress checklist runs for short
+  local outages.
+- Sync completed checklist runs, notes, photos, and link observations back to
+  the incident server.
+- Keep structural record creation limited to draft/unverified field-discovered
+  records until a desktop/server workflow reviews them.
+- Avoid native mobile apps until field testing proves the PWA cannot satisfy
+  required camera, offline, or device-integration workflows.
+
 ### Reports And Handoff
 - Generate reports locally with .NET libraries rather than cloud services.
 - Candidate PDF library: QuestPDF, with licensing reviewed before production
@@ -101,6 +118,13 @@ truth for multi-user editing across incident laptops.
 Rejected for the first field version because normal operation must not require
 internet, cloud identity, or external services.
 
+### Native mobile app first
+Rejected for the first mobile/tablet tool. A native app would add platform
+builds, device enrollment or app distribution work, and update friction during
+an incident. A PWA served by the local incident server better matches
+air-gapped field deployment and can be revisited if field testing exposes a
+hard native-device requirement.
+
 ### WinUI 3 desktop client
 Rejected for the first desktop client in ADR-004. WinUI 3 remains an option
 only if later requirements justify the Windows App SDK deployment tradeoffs.
@@ -115,6 +139,8 @@ only if later requirements justify the Windows App SDK deployment tradeoffs.
   contracts.
 - Offline sync and conflict handling must be designed early enough that local
   caches do not become unofficial competing sources of truth.
+- PWA offline behavior must be intentionally scoped; long-duration offline work
+  should favor checklist and evidence capture, not broad structural editing.
 - Export and backup workflows become core field features, not afterthoughts.
 
 ## References
