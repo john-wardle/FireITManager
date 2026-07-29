@@ -121,7 +121,7 @@ Goal: Make an intentional architecture decision before a rewrite.
 - [x] Decide whether the mobile/tablet tool is web/PWA first.
 - [x] Choose database: PostgreSQL, SQL Server, or SQLite for first shared-server version.
 - [x] Choose real-time update mechanism.
-- [ ] Choose authentication approach for incident-local use.
+- [x] Choose authentication approach for incident-local use.
 - [x] Choose installer/deployment approach for the desktop client.
 - [ ] Write an architecture decision record before starting the rewrite.
 

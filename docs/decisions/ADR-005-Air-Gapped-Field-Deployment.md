@@ -38,6 +38,8 @@ For the first shared-server field version:
 - Offline desktop cache: local SQLite file per client.
 - Real-time updates: SignalR notifications from the incident server after
   successful authoritative writes.
+- Authentication: local incident-server accounts and roles with no cloud
+  identity dependency.
 - Export bundle: local compressed archive containing the incident database
   export, attachments, generated reports, and audit trail.
 - External cloud services: none required for normal incident operation.
@@ -63,6 +65,8 @@ For the first shared-server field version:
 - A PWA mobile/tablet client avoids app store deployment, MDM setup, and
   platform-specific native mobile builds while still supporting incident-LAN
   use, touch-friendly checklists, local caching, and server sync.
+- Local incident-server accounts keep sign-in usable when internet, cloud
+  identity, domain controllers, or agency identity providers are unavailable.
 - Local report/export libraries can produce PDFs, spreadsheets, and archive
   bundles without using cloud conversion endpoints.
 
@@ -108,6 +112,30 @@ For the first shared-server field version:
 - Initial broadcast categories should include incident, camp, location, device,
   asset, network, link status, checklist run, note/photo, and audit summary
   changes.
+
+### Incident-Local Authentication
+- Use local user accounts stored by the incident server for the first
+  shared-server version.
+- Assign role-based permissions using the Phase 2 role set: ITSS, COML, COMT,
+  trainee, logistics, read-only observer, and administrator.
+- Support password-based sign-in first. A PIN or quick-switch workflow can be
+  added later only if field testing shows password entry is too slow.
+- Keep emergency administrator access available through a documented local
+  break-glass account or recovery procedure created during incident server
+  setup.
+- Store password hashes, not plaintext passwords. Use modern .NET password
+  hashing APIs or ASP.NET Core Identity primitives even if the full Identity UI
+  stack is not used.
+- Authentication must work without internet, cloud identity, Active Directory,
+  Entra ID, or agency SSO.
+- Authorization decisions happen on the server API. WPF and PWA clients may
+  hide unavailable actions, but the server remains authoritative.
+- Sign-in, sign-out, account creation, role changes, failed login threshold
+  events, emergency access, and destructive permission overrides must create
+  audit events.
+- Offline clients may continue showing cached data according to the last known
+  signed-in user and role, but syncing changes back to the server requires
+  reauthentication or a still-valid local token.
 
 ### Offline Sync
 - The WPF client may continue working from a local SQLite cache when the server
@@ -175,6 +203,21 @@ an incident. A PWA served by the local incident server better matches
 air-gapped field deployment and can be revisited if field testing exposes a
 hard native-device requirement.
 
+### Cloud identity first
+Rejected for the first field version. Entra ID, agency SSO, or other cloud
+identity providers may be useful later, but normal incident operation must not
+depend on internet access or external identity infrastructure.
+
+### Windows/domain authentication first
+Rejected for the first field version. Some managed environments may support it,
+but incident laptops and field servers cannot assume domain membership,
+reachable domain controllers, or consistent agency trust relationships.
+
+### Shared incident password
+Rejected as the primary authentication model because it cannot support
+role-based permissions, per-user audit history, accountability, or safe
+demobilization handoff.
+
 ### WinUI 3 desktop client
 Rejected for the first desktop client in ADR-004. WinUI 3 remains an option
 only if later requirements justify the Windows App SDK deployment tradeoffs.
@@ -190,6 +233,9 @@ only if later requirements justify the Windows App SDK deployment tradeoffs.
 - SignalR connection loss must be visible to users, but lost SignalR
   connectivity must not imply lost data if API sync and local cache state are
   healthy.
+- Authentication and authorization must be designed before write APIs become
+  operational, because audit history and role-based permissions depend on
+  knowing the actor behind each change.
 - Offline sync and conflict handling must be designed early enough that local
   caches do not become unofficial competing sources of truth.
 - PWA offline behavior must be intentionally scoped; long-duration offline work
