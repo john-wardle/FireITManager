@@ -23,6 +23,17 @@ app.MapGet("/health", async (
         CheckedAtUtc: DateTimeOffset.UtcNow));
 });
 
+app.MapGet("/api/incident-summary", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var incidentSummary = await incidentDatabase.GetIncidentSummaryAsync(cancellationToken);
+
+    return incidentSummary is null
+        ? Results.NotFound(new ApiMessage("No incident summary has been configured."))
+        : Results.Ok(incidentSummary);
+});
+
 await app.RunAsync();
 
 internal sealed record HealthResponse(
@@ -31,3 +42,5 @@ internal sealed record HealthResponse(
     string DatabaseStatus,
     IReadOnlyList<string> AppliedMigrations,
     DateTimeOffset CheckedAtUtc);
+
+internal sealed record ApiMessage(string Message);

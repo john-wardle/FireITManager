@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using SQLitePCL;
+using System.Globalization;
 
 namespace FireITManager.Server.Data;
 
@@ -110,6 +111,45 @@ internal sealed class IncidentDatabase
         return new DatabaseHealth("Connected", appliedMigrations);
     }
 
+    public async Task<IncidentSummary?> GetIncidentSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_number,
+                name,
+                agency,
+                operational_period_start_utc,
+                operational_period_end_utc,
+                created_at_utc,
+                updated_at_utc
+            FROM incidents
+            ORDER BY created_at_utc ASC
+            LIMIT 1;
+            """;
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new IncidentSummary(
+            Id: reader.GetString(0),
+            IncidentNumber: reader.GetString(1),
+            Name: reader.GetString(2),
+            Agency: reader.GetString(3),
+            OperationalPeriodStartUtc: ReadOptionalDateTimeOffset(reader, 4),
+            OperationalPeriodEndUtc: ReadOptionalDateTimeOffset(reader, 5),
+            CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 6),
+            UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 7));
+    }
+
     private static async Task<bool> MigrationHasBeenAppliedAsync(
         SqliteConnection connection,
         string migrationId,
@@ -185,6 +225,26 @@ internal sealed class IncidentDatabase
 
     private SqliteConnection CreateConnection() => new(_connectionString);
 
+    private static DateTimeOffset? ReadOptionalDateTimeOffset(SqliteDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal)
+            ? null
+            : ReadDateTimeOffset(reader.GetString(ordinal));
+    }
+
+    private static DateTimeOffset ReadRequiredDateTimeOffset(SqliteDataReader reader, int ordinal)
+    {
+        return ReadDateTimeOffset(reader.GetString(ordinal));
+    }
+
+    private static DateTimeOffset ReadDateTimeOffset(string value)
+    {
+        return DateTimeOffset.Parse(
+            value,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+    }
+
     private const string CreateMigrationTableSql =
         """
         CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -199,3 +259,13 @@ internal sealed class IncidentDatabase
 internal sealed record DatabaseHealth(
     string Status,
     IReadOnlyList<string> AppliedMigrations);
+
+internal sealed record IncidentSummary(
+    string Id,
+    string IncidentNumber,
+    string Name,
+    string Agency,
+    DateTimeOffset? OperationalPeriodStartUtc,
+    DateTimeOffset? OperationalPeriodEndUtc,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc);
