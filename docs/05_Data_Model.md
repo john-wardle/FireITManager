@@ -717,3 +717,71 @@ metadata.
   incident record.
 - Mobile: mobile creates audit events for synced checklist, note, photo, and
   field observation changes.
+
+## Data Rules
+
+### Required Fields
+
+Required fields are the minimum data needed to create a durable shared-server
+record without losing identity, incident scope, lifecycle state, auditability,
+or multi-user conflict protection. UI drafts may start with fewer values, but a
+record cannot become official incident data until its required fields are
+present and valid.
+
+#### Required Field Policy
+
+- Every persistent incident record requires a stable UUID, creation timestamp,
+  updated timestamp, and concurrency token.
+- Every incident-scoped record requires `incident_id` unless it is a global
+  reusable template that is explicitly not tied to one incident.
+- Records with operational lifecycle require a controlled `status` and
+  `record_state` or equivalent archive state.
+- Child records require the parent relationship that defines their scope, such
+  as `camp_id`, `network_id`, `template_id`, or `target_id`.
+- Append-only history records require actor/source information and an event or
+  observation timestamp.
+- Fields listed as "required before active/official use" may be missing during
+  early setup, but validation must block active, closed, exported-official, or
+  server-synchronized official states until those fields are complete.
+
+#### Required Fields By Record Type
+
+| Record Type | Required Fields |
+| --- | --- |
+| Incident | `incident_id`, `name`, `status`, `incident_type`, `time_zone`, `record_state`, `created_at`, `updated_at`, `version` |
+| Incident before active/official use | `incident_number`, `lead_agency`, `start_datetime` |
+| Incident before close | `end_datetime` |
+| Camp | `camp_id`, `incident_id`, `name`, `camp_type`, `status`, `record_state`, `created_at`, `updated_at`, `version` |
+| Building / Location | `location_id`, `camp_id`, `name`, `location_type`, `status`, `record_state`, `created_at`, `updated_at`, `version` |
+| Person | `person_id`, `incident_id`, `display_name`, `role`, `status`, `created_at`, `updated_at`, `version` |
+| Device | `device_id`, `incident_id`, `hostname`, `device_type`, `status`, `created_at`, `updated_at`, `version` |
+| Asset | `asset_id`, `incident_id`, `name`, `category`, `status`, `created_at`, `updated_at`, `version` |
+| Network | `network_id`, `incident_id`, `name`, `network_type`, `status`, `created_at`, `updated_at`, `version` |
+| Physical Link | `physical_link_id`, `incident_id`, `network_id`, `link_type`, `status`, at least one endpoint, `created_at`, `updated_at`, `version` |
+| Virtual Link | `virtual_link_id`, `incident_id`, `network_id`, `link_type`, `source_ref`, `destination_ref`, `status`, `created_at`, `updated_at`, `version` |
+| Service | `service_id`, `incident_id`, `name`, `service_type`, `status`, `created_at`, `updated_at`, `version` |
+| VLAN / Subnet | `vlan_subnet_id`, `incident_id`, `network_id`, `name`, `segment_type`, `status`, `created_at`, `updated_at`, `version` |
+| IP Address Assignment | `ip_assignment_id`, `incident_id`, `address`, `assignment_type`, `status`, `created_at`, `updated_at`, `version` |
+| Wireless Link | `wireless_link_id`, `incident_id`, `network_id`, `link_type`, `status`, `created_at`, `updated_at`, `version` |
+| Satellite / WAN Link | `wan_link_id`, `incident_id`, `link_type`, `provider_or_owner`, `status`, `created_at`, `updated_at`, `version` |
+| Link State History | `link_state_id`, `incident_id`, `observed_at`, `target_type`, `target_id`, `state`, `source`, `created_at`, `created_by` |
+| Checklist Template | `template_id`, `title`, `template_type`, `version_label`, `status`, `steps`, `created_at`, `updated_at`, `version` |
+| Checklist Template Step | `step_id`, `title`, `order`, `completion_mode`, `expected_result` |
+| Checklist Run / Completed Checklist | `checklist_run_id`, `incident_id`, `template_id`, `status`, `started_at`, `created_at`, `updated_at`, `version` |
+| Checklist Run Step | `step_id`, `completion_state` |
+| Attachment / Photo / Note | `entry_id`, `incident_id`, `entry_type`, `target_type`, `target_id`, `created_at`, `created_by`, `version` |
+| Audit Event | `audit_event_id`, `incident_id`, `occurred_at`, `actor_type`, `actor_id`, `action`, `target_type`, `target_id`, `summary` |
+
+#### Required Field Validation
+
+- Required text fields must contain non-whitespace text.
+- Required UUID relationship fields must reference existing records in the same
+  incident scope unless the field explicitly references a global template.
+- Required timestamps must be timezone-aware in storage and displayable in the
+  incident's configured time zone.
+- Required controlled-list fields must use valid list values for the record's
+  current schema version.
+- Required endpoint fields may use a draft or unknown endpoint only when the
+  record status is `planned`, `unknown`, or otherwise explicitly unverified.
+- Required fields may not be removed by mobile sync, import, or conflict
+  resolution.

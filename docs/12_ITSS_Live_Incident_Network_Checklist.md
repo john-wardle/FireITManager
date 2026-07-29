@@ -99,7 +99,7 @@ Goal: Make the shared data model solid before rebuilding the application.
 
 Data rules to decide:
 
-- [ ] What fields are required.
+- [x] What fields are required.
 - [ ] What fields are optional.
 - [ ] What values are controlled lists.
 - [ ] What values can be free text.
