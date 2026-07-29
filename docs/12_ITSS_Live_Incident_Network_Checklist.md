@@ -116,7 +116,7 @@ Done when:
 
 Goal: Make an intentional architecture decision before a rewrite.
 
-- [ ] Decide between WPF and WinUI 3 for the Windows desktop client.
+- [x] Decide between WPF and WinUI 3 for the Windows desktop client.
 - [ ] Decide whether the first C# version must run only on Windows.
 - [ ] Decide whether the mobile/tablet tool is web/PWA first.
 - [ ] Choose database: PostgreSQL, SQL Server, or SQLite for first shared-server version.
@@ -127,7 +127,7 @@ Goal: Make an intentional architecture decision before a rewrite.
 
 Recommended default:
 
-- [ ] Desktop client: C# WPF first, unless WinUI 3 features are required.
+- [x] Desktop client: C# WPF first, unless WinUI 3 features are required.
 - [ ] Server: ASP.NET Core.
 - [ ] Live updates: SignalR.
 - [ ] Database: PostgreSQL or SQL Server for shared server, SQLite for local/offline cache.
