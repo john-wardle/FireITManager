@@ -123,7 +123,7 @@ Goal: Make an intentional architecture decision before a rewrite.
 - [x] Choose real-time update mechanism.
 - [x] Choose authentication approach for incident-local use.
 - [x] Choose installer/deployment approach for the desktop client.
-- [ ] Write an architecture decision record before starting the rewrite.
+- [x] Write an architecture decision record before starting the rewrite.
 
 Recommended default:
 
@@ -135,9 +135,9 @@ Recommended default:
 
 Done when:
 
-- [ ] The selected stack is documented.
-- [ ] The reason for the choice is documented.
-- [ ] The first migration milestone is small enough to finish.
+- [x] The selected stack is documented.
+- [x] The reason for the choice is documented.
+- [x] The first migration milestone is small enough to finish.
 
 ## Phase 5: Build The Incident Server Foundation
 
