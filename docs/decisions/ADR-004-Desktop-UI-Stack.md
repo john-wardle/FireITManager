@@ -20,8 +20,21 @@ the modern native Windows UI framework delivered through the Windows App SDK.
 Windows App SDK deployment adds runtime/package decisions that must be managed
 for packaged, unpackaged, framework-dependent, or self-contained apps.
 
+Air-gapped incident camp deployment is now a first-class planning constraint.
+The desktop client should run from a thumb drive, local folder, or incident LAN
+share without relying on external cloud services or machine-wide runtime setup.
+Microsoft's Windows App SDK self-contained deployment documentation says that
+WinUI 3 apps can be self-contained, but native Windows App SDK dependencies
+remain separate files and `dotnet publish` cannot produce a true single-file
+EXE for WinUI 3 apps. .NET single-file publishing, by contrast, supports
+single-file self-contained publishing for .NET applications, subject to normal
+single-file compatibility rules and native-library extraction behavior.
+
 ## Decision
 Use C# WPF first for the Windows desktop client.
+
+The first C# desktop client is Windows-only and should be designed for
+self-contained single-file publishing for the primary field distribution path.
 
 Defer WinUI 3 unless a later requirement clearly depends on Windows App SDK UI
 features that WPF cannot meet without unacceptable cost.
@@ -39,6 +52,9 @@ features that WPF cannot meet without unacceptable cost.
   features later if a specific feature justifies that dependency.
 - The mobile/tablet checklist tool is expected to be separate from the desktop
   client, so the desktop UI framework does not need to solve mobile reach.
+- WPF better matches the air-gapped deployment goal because the first desktop
+  release can target a self-contained single-file .NET publish profile without
+  Windows App SDK sidecar runtime files.
 
 ## Alternatives Considered
 
@@ -64,6 +80,14 @@ and would add a larger runtime and different native integration tradeoffs.
 
 ## Consequences
 - The first C# desktop project should be a WPF application on modern .NET.
+- The first C# desktop project should target Windows x64 first. Additional
+  Windows architectures can be added after the migration path is proven.
+- The release process should include a self-contained single-file WPF publish
+  profile and field tests on unmanaged Windows 10/11 machines with no internet
+  access.
+- The app must not assume files can be located by assembly path APIs that are
+  incompatible with .NET single-file deployment; use `AppContext.BaseDirectory`
+  or explicit configured data paths for local data and exports.
 - UI code must stay separate from domain, persistence, validation, reporting,
   and synchronization logic.
 - The first migration milestone should rebuild a narrow but real workflow,
@@ -82,3 +106,7 @@ and would add a larger runtime and different native integration tradeoffs.
   https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/
 - Microsoft Learn: Package and deploy Windows apps overview -
   https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/
+- Microsoft Learn: Windows App SDK deployment guide for self-contained apps -
+  https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/self-contained-deploy/deploy-self-contained-apps
+- Microsoft Learn: .NET single-file deployment -
+  https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview
