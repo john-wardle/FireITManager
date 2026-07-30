@@ -40,6 +40,8 @@ try
 
     app.MapHub<IncidentHub>("/hubs/incident");
 
+    app.MapGet("/", () => Results.Redirect("/mobile/"));
+
 app.MapGet("/health", async (
     IncidentDatabase incidentDatabase,
     CancellationToken cancellationToken) =>
