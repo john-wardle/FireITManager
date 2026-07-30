@@ -155,8 +155,8 @@ Goal: Create the central authority for shared incident data.
 - [x] Add API endpoint for checklist runs.
 - [x] Add audit logging for create, update, delete.
 - [x] Add server health endpoint.
-- [ ] Add backup/export command.
-- [ ] Add restore/import command.
+- [x] Add backup/export command.
+- [x] Add restore/import command.
 
 Done when:
 

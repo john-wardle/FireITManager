@@ -1,5 +1,10 @@
 using FireITManager.Server.Data;
 
+if (IncidentDatabaseCommands.IsDatabaseCommand(args))
+{
+    return await IncidentDatabaseCommands.ExecuteAsync(args);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton(IncidentDatabase.Create(builder.Configuration));
@@ -151,6 +156,8 @@ app.MapGet("/api/audit-events", async (
 });
 
 await app.RunAsync();
+
+return 0;
 
 internal sealed record HealthResponse(
     string Status,
