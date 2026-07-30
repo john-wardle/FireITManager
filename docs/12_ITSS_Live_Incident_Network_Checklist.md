@@ -160,7 +160,7 @@ Goal: Create the central authority for shared incident data.
 
 Done when:
 
-- [ ] Two clients can read the same incident data from the server.
+- [x] Two clients can read the same incident data from the server.
 - [x] All changes are stored in the database.
 - [x] Changes are traceable to a user and time.
 
