@@ -16,7 +16,8 @@
   ],
   "guidingArchitecture": "Windows Desktop Client\n        |\n        | API and live updates\n        v\nIncident Server on the incident LAN\n        |\n        v\nDatabase, audit log, telemetry collectors, checklist content\n        |\n        v\nMobile / Tablet Checklist Client",
   "dashboardRules": {
-    "phaseSelection": "first-incomplete-phase",
+    "phaseSelection": "explicit-current-phase-with-first-incomplete-fallback",
+    "currentPhaseId": "phase-9-build-the-mobile-tablet-checklist-tool",
     "taskSelection": "first-incomplete-task-in-active-phase",
     "autoAdvancePhase": true,
     "weeklyTaskSource": "first-three-incomplete-tasks-in-active-phase",
