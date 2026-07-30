@@ -70,6 +70,24 @@ app.MapGet("/api/links", async (
     return Results.Ok(links);
 });
 
+app.MapGet("/api/checklist-templates", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var checklistTemplates = await incidentDatabase.ListChecklistTemplatesAsync(cancellationToken);
+
+    return Results.Ok(checklistTemplates);
+});
+
+app.MapGet("/api/checklist-runs", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var checklistRuns = await incidentDatabase.ListChecklistRunsAsync(cancellationToken);
+
+    return Results.Ok(checklistRuns);
+});
+
 await app.RunAsync();
 
 internal sealed record HealthResponse(

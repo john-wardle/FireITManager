@@ -207,6 +207,76 @@ internal sealed class IncidentDatabase
             CREATE INDEX IF NOT EXISTS idx_links_status
                 ON links(status);
             """),
+        new(
+            "005_checklist_store",
+            """
+            CREATE TABLE IF NOT EXISTS checklist_templates (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NULL,
+                title TEXT NOT NULL,
+                template_type TEXT NOT NULL,
+                version_label TEXT NOT NULL,
+                status TEXT NOT NULL,
+                scope_type TEXT NOT NULL DEFAULT 'global',
+                scope_id TEXT NULL,
+                steps_json TEXT NOT NULL DEFAULT '[]',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_checklist_templates_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT ck_checklist_templates_title_not_blank
+                    CHECK (length(trim(title)) > 0),
+                CONSTRAINT ck_checklist_templates_version_label_not_blank
+                    CHECK (length(trim(version_label)) > 0),
+                CONSTRAINT ck_checklist_templates_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_checklist_templates_incident
+                ON checklist_templates(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_checklist_templates_status
+                ON checklist_templates(status);
+
+            CREATE TABLE IF NOT EXISTS checklist_runs (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                template_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                target_type TEXT NOT NULL DEFAULT '',
+                target_id TEXT NULL,
+                assignee_person_id TEXT NULL,
+                started_at_utc TEXT NOT NULL,
+                completed_at_utc TEXT NULL,
+                steps_json TEXT NOT NULL DEFAULT '[]',
+                notes TEXT NOT NULL DEFAULT '',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_checklist_runs_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_checklist_runs_template
+                    FOREIGN KEY (template_id) REFERENCES checklist_templates(id)
+                    ON DELETE RESTRICT,
+                CONSTRAINT ck_checklist_runs_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_checklist_runs_incident
+                ON checklist_runs(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_checklist_runs_template
+                ON checklist_runs(template_id);
+
+            CREATE INDEX IF NOT EXISTS idx_checklist_runs_target
+                ON checklist_runs(target_type, target_id);
+
+            CREATE INDEX IF NOT EXISTS idx_checklist_runs_status
+                ON checklist_runs(status);
+            """),
     ];
 
     private readonly string _connectionString;
@@ -530,6 +600,106 @@ internal sealed class IncidentDatabase
         return links;
     }
 
+    public async Task<IReadOnlyList<ChecklistTemplateSummary>> ListChecklistTemplatesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                title,
+                template_type,
+                version_label,
+                status,
+                scope_type,
+                scope_id,
+                steps_json,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM checklist_templates
+            ORDER BY title COLLATE NOCASE ASC, version_label ASC, created_at_utc ASC;
+            """;
+
+        var templates = new List<ChecklistTemplateSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            templates.Add(new ChecklistTemplateSummary(
+                Id: reader.GetString(0),
+                IncidentId: ReadOptionalString(reader, 1),
+                Title: reader.GetString(2),
+                TemplateType: reader.GetString(3),
+                VersionLabel: reader.GetString(4),
+                Status: reader.GetString(5),
+                ScopeType: reader.GetString(6),
+                ScopeId: ReadOptionalString(reader, 7),
+                Steps: ReadJsonElement(reader, 8),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 9),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 10),
+                Version: reader.GetInt32(11)));
+        }
+
+        return templates;
+    }
+
+    public async Task<IReadOnlyList<ChecklistRunSummary>> ListChecklistRunsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                template_id,
+                status,
+                target_type,
+                target_id,
+                assignee_person_id,
+                started_at_utc,
+                completed_at_utc,
+                steps_json,
+                notes,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM checklist_runs
+            ORDER BY started_at_utc DESC, created_at_utc DESC;
+            """;
+
+        var runs = new List<ChecklistRunSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            runs.Add(new ChecklistRunSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                TemplateId: reader.GetString(2),
+                Status: reader.GetString(3),
+                TargetType: reader.GetString(4),
+                TargetId: ReadOptionalString(reader, 5),
+                AssigneePersonId: ReadOptionalString(reader, 6),
+                StartedAtUtc: ReadRequiredDateTimeOffset(reader, 7),
+                CompletedAtUtc: ReadOptionalDateTimeOffset(reader, 8),
+                Steps: ReadJsonElement(reader, 9),
+                Notes: reader.GetString(10),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 11),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 12),
+                Version: reader.GetInt32(13)));
+        }
+
+        return runs;
+    }
+
     private static async Task<bool> MigrationHasBeenAppliedAsync(
         SqliteConnection connection,
         string migrationId,
@@ -644,6 +814,11 @@ internal sealed class IncidentDatabase
         return JsonSerializer.Deserialize<List<string>>(json) ?? [];
     }
 
+    private static JsonElement ReadJsonElement(SqliteDataReader reader, int ordinal)
+    {
+        return JsonSerializer.Deserialize<JsonElement>(reader.GetString(ordinal));
+    }
+
     private static DateTimeOffset ReadDateTimeOffset(string value)
     {
         return DateTimeOffset.Parse(
@@ -741,6 +916,36 @@ internal sealed record LinkSummary(
     string Label,
     string Length,
     string Path,
+    string Notes,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
+
+internal sealed record ChecklistTemplateSummary(
+    string Id,
+    string? IncidentId,
+    string Title,
+    string TemplateType,
+    string VersionLabel,
+    string Status,
+    string ScopeType,
+    string? ScopeId,
+    JsonElement Steps,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
+
+internal sealed record ChecklistRunSummary(
+    string Id,
+    string IncidentId,
+    string TemplateId,
+    string Status,
+    string TargetType,
+    string? TargetId,
+    string? AssigneePersonId,
+    DateTimeOffset StartedAtUtc,
+    DateTimeOffset? CompletedAtUtc,
+    JsonElement Steps,
     string Notes,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
