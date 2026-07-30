@@ -1,28 +1,44 @@
 using FireITManager.Server.Data;
 using FireITManager.Server.Realtime;
 
-if (IncidentDatabaseCommands.IsDatabaseCommand(args))
+try
 {
-    return await IncidentDatabaseCommands.ExecuteAsync(args);
-}
+    if (IncidentDatabaseCommands.IsDatabaseCommand(args))
+    {
+        return await IncidentDatabaseCommands.ExecuteAsync(args);
+    }
 
-var builder = WebApplication.CreateBuilder(args);
+    var appDirectory = AppContext.BaseDirectory;
+    var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+    {
+        Args = args,
+        ContentRootPath = appDirectory,
+        WebRootPath = Path.Combine(appDirectory, "wwwroot")
+    });
 
-builder.Services.AddSingleton(IncidentDatabase.Create(builder.Configuration));
-builder.Services.AddSignalR();
-builder.Services.AddSingleton<IncidentRealtimeTracker>();
-builder.Services.AddSingleton<IncidentChangeBroadcaster>();
-builder.Services.AddHostedService<StaleConnectionCleanupService>();
+    builder.Logging.ClearProviders();
+    builder.Logging.AddSimpleConsole(options =>
+    {
+        options.SingleLine = true;
+        options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+    });
+    builder.Logging.AddDebug();
 
-var app = builder.Build();
+    builder.Services.AddSingleton(IncidentDatabase.Create(builder.Configuration));
+    builder.Services.AddSignalR();
+    builder.Services.AddSingleton<IncidentRealtimeTracker>();
+    builder.Services.AddSingleton<IncidentChangeBroadcaster>();
+    builder.Services.AddHostedService<StaleConnectionCleanupService>();
 
-var database = app.Services.GetRequiredService<IncidentDatabase>();
-await database.MigrateAsync();
+    var app = builder.Build();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+    var database = app.Services.GetRequiredService<IncidentDatabase>();
+    await database.MigrateAsync();
 
-app.MapHub<IncidentHub>("/hubs/incident");
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.MapHub<IncidentHub>("/hubs/incident");
 
 app.MapGet("/health", async (
     IncidentDatabase incidentDatabase,
@@ -295,9 +311,37 @@ app.MapGet("/api/audit-events", async (
     return Results.Ok(auditEvents);
 });
 
-await app.RunAsync();
+    await app.RunAsync();
 
-return 0;
+    return 0;
+}
+catch (Exception exception)
+{
+    WriteStartupError(exception);
+    Console.Error.WriteLine(exception);
+    return 1;
+}
+
+static void WriteStartupError(Exception exception)
+{
+    try
+    {
+        var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+        Directory.CreateDirectory(logDirectory);
+        var logPath = Path.Combine(logDirectory, "server-startup-error.log");
+        File.AppendAllText(
+            logPath,
+            $"""
+            [{DateTimeOffset.Now:O}]
+            {exception}
+
+            """);
+    }
+    catch
+    {
+        // Startup logging must never replace the original failure.
+    }
+}
 
 static string ReadActorId(HttpContext httpContext)
 {

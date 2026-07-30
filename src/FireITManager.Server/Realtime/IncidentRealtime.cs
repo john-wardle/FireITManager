@@ -177,15 +177,21 @@ internal sealed class StaleConnectionCleanupService(
     {
         using var timer = new PeriodicTimer(CleanupInterval);
 
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        try
         {
-            var removed = tracker.RemoveStaleConnections(StaleConnectionAge);
-            if (removed > 0)
+            while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                logger.LogInformation(
-                    "Removed {RemovedConnectionCount} stale realtime connection(s).",
-                    removed);
+                var removed = tracker.RemoveStaleConnections(StaleConnectionAge);
+                if (removed > 0)
+                {
+                    logger.LogInformation(
+                        "Removed {RemovedConnectionCount} stale realtime connection(s).",
+                        removed);
+                }
             }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
         }
     }
 }

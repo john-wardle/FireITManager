@@ -48,6 +48,10 @@ dotnet publish .\src\FireITManager.Desktop\FireITManager.Desktop.csproj `
   file directly.
 - Provide backup, restore, export, and health-check commands before field
   testing.
+- Resolve runtime paths from the executable directory so startup does not depend
+  on the user's current working directory.
+- Write startup failures to `logs/server-startup-error.log` beside the server
+  executable instead of depending on Windows Event Log permissions.
 
 ## Offline Sync
 
