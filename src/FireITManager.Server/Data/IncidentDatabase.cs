@@ -277,6 +277,37 @@ internal sealed class IncidentDatabase
             CREATE INDEX IF NOT EXISTS idx_checklist_runs_status
                 ON checklist_runs(status);
             """),
+        new(
+            "006_audit_event_context",
+            """
+            ALTER TABLE audit_events
+                ADD COLUMN incident_id TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE audit_events
+                ADD COLUMN actor_type TEXT NOT NULL DEFAULT 'user';
+
+            ALTER TABLE audit_events
+                ADD COLUMN actor_id TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE audit_events
+                ADD COLUMN target_type TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE audit_events
+                ADD COLUMN target_id TEXT NOT NULL DEFAULT '';
+
+            UPDATE audit_events
+            SET
+                actor_id = ifnull(actor_user_id, ''),
+                target_type = entity_type,
+                target_id = entity_id
+            WHERE target_type = '';
+
+            CREATE INDEX IF NOT EXISTS idx_audit_events_incident
+                ON audit_events(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_audit_events_target
+                ON audit_events(target_type, target_id);
+            """),
     ];
 
     private readonly string _connectionString;
@@ -384,6 +415,202 @@ internal sealed class IncidentDatabase
             OperationalPeriodEndUtc: ReadOptionalDateTimeOffset(reader, 5),
             CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 6),
             UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 7));
+    }
+
+    public async Task<IncidentSummary?> CreateIncidentSummaryAsync(
+        IncidentSummaryRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        if (await IncidentExistsAsync(connection, transaction, cancellationToken))
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var incidentId = string.IsNullOrWhiteSpace(request.Id)
+            ? Guid.NewGuid().ToString()
+            : request.Id;
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO incidents (
+                    id,
+                    incident_number,
+                    name,
+                    agency,
+                    operational_period_start_utc,
+                    operational_period_end_utc,
+                    created_at_utc,
+                    updated_at_utc)
+                VALUES (
+                    $id,
+                    $incidentNumber,
+                    $name,
+                    $agency,
+                    $operationalPeriodStartUtc,
+                    $operationalPeriodEndUtc,
+                    $createdAtUtc,
+                    $updatedAtUtc);
+                """;
+            AddIncidentSummaryParameters(command, incidentId, request, now);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            incidentId,
+            actorId,
+            "create",
+            "incident",
+            incidentId,
+            $"Created incident summary '{request.Name}'.",
+            cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return await GetIncidentSummaryAsync(cancellationToken);
+    }
+
+    public async Task<IncidentSummary?> UpdateIncidentSummaryAsync(
+        IncidentSummaryRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        var existingIncidentId = await ReadCurrentIncidentIdAsync(connection, transaction, cancellationToken);
+        if (existingIncidentId is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                UPDATE incidents
+                SET
+                    incident_number = $incidentNumber,
+                    name = $name,
+                    agency = $agency,
+                    operational_period_start_utc = $operationalPeriodStartUtc,
+                    operational_period_end_utc = $operationalPeriodEndUtc,
+                    updated_at_utc = $updatedAtUtc
+                WHERE id = $id;
+                """;
+            AddIncidentSummaryParameters(command, existingIncidentId, request, now);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            existingIncidentId,
+            actorId,
+            "update",
+            "incident",
+            existingIncidentId,
+            $"Updated incident summary '{request.Name}'.",
+            cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return await GetIncidentSummaryAsync(cancellationToken);
+    }
+
+    public async Task<bool> DeleteIncidentSummaryAsync(
+        string actorId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        var existingIncidentId = await ReadCurrentIncidentIdAsync(connection, transaction, cancellationToken);
+        if (existingIncidentId is null)
+        {
+            return false;
+        }
+
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            existingIncidentId,
+            actorId,
+            "delete",
+            "incident",
+            existingIncidentId,
+            "Deleted incident summary.",
+            cancellationToken);
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText = "DELETE FROM incidents WHERE id = $id;";
+            command.Parameters.AddWithValue("$id", existingIncidentId);
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<IReadOnlyList<AuditEventSummary>> ListAuditEventsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                actor_type,
+                actor_id,
+                action,
+                target_type,
+                target_id,
+                occurred_at_utc,
+                summary
+            FROM audit_events
+            ORDER BY occurred_at_utc ASC, id ASC;
+            """;
+
+        var auditEvents = new List<AuditEventSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            auditEvents.Add(new AuditEventSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                ActorType: reader.GetString(2),
+                ActorId: reader.GetString(3),
+                Action: reader.GetString(4),
+                TargetType: reader.GetString(5),
+                TargetId: reader.GetString(6),
+                OccurredAtUtc: ReadRequiredDateTimeOffset(reader, 7),
+                Summary: reader.GetString(8)));
+        }
+
+        return auditEvents;
     }
 
     public async Task<IReadOnlyList<CampSummary>> ListCampsAsync(CancellationToken cancellationToken = default)
@@ -749,6 +976,112 @@ internal sealed class IncidentDatabase
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    private static async Task RecordAuditEventAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string incidentId,
+        string actorId,
+        string action,
+        string targetType,
+        string targetId,
+        string summary,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            INSERT INTO audit_events (
+                id,
+                actor_user_id,
+                action,
+                entity_type,
+                entity_id,
+                occurred_at_utc,
+                summary,
+                incident_id,
+                actor_type,
+                actor_id,
+                target_type,
+                target_id)
+            VALUES (
+                $id,
+                $actorUserId,
+                $action,
+                $entityType,
+                $entityId,
+                $occurredAtUtc,
+                $summary,
+                $incidentId,
+                $actorType,
+                $actorId,
+                $targetType,
+                $targetId);
+            """;
+        command.Parameters.AddWithValue("$id", Guid.NewGuid().ToString());
+        command.Parameters.AddWithValue("$actorUserId", actorId);
+        command.Parameters.AddWithValue("$action", action);
+        command.Parameters.AddWithValue("$entityType", targetType);
+        command.Parameters.AddWithValue("$entityId", targetId);
+        command.Parameters.AddWithValue("$occurredAtUtc", DateTimeOffset.UtcNow.ToString("O"));
+        command.Parameters.AddWithValue("$summary", summary);
+        command.Parameters.AddWithValue("$incidentId", incidentId);
+        command.Parameters.AddWithValue("$actorType", "user");
+        command.Parameters.AddWithValue("$actorId", actorId);
+        command.Parameters.AddWithValue("$targetType", targetType);
+        command.Parameters.AddWithValue("$targetId", targetId);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private static async Task<bool> IncidentExistsAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        return await ReadCurrentIncidentIdAsync(connection, transaction, cancellationToken) is not null;
+    }
+
+    private static async Task<string?> ReadCurrentIncidentIdAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "SELECT id FROM incidents ORDER BY created_at_utc ASC LIMIT 1;";
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return result as string;
+    }
+
+    private static void AddIncidentSummaryParameters(
+        SqliteCommand command,
+        string incidentId,
+        IncidentSummaryRequest request,
+        DateTimeOffset updatedAtUtc)
+    {
+        command.Parameters.AddWithValue("$id", incidentId);
+        command.Parameters.AddWithValue("$incidentNumber", request.IncidentNumber.Trim());
+        command.Parameters.AddWithValue("$name", request.Name.Trim());
+        command.Parameters.AddWithValue("$agency", request.Agency.Trim());
+        command.Parameters.AddWithValue(
+            "$operationalPeriodStartUtc",
+            ToDbValue(request.OperationalPeriodStartUtc));
+        command.Parameters.AddWithValue(
+            "$operationalPeriodEndUtc",
+            ToDbValue(request.OperationalPeriodEndUtc));
+        command.Parameters.AddWithValue("$createdAtUtc", updatedAtUtc.ToString("O"));
+        command.Parameters.AddWithValue("$updatedAtUtc", updatedAtUtc.ToString("O"));
+    }
+
+    private static object ToDbValue(DateTimeOffset? value)
+    {
+        return value.HasValue
+            ? value.Value.ToUniversalTime().ToString("O")
+            : DBNull.Value;
+    }
+
     private static async Task ExecuteNonQueryAsync(
         SqliteConnection connection,
         string sql,
@@ -852,6 +1185,14 @@ internal sealed record IncidentSummary(
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc);
 
+internal sealed record IncidentSummaryRequest(
+    string? Id,
+    string IncidentNumber,
+    string Name,
+    string Agency,
+    DateTimeOffset? OperationalPeriodStartUtc,
+    DateTimeOffset? OperationalPeriodEndUtc);
+
 internal sealed record CampSummary(
     string Id,
     string IncidentId,
@@ -950,3 +1291,14 @@ internal sealed record ChecklistRunSummary(
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
     int Version);
+
+internal sealed record AuditEventSummary(
+    string Id,
+    string IncidentId,
+    string ActorType,
+    string ActorId,
+    string Action,
+    string TargetType,
+    string TargetId,
+    DateTimeOffset OccurredAtUtc,
+    string Summary);

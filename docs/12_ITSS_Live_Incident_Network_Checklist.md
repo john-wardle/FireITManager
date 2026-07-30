@@ -153,7 +153,7 @@ Goal: Create the central authority for shared incident data.
 - [x] Add API endpoint for links.
 - [x] Add API endpoint for checklist templates.
 - [x] Add API endpoint for checklist runs.
-- [ ] Add audit logging for create, update, delete.
+- [x] Add audit logging for create, update, delete.
 - [x] Add server health endpoint.
 - [ ] Add backup/export command.
 - [ ] Add restore/import command.
@@ -161,8 +161,8 @@ Goal: Create the central authority for shared incident data.
 Done when:
 
 - [ ] Two clients can read the same incident data from the server.
-- [ ] All changes are stored in the database.
-- [ ] Changes are traceable to a user and time.
+- [x] All changes are stored in the database.
+- [x] Changes are traceable to a user and time.
 
 ## Phase 6: Add Real-Time Multi-User Updates
 

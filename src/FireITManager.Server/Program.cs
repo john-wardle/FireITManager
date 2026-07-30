@@ -34,6 +34,59 @@ app.MapGet("/api/incident-summary", async (
         : Results.Ok(incidentSummary);
 });
 
+app.MapPost("/api/incident-summary", async (
+    IncidentSummaryRequest request,
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Name))
+    {
+        return Results.BadRequest(new ApiMessage("Incident name is required."));
+    }
+
+    var incidentSummary = await incidentDatabase.CreateIncidentSummaryAsync(
+        request,
+        actorId: "local-admin",
+        cancellationToken);
+
+    return incidentSummary is null
+        ? Results.Conflict(new ApiMessage("An incident summary already exists."))
+        : Results.Created("/api/incident-summary", incidentSummary);
+});
+
+app.MapPut("/api/incident-summary", async (
+    IncidentSummaryRequest request,
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Name))
+    {
+        return Results.BadRequest(new ApiMessage("Incident name is required."));
+    }
+
+    var incidentSummary = await incidentDatabase.UpdateIncidentSummaryAsync(
+        request,
+        actorId: "local-admin",
+        cancellationToken);
+
+    return incidentSummary is null
+        ? Results.NotFound(new ApiMessage("No incident summary has been configured."))
+        : Results.Ok(incidentSummary);
+});
+
+app.MapDelete("/api/incident-summary", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var deleted = await incidentDatabase.DeleteIncidentSummaryAsync(
+        actorId: "local-admin",
+        cancellationToken);
+
+    return deleted
+        ? Results.NoContent()
+        : Results.NotFound(new ApiMessage("No incident summary has been configured."));
+});
+
 app.MapGet("/api/camps", async (
     IncidentDatabase incidentDatabase,
     CancellationToken cancellationToken) =>
@@ -86,6 +139,15 @@ app.MapGet("/api/checklist-runs", async (
     var checklistRuns = await incidentDatabase.ListChecklistRunsAsync(cancellationToken);
 
     return Results.Ok(checklistRuns);
+});
+
+app.MapGet("/api/audit-events", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var auditEvents = await incidentDatabase.ListAuditEventsAsync(cancellationToken);
+
+    return Results.Ok(auditEvents);
 });
 
 await app.RunAsync();
