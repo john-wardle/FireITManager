@@ -23,6 +23,7 @@ FireIT Manager.
 - [C# Carry-Forward Features](14_CSharp_Carry_Forward_Features.md)
 - [Temporary Prototype Features](15_Temporary_Prototype_Features.md)
 - [Python Prototype Guardrails](16_Python_Prototype_Guardrails.md)
+- [Phase 6 Real-Time Multi-User Updates](17_Phase_6_Realtime_Multi_User_Updates.md)
 
 ## User Documentation
 

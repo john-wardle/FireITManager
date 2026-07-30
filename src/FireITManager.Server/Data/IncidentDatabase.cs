@@ -308,6 +308,12 @@ internal sealed class IncidentDatabase
             CREATE INDEX IF NOT EXISTS idx_audit_events_target
                 ON audit_events(target_type, target_id);
             """),
+        new(
+            "007_incident_version",
+            """
+            ALTER TABLE incidents
+                ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
+            """),
     ];
 
     private readonly string _connectionString;
@@ -394,7 +400,8 @@ internal sealed class IncidentDatabase
                 operational_period_start_utc,
                 operational_period_end_utc,
                 created_at_utc,
-                updated_at_utc
+                updated_at_utc,
+                version
             FROM incidents
             ORDER BY created_at_utc ASC
             LIMIT 1;
@@ -414,10 +421,11 @@ internal sealed class IncidentDatabase
             OperationalPeriodStartUtc: ReadOptionalDateTimeOffset(reader, 4),
             OperationalPeriodEndUtc: ReadOptionalDateTimeOffset(reader, 5),
             CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 6),
-            UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 7));
+            UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 7),
+            Version: reader.GetInt32(8));
     }
 
-    public async Task<IncidentSummary?> CreateIncidentSummaryAsync(
+    public async Task<DatabaseSaveResult<IncidentSummary>> CreateIncidentSummaryAsync(
         IncidentSummaryRequest request,
         string actorId,
         CancellationToken cancellationToken = default)
@@ -428,7 +436,7 @@ internal sealed class IncidentDatabase
 
         if (await IncidentExistsAsync(connection, transaction, cancellationToken))
         {
-            return null;
+            return DatabaseSaveResult<IncidentSummary>.Duplicate();
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -478,10 +486,13 @@ internal sealed class IncidentDatabase
 
         await transaction.CommitAsync(cancellationToken);
 
-        return await GetIncidentSummaryAsync(cancellationToken);
+        var incidentSummary = await GetIncidentSummaryAsync(cancellationToken);
+        return incidentSummary is null
+            ? DatabaseSaveResult<IncidentSummary>.NotFound()
+            : DatabaseSaveResult<IncidentSummary>.Saved(incidentSummary);
     }
 
-    public async Task<IncidentSummary?> UpdateIncidentSummaryAsync(
+    public async Task<DatabaseSaveResult<IncidentSummary>> UpdateIncidentSummaryAsync(
         IncidentSummaryRequest request,
         string actorId,
         CancellationToken cancellationToken = default)
@@ -490,10 +501,15 @@ internal sealed class IncidentDatabase
         await connection.OpenAsync(cancellationToken);
         await using var transaction = connection.BeginTransaction();
 
-        var existingIncidentId = await ReadCurrentIncidentIdAsync(connection, transaction, cancellationToken);
-        if (existingIncidentId is null)
+        var existingIncident = await ReadCurrentIncidentRecordAsync(connection, transaction, cancellationToken);
+        if (existingIncident is null)
         {
-            return null;
+            return DatabaseSaveResult<IncidentSummary>.NotFound();
+        }
+
+        if (request.ExpectedVersion.HasValue && request.ExpectedVersion.Value != existingIncident.Version)
+        {
+            return DatabaseSaveResult<IncidentSummary>.Conflict(existingIncident.Version);
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -509,10 +525,11 @@ internal sealed class IncidentDatabase
                     agency = $agency,
                     operational_period_start_utc = $operationalPeriodStartUtc,
                     operational_period_end_utc = $operationalPeriodEndUtc,
-                    updated_at_utc = $updatedAtUtc
+                    updated_at_utc = $updatedAtUtc,
+                    version = version + 1
                 WHERE id = $id;
                 """;
-            AddIncidentSummaryParameters(command, existingIncidentId, request, now);
+            AddIncidentSummaryParameters(command, existingIncident.Id, request, now);
 
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
@@ -520,41 +537,50 @@ internal sealed class IncidentDatabase
         await RecordAuditEventAsync(
             connection,
             transaction,
-            existingIncidentId,
+            existingIncident.Id,
             actorId,
             "update",
             "incident",
-            existingIncidentId,
+            existingIncident.Id,
             $"Updated incident summary '{request.Name}'.",
             cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
-        return await GetIncidentSummaryAsync(cancellationToken);
+        var incidentSummary = await GetIncidentSummaryAsync(cancellationToken);
+        return incidentSummary is null
+            ? DatabaseSaveResult<IncidentSummary>.NotFound()
+            : DatabaseSaveResult<IncidentSummary>.Saved(incidentSummary);
     }
 
-    public async Task<bool> DeleteIncidentSummaryAsync(
+    public async Task<DatabaseSaveResult<EntityChangeSummary>> DeleteIncidentSummaryAsync(
         string actorId,
+        int? expectedVersion,
         CancellationToken cancellationToken = default)
     {
         await using var connection = CreateConnection();
         await connection.OpenAsync(cancellationToken);
         await using var transaction = connection.BeginTransaction();
 
-        var existingIncidentId = await ReadCurrentIncidentIdAsync(connection, transaction, cancellationToken);
-        if (existingIncidentId is null)
+        var existingIncident = await ReadCurrentIncidentRecordAsync(connection, transaction, cancellationToken);
+        if (existingIncident is null)
         {
-            return false;
+            return DatabaseSaveResult<EntityChangeSummary>.NotFound();
+        }
+
+        if (expectedVersion.HasValue && expectedVersion.Value != existingIncident.Version)
+        {
+            return DatabaseSaveResult<EntityChangeSummary>.Conflict(existingIncident.Version);
         }
 
         await RecordAuditEventAsync(
             connection,
             transaction,
-            existingIncidentId,
+            existingIncident.Id,
             actorId,
             "delete",
             "incident",
-            existingIncidentId,
+            existingIncident.Id,
             "Deleted incident summary.",
             cancellationToken);
 
@@ -562,13 +588,21 @@ internal sealed class IncidentDatabase
         {
             command.Transaction = transaction;
             command.CommandText = "DELETE FROM incidents WHERE id = $id;";
-            command.Parameters.AddWithValue("$id", existingIncidentId);
+            command.Parameters.AddWithValue("$id", existingIncident.Id);
 
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
-        return true;
+        return DatabaseSaveResult<EntityChangeSummary>.Saved(
+            new EntityChangeSummary(
+                EntityType: "incident",
+                EntityId: existingIncident.Id,
+                IncidentId: existingIncident.Id,
+                ChangeType: "delete",
+                Status: "deleted",
+                Version: existingIncident.Version,
+                UpdatedAtUtc: DateTimeOffset.UtcNow));
     }
 
     public async Task<IReadOnlyList<AuditEventSummary>> ListAuditEventsAsync(
@@ -927,6 +961,212 @@ internal sealed class IncidentDatabase
         return runs;
     }
 
+    public Task<DatabaseSaveResult<EntityChangeSummary>> UpdateCampStatusAsync(
+        string id,
+        EntityStatusUpdateRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default) =>
+        UpdateTrackedStatusAsync(
+            tableName: "camps",
+            entityType: "camp",
+            id,
+            request.Status,
+            request.ExpectedVersion,
+            actorId,
+            cancellationToken);
+
+    public Task<DatabaseSaveResult<EntityChangeSummary>> UpdateDeviceStatusAsync(
+        string id,
+        EntityStatusUpdateRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default) =>
+        UpdateTrackedStatusAsync(
+            tableName: "devices",
+            entityType: "device",
+            id,
+            request.Status,
+            request.ExpectedVersion,
+            actorId,
+            cancellationToken);
+
+    public Task<DatabaseSaveResult<EntityChangeSummary>> UpdateNetworkStatusAsync(
+        string id,
+        EntityStatusUpdateRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default) =>
+        UpdateTrackedStatusAsync(
+            tableName: "networks",
+            entityType: "network",
+            id,
+            request.Status,
+            request.ExpectedVersion,
+            actorId,
+            cancellationToken);
+
+    public Task<DatabaseSaveResult<EntityChangeSummary>> UpdateLinkStatusAsync(
+        string id,
+        EntityStatusUpdateRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default) =>
+        UpdateTrackedStatusAsync(
+            tableName: "links",
+            entityType: "link",
+            id,
+            request.Status,
+            request.ExpectedVersion,
+            actorId,
+            cancellationToken);
+
+    public async Task<DatabaseSaveResult<EntityChangeSummary>> CompleteChecklistRunAsync(
+        string id,
+        ChecklistCompletionRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        var existingRecord = await ReadTrackedRecordAsync(
+            connection,
+            transaction,
+            "checklist_runs",
+            id,
+            cancellationToken);
+
+        if (existingRecord is null)
+        {
+            return DatabaseSaveResult<EntityChangeSummary>.NotFound();
+        }
+
+        if (request.ExpectedVersion.HasValue && request.ExpectedVersion.Value != existingRecord.Version)
+        {
+            return DatabaseSaveResult<EntityChangeSummary>.Conflict(existingRecord.Version);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var completedAtUtc = request.CompletedAtUtc ?? now;
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                UPDATE checklist_runs
+                SET
+                    status = $status,
+                    completed_at_utc = $completedAtUtc,
+                    updated_at_utc = $updatedAtUtc,
+                    version = version + 1
+                WHERE id = $id;
+                """;
+            command.Parameters.AddWithValue("$id", id);
+            command.Parameters.AddWithValue("$status", request.Status.Trim());
+            command.Parameters.AddWithValue("$completedAtUtc", completedAtUtc.ToUniversalTime().ToString("O"));
+            command.Parameters.AddWithValue("$updatedAtUtc", now.ToString("O"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        var updatedVersion = existingRecord.Version + 1;
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            existingRecord.IncidentId,
+            actorId,
+            "complete",
+            "checklist-run",
+            id,
+            $"Completed checklist run '{id}' with status '{request.Status.Trim()}'.",
+            cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return DatabaseSaveResult<EntityChangeSummary>.Saved(
+            new EntityChangeSummary(
+                EntityType: "checklist-run",
+                EntityId: id,
+                IncidentId: existingRecord.IncidentId,
+                ChangeType: "complete",
+                Status: request.Status.Trim(),
+                Version: updatedVersion,
+                UpdatedAtUtc: now));
+    }
+
+    private async Task<DatabaseSaveResult<EntityChangeSummary>> UpdateTrackedStatusAsync(
+        string tableName,
+        string entityType,
+        string id,
+        string status,
+        int? expectedVersion,
+        string actorId,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        var existingRecord = await ReadTrackedRecordAsync(
+            connection,
+            transaction,
+            tableName,
+            id,
+            cancellationToken);
+
+        if (existingRecord is null)
+        {
+            return DatabaseSaveResult<EntityChangeSummary>.NotFound();
+        }
+
+        if (expectedVersion.HasValue && expectedVersion.Value != existingRecord.Version)
+        {
+            return DatabaseSaveResult<EntityChangeSummary>.Conflict(existingRecord.Version);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText =
+                $"""
+                UPDATE {tableName}
+                SET
+                    status = $status,
+                    updated_at_utc = $updatedAtUtc,
+                    version = version + 1
+                WHERE id = $id;
+                """;
+            command.Parameters.AddWithValue("$id", id);
+            command.Parameters.AddWithValue("$status", status.Trim());
+            command.Parameters.AddWithValue("$updatedAtUtc", now.ToString("O"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        var updatedVersion = existingRecord.Version + 1;
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            existingRecord.IncidentId,
+            actorId,
+            "update-status",
+            entityType,
+            id,
+            $"Updated {entityType} '{id}' status to '{status.Trim()}'.",
+            cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return DatabaseSaveResult<EntityChangeSummary>.Saved(
+            new EntityChangeSummary(
+                EntityType: entityType,
+                EntityId: id,
+                IncidentId: existingRecord.IncidentId,
+                ChangeType: "update-status",
+                Status: status.Trim(),
+                Version: updatedVersion,
+                UpdatedAtUtc: now));
+    }
+
     private static async Task<bool> MigrationHasBeenAppliedAsync(
         SqliteConnection connection,
         string migrationId,
@@ -1055,6 +1295,63 @@ internal sealed class IncidentDatabase
         return result as string;
     }
 
+    private static async Task<TrackedRecord?> ReadCurrentIncidentRecordAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT id, id, version
+            FROM incidents
+            ORDER BY created_at_utc ASC
+            LIMIT 1;
+            """;
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new TrackedRecord(
+            Id: reader.GetString(0),
+            IncidentId: reader.GetString(1),
+            Version: reader.GetInt32(2));
+    }
+
+    private static async Task<TrackedRecord?> ReadTrackedRecordAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string tableName,
+        string id,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            $"""
+            SELECT id, incident_id, version
+            FROM {tableName}
+            WHERE id = $id
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new TrackedRecord(
+            Id: reader.GetString(0),
+            IncidentId: reader.GetString(1),
+            Version: reader.GetInt32(2));
+    }
+
     private static void AddIncidentSummaryParameters(
         SqliteCommand command,
         string incidentId,
@@ -1169,6 +1466,11 @@ internal sealed class IncidentDatabase
         """;
 
     private sealed record Migration(string Id, string Sql);
+
+    private sealed record TrackedRecord(
+        string Id,
+        string IncidentId,
+        int Version);
 }
 
 internal sealed record DatabaseHealth(
@@ -1183,7 +1485,8 @@ internal sealed record IncidentSummary(
     DateTimeOffset? OperationalPeriodStartUtc,
     DateTimeOffset? OperationalPeriodEndUtc,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset UpdatedAtUtc);
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
 
 internal sealed record IncidentSummaryRequest(
     string? Id,
@@ -1191,7 +1494,52 @@ internal sealed record IncidentSummaryRequest(
     string Name,
     string Agency,
     DateTimeOffset? OperationalPeriodStartUtc,
-    DateTimeOffset? OperationalPeriodEndUtc);
+    DateTimeOffset? OperationalPeriodEndUtc,
+    int? ExpectedVersion);
+
+internal sealed record EntityStatusUpdateRequest(
+    string Status,
+    int? ExpectedVersion);
+
+internal sealed record ChecklistCompletionRequest(
+    string Status,
+    DateTimeOffset? CompletedAtUtc,
+    int? ExpectedVersion);
+
+internal sealed record EntityChangeSummary(
+    string EntityType,
+    string EntityId,
+    string IncidentId,
+    string ChangeType,
+    string Status,
+    int Version,
+    DateTimeOffset UpdatedAtUtc);
+
+internal enum DatabaseSaveStatus
+{
+    Saved,
+    NotFound,
+    Conflict,
+    Duplicate,
+}
+
+internal sealed record DatabaseSaveResult<T>(
+    DatabaseSaveStatus Status,
+    T? Value,
+    int? CurrentVersion)
+{
+    public static DatabaseSaveResult<T> Saved(T value) =>
+        new(DatabaseSaveStatus.Saved, value, null);
+
+    public static DatabaseSaveResult<T> NotFound() =>
+        new(DatabaseSaveStatus.NotFound, default, null);
+
+    public static DatabaseSaveResult<T> Conflict(int currentVersion) =>
+        new(DatabaseSaveStatus.Conflict, default, currentVersion);
+
+    public static DatabaseSaveResult<T> Duplicate() =>
+        new(DatabaseSaveStatus.Duplicate, default, null);
+}
 
 internal sealed record CampSummary(
     string Id,
