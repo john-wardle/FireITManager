@@ -1241,7 +1241,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-add-client-connection-tracking",
@@ -1255,7 +1256,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-broadcast-incident-changes",
@@ -1269,7 +1271,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-broadcast-camp-changes",
@@ -1283,7 +1286,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-broadcast-device-changes",
@@ -1297,7 +1301,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-broadcast-network-changes",
@@ -1311,7 +1316,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-broadcast-link-status-changes",
@@ -1325,7 +1331,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-broadcast-checklist-completion-changes",
@@ -1339,7 +1346,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-add-reconnect-behavior",
@@ -1353,7 +1361,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-add-stale-connection-cleanup",
@@ -1367,7 +1376,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-add-visible-connection-status-in-the-desktop-client",
@@ -1381,7 +1391,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-add-visible-connection-status-in-the-mobile-client",
@@ -1395,7 +1406,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         },
@@ -1414,7 +1426,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-add-optimistic-concurrency-tokens-for-important-records",
@@ -1428,7 +1441,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-show-a-conflict-warning-when-a-user-edits-stale-data",
@@ -1442,7 +1456,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p6-keep-audit-history-even-when-conflicts-are-resolved-manually",
@@ -1456,7 +1471,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -1464,11 +1480,13 @@
       "completionCriteria": [
         {
           "id": "phase-6-add-real-time-multi-user-updates-done-two-users-can-update-the-same-incident-and-see-changes-appear-live",
-          "title": "Two users can update the same incident and see changes appear live."
+          "title": "Two users can update the same incident and see changes appear live.",
+          "completed": true
         },
         {
           "id": "phase-6-add-real-time-multi-user-updates-done-the-app-gives-clear-feedback-when-the-server-connection-is-lost",
-          "title": "The app gives clear feedback when the server connection is lost."
+          "title": "The app gives clear feedback when the server connection is lost.",
+          "completed": true
         }
       ]
     },
@@ -1493,7 +1511,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-rebuild-incident-workspace",
@@ -1507,7 +1526,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-rebuild-camp-ops-workspace",
@@ -1521,7 +1541,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-rebuild-inventory-workspace",
@@ -1535,7 +1556,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-rebuild-network-workspace",
@@ -1549,7 +1571,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-rebuild-outputs-workspace",
@@ -1563,7 +1586,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-standard-windows-keyboard-shortcuts",
@@ -1577,7 +1601,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-role-aware-menus-and-actions",
@@ -1591,7 +1616,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-server-connection-settings",
@@ -1605,7 +1631,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-user-sign-in-or-incident-user-selection",
@@ -1619,7 +1646,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-local-cache-if-offline-mode-is-required",
@@ -1633,7 +1661,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-error-and-validation-display",
@@ -1647,7 +1676,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p7-add-printexport-workflows",
@@ -1661,7 +1691,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -1669,11 +1700,13 @@
       "completionCriteria": [
         {
           "id": "phase-7-build-the-windows-desktop-client-done-the-desktop-app-can-replace-the-python-prototype-for-day-to-day-incident-data-entry",
-          "title": "The desktop app can replace the Python prototype for day-to-day incident data entry."
+          "title": "The desktop app can replace the Python prototype for day-to-day incident data entry.",
+          "completed": true
         },
         {
           "id": "phase-7-build-the-windows-desktop-client-done-the-ui-feels-familiar-to-windows-users-and-does-not-require-training-for-basic-navigation",
-          "title": "The UI feels familiar to Windows users and does not require training for basic navigation."
+          "title": "The UI feels familiar to Windows users and does not require training for basic navigation.",
+          "completed": true
         }
       ]
     },
@@ -3254,16 +3287,16 @@
   ],
   "nearTermNextSteps": [
     {
-      "id": "near-term-p6-add-real-time-connection-endpoint",
-      "title": "Add real-time connection endpoint."
+      "id": "near-term-p8-define-map-object-types-camp-building-device-link-service-vlan-wan-wireless",
+      "title": "Define map object types: camp, building, device, link, service, VLAN, WAN, wireless."
     },
     {
-      "id": "near-term-p6-add-client-connection-tracking",
-      "title": "Add client connection tracking."
+      "id": "near-term-p8-define-visual-status-colors",
+      "title": "Define visual status colors."
     },
     {
-      "id": "near-term-p6-broadcast-incident-changes",
-      "title": "Broadcast incident changes."
+      "id": "near-term-p8-define-status-labels-unknown-up-degraded-down-disabled-planned-maintenance",
+      "title": "Define status labels: unknown, up, degraded, down, disabled, planned, maintenance."
     }
   ],
   "blockers": [],

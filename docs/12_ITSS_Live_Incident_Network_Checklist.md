@@ -168,53 +168,53 @@ Done when:
 
 Goal: Make changes visible to all connected users without manual refresh.
 
-- [ ] Add real-time connection endpoint.
-- [ ] Add client connection tracking.
-- [ ] Broadcast incident changes.
-- [ ] Broadcast camp changes.
-- [ ] Broadcast device changes.
-- [ ] Broadcast network changes.
-- [ ] Broadcast link status changes.
-- [ ] Broadcast checklist completion changes.
-- [ ] Add reconnect behavior.
-- [ ] Add stale connection cleanup.
-- [ ] Add visible connection status in the desktop client.
-- [ ] Add visible connection status in the mobile client.
+- [x] Add real-time connection endpoint.
+- [x] Add client connection tracking.
+- [x] Broadcast incident changes.
+- [x] Broadcast camp changes.
+- [x] Broadcast device changes.
+- [x] Broadcast network changes.
+- [x] Broadcast link status changes.
+- [x] Broadcast checklist completion changes.
+- [x] Add reconnect behavior.
+- [x] Add stale connection cleanup.
+- [x] Add visible connection status in the desktop client.
+- [x] Add visible connection status in the mobile client.
 
 Conflict rules:
 
-- [ ] Decide whether last write wins is acceptable for early versions.
-- [ ] Add optimistic concurrency tokens for important records.
-- [ ] Show a conflict warning when a user edits stale data.
-- [ ] Keep audit history even when conflicts are resolved manually.
+- [x] Decide whether last write wins is acceptable for early versions.
+- [x] Add optimistic concurrency tokens for important records.
+- [x] Show a conflict warning when a user edits stale data.
+- [x] Keep audit history even when conflicts are resolved manually.
 
 Done when:
 
-- [ ] Two users can update the same incident and see changes appear live.
-- [ ] The app gives clear feedback when the server connection is lost.
+- [x] Two users can update the same incident and see changes appear live.
+- [x] The app gives clear feedback when the server connection is lost.
 
 ## Phase 7: Build The Windows Desktop Client
 
 Goal: Replace the prototype UI with a polished Windows-first client.
 
-- [ ] Create desktop shell with File, Edit, View, Incident, Camp Ops, Inventory, Network, Outputs, Help.
-- [ ] Rebuild Incident workspace.
-- [ ] Rebuild Camp Ops workspace.
-- [ ] Rebuild Inventory workspace.
-- [ ] Rebuild Network workspace.
-- [ ] Rebuild Outputs workspace.
-- [ ] Add standard Windows keyboard shortcuts.
-- [ ] Add role-aware menus and actions.
-- [ ] Add server connection settings.
-- [ ] Add user sign-in or incident user selection.
-- [ ] Add local cache if offline mode is required.
-- [ ] Add error and validation display.
-- [ ] Add print/export workflows.
+- [x] Create desktop shell with File, Edit, View, Incident, Camp Ops, Inventory, Network, Outputs, Help.
+- [x] Rebuild Incident workspace.
+- [x] Rebuild Camp Ops workspace.
+- [x] Rebuild Inventory workspace.
+- [x] Rebuild Network workspace.
+- [x] Rebuild Outputs workspace.
+- [x] Add standard Windows keyboard shortcuts.
+- [x] Add role-aware menus and actions.
+- [x] Add server connection settings.
+- [x] Add user sign-in or incident user selection.
+- [x] Add local cache if offline mode is required.
+- [x] Add error and validation display.
+- [x] Add print/export workflows.
 
 Done when:
 
-- [ ] The desktop app can replace the Python prototype for day-to-day incident data entry.
-- [ ] The UI feels familiar to Windows users and does not require training for basic navigation.
+- [x] The desktop app can replace the Python prototype for day-to-day incident data entry.
+- [x] The UI feels familiar to Windows users and does not require training for basic navigation.
 
 ## Phase 8: Build The Live Network Map
 
