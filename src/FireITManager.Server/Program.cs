@@ -273,6 +273,68 @@ app.MapGet("/api/checklist-runs", async (
     return Results.Ok(checklistRuns);
 });
 
+app.MapPost("/api/checklist-runs", async (
+    ChecklistRunCreateRequest request,
+    IncidentDatabase incidentDatabase,
+    IncidentChangeBroadcaster changeBroadcaster,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.TemplateId))
+    {
+        return Results.BadRequest(new ApiMessage("Checklist template is required."));
+    }
+
+    var actorId = ReadActorId(httpContext);
+    var result = await incidentDatabase.CreateChecklistRunAsync(
+        request,
+        actorId,
+        cancellationToken);
+
+    if (result.Status != DatabaseSaveStatus.Saved || result.Value is null)
+    {
+        return ToSaveResult(result, value => Results.Created($"/api/checklist-runs/{value.Id}", value));
+    }
+
+    await changeBroadcaster.PublishAsync(
+        ToChecklistRunChange(result.Value, "create", actorId, $"Started checklist run {result.Value.Id}."),
+        cancellationToken);
+
+    return Results.Created($"/api/checklist-runs/{result.Value.Id}", result.Value);
+});
+
+app.MapPut("/api/checklist-runs/{id}/progress", async (
+    string id,
+    ChecklistRunProgressRequest request,
+    IncidentDatabase incidentDatabase,
+    IncidentChangeBroadcaster changeBroadcaster,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Status))
+    {
+        return Results.BadRequest(new ApiMessage("Checklist run status is required."));
+    }
+
+    var actorId = ReadActorId(httpContext);
+    var result = await incidentDatabase.UpdateChecklistRunProgressAsync(
+        id,
+        request,
+        actorId,
+        cancellationToken);
+
+    if (result.Status != DatabaseSaveStatus.Saved || result.Value is null)
+    {
+        return ToSaveResult(result, value => Results.Ok(value));
+    }
+
+    await changeBroadcaster.PublishAsync(
+        ToChecklistRunChange(result.Value, "update", actorId, $"Saved checklist run {result.Value.Id}."),
+        cancellationToken);
+
+    return Results.Ok(result.Value);
+});
+
 app.MapPut("/api/checklist-runs/{id}/completion", async (
     string id,
     ChecklistCompletionRequest request,
@@ -403,6 +465,22 @@ static PendingIncidentChange ToEntityChange(
         Version: entityChange.Version,
         ActorId: actorId,
         Summary: $"{entityChange.EntityType} {entityChange.EntityId} changed: {entityChange.Status}.");
+}
+
+static PendingIncidentChange ToChecklistRunChange(
+    ChecklistRunSummary checklistRun,
+    string changeType,
+    string actorId,
+    string summary)
+{
+    return new PendingIncidentChange(
+        ChangeType: changeType,
+        EntityType: "checklist-run",
+        EntityId: checklistRun.Id,
+        IncidentId: checklistRun.IncidentId,
+        Version: checklistRun.Version,
+        ActorId: actorId,
+        Summary: summary);
 }
 
 static async Task<IResult> UpdateTrackedStatusAsync(

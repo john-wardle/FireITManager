@@ -314,6 +314,116 @@ internal sealed class IncidentDatabase
             ALTER TABLE incidents
                 ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
             """),
+        new(
+            "008_standard_itss_checklist_templates",
+            """
+            INSERT OR IGNORE INTO checklist_templates (
+                id, incident_id, title, template_type, version_label, status,
+                scope_type, scope_id, steps_json, created_at_utc, updated_at_utc, version)
+            VALUES
+            (
+                'standard-initial-itss-arrival', NULL, 'Initial ITSS Arrival', 'setup.initial_arrival', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"arrival-briefing","title":"Check in with COML or incident supervisor","expectedResult":"ITSS arrival is known and assignment is confirmed.","troubleshootingHint":"If no supervisor is available, record the contact attempt and continue with site assessment.","requiredNote":true},{"id":"arrival-safety","title":"Confirm camp safety, access, and radio/contact procedure","expectedResult":"Safety constraints and escalation contact are recorded.","troubleshootingHint":"Do not begin physical network work until access and safety limits are clear.","requiredNote":true},{"id":"arrival-network-walk","title":"Walk ICP or camp network area and identify service points","expectedResult":"Primary network, power, WAN, and work areas are identified.","troubleshootingHint":"Photograph or note unknown demarcation points for later verification.","requiredPhoto":true},{"id":"arrival-open-tasks","title":"Record blockers and immediate follow-up tasks","expectedResult":"Known blockers are captured before setup work begins.","troubleshootingHint":"Use blocker notes when a dependency is outside ITSS control.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-icp-camp-network-setup', NULL, 'ICP / Camp Network Setup', 'setup.network', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"network-layout","title":"Confirm router, switch, AP, printer, and user work areas","expectedResult":"Network layout is matched to the camp or ICP plan.","troubleshootingHint":"Separate public, staff, and infrastructure paths before connecting users.","requiredNote":true},{"id":"network-power","title":"Verify stable power and UPS for network core","expectedResult":"Core devices are on protected power where available.","troubleshootingHint":"Unstable power causes false network failures and equipment resets.","requiredNote":true},{"id":"network-connect-core","title":"Connect and label core network devices","expectedResult":"Core router, switch, and uplinks are connected and labeled.","troubleshootingHint":"Label both ends of any long cable path.","requiredPhoto":true},{"id":"network-smoke-test","title":"Run a basic LAN and WAN smoke test","expectedResult":"A client can reach local services and upstream internet when available.","troubleshootingHint":"Test from a user port, not only from the router.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-starlink-satellite-setup', NULL, 'Starlink / Satellite Setup', 'setup.wan', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"satellite-location","title":"Choose dish or terminal location with clear sky view","expectedResult":"Terminal has a safe mount point and acceptable sky visibility.","troubleshootingHint":"Trees, vehicles, and metal structures can cause intermittent loss.","requiredPhoto":true},{"id":"satellite-cable","title":"Route and protect cable path","expectedResult":"Cable path is safe, labeled, and protected from traffic.","troubleshootingHint":"Avoid pinch points and trip hazards.","requiredPhoto":true},{"id":"satellite-online","title":"Verify satellite online status and upstream handoff","expectedResult":"WAN status is known and handoff device is documented.","troubleshootingHint":"If online status is unstable, record obstruction and power notes.","requiredNote":true},{"id":"satellite-failover","title":"Document failover or backup WAN status","expectedResult":"Backup path availability is recorded.","troubleshootingHint":"If no backup exists, mark blocker for command awareness.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-router-setup', NULL, 'Router Setup', 'setup.router', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"router-identity","title":"Confirm router hostname, asset tag, and management access","expectedResult":"Router identity and access path are recorded.","troubleshootingHint":"Use a local console or trusted management port if LAN access is unavailable.","requiredNote":true},{"id":"router-wan","title":"Configure or verify WAN interface","expectedResult":"WAN interface status and addressing are documented.","troubleshootingHint":"Check link lights and upstream device status before changing config.","requiredNote":true},{"id":"router-lan","title":"Configure or verify LAN networks and DHCP/DNS handoff","expectedResult":"LAN clients receive expected addressing and name resolution.","troubleshootingHint":"Capture observed client IP, gateway, and DNS if validation fails.","requiredNote":true},{"id":"router-save","title":"Save configuration and record backup location","expectedResult":"Router configuration is saved or export path is noted.","troubleshootingHint":"If export is not possible, record exact reason.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-switch-setup', NULL, 'Switch Setup', 'setup.switch', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"switch-identity","title":"Confirm switch identity, location, and uplink","expectedResult":"Switch record has location and uplink details.","troubleshootingHint":"Trace cable path before assuming topology.","requiredNote":true},{"id":"switch-ports","title":"Label critical ports and cable paths","expectedResult":"Uplink, AP, printer, and workgroup ports are labeled.","troubleshootingHint":"Photograph patching before major changes.","requiredPhoto":true},{"id":"switch-vlan","title":"Verify VLAN or port profile assignment","expectedResult":"Ports match intended network function.","troubleshootingHint":"Wrong VLAN assignment often presents as DHCP failure.","requiredNote":true},{"id":"switch-health","title":"Check link status for connected devices","expectedResult":"Unexpected down or degraded ports are recorded.","troubleshootingHint":"Swap cable or port before replacing endpoint device.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-wifi-access-point-setup', NULL, 'Wi-Fi Access Point Setup', 'setup.wireless', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"wifi-placement","title":"Place AP for coverage and safe cable routing","expectedResult":"AP placement supports expected work areas.","troubleshootingHint":"Avoid placing AP behind metal walls, appliances, or radio equipment.","requiredPhoto":true},{"id":"wifi-uplink","title":"Verify AP uplink and power","expectedResult":"AP has link, power, and expected network assignment.","troubleshootingHint":"Check PoE budget and switch port profile if AP is offline.","requiredNote":true},{"id":"wifi-ssid","title":"Verify SSID, security, and client join","expectedResult":"A field client can join and reach required resources.","troubleshootingHint":"Record error messages from client devices when join fails.","requiredNote":true},{"id":"wifi-coverage","title":"Walk coverage area and record weak spots","expectedResult":"Weak coverage or interference areas are documented.","troubleshootingHint":"Do not solve by adding APs until channel/interference is understood.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-printer-setup', NULL, 'Printer Setup', 'setup.printer', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"printer-location","title":"Confirm printer location, power, and network path","expectedResult":"Printer is placed and connected safely.","troubleshootingHint":"Avoid sharing circuits with unstable high-load equipment.","requiredNote":true},{"id":"printer-network","title":"Verify printer addressing and hostname","expectedResult":"Printer IP or hostname is recorded.","troubleshootingHint":"Reserve or document the address to avoid duplicate conflicts.","requiredNote":true},{"id":"printer-test","title":"Print a test page from a user workstation","expectedResult":"At least one user workstation can print successfully.","troubleshootingHint":"If test fails, verify driver, queue, firewall, and subnet path.","requiredNote":true},{"id":"printer-supplies","title":"Record toner, paper, and support notes","expectedResult":"Supply state and known limitations are documented.","troubleshootingHint":"Supply issues should be visible before operational period starts.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-user-workstation-setup', NULL, 'User Workstation Setup', 'setup.workstation', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"workstation-identity","title":"Record workstation user, asset, and location","expectedResult":"Workstation assignment is traceable.","troubleshootingHint":"Use role or function if user name is not available.","requiredNote":true},{"id":"workstation-network","title":"Verify wired or Wi-Fi connectivity","expectedResult":"Workstation reaches required local and internet resources.","troubleshootingHint":"Capture IP, gateway, and DNS details if connectivity fails.","requiredNote":true},{"id":"workstation-printer","title":"Verify print or shared service access","expectedResult":"User can reach assigned shared resources.","troubleshootingHint":"Separate network path problems from application or permission problems.","requiredNote":true},{"id":"workstation-handoff","title":"Confirm user handoff and known limitations","expectedResult":"User accepts workstation or limitations are recorded.","troubleshootingHint":"Record unresolved blockers before leaving the work area.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-account-access-request', NULL, 'Account / Access Request Handling', 'support.access', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"access-requester","title":"Confirm requester identity, role, and required access","expectedResult":"Request has enough context for approval.","troubleshootingHint":"Do not grant access based only on verbal relay when approval is unclear.","requiredNote":true},{"id":"access-approval","title":"Record approval source or escalation path","expectedResult":"Approval path is documented.","troubleshootingHint":"If approval is delayed, mark blocker and follow-up owner.","requiredNote":true},{"id":"access-action","title":"Complete access action or document handoff","expectedResult":"Request outcome is recorded.","troubleshootingHint":"Separate account creation, password reset, and application permission issues.","requiredNote":true},{"id":"access-verify","title":"Verify user can sign in or use assigned resource","expectedResult":"User confirms access works or blocker is documented.","troubleshootingHint":"Capture exact error text when verification fails.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-daily-network-health-check', NULL, 'Daily Network Health Check', 'daily_check.network', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"daily-wan","title":"Check WAN and backup WAN status","expectedResult":"WAN state is recorded for operational period.","troubleshootingHint":"Compare symptoms against upstream device and satellite status.","requiredNote":true},{"id":"daily-core","title":"Check router, switch, AP, and printer status","expectedResult":"Critical devices are up or exceptions are logged.","troubleshootingHint":"Prioritize command post and communications paths first.","requiredNote":true},{"id":"daily-user-symptoms","title":"Record user-reported network issues","expectedResult":"Open issues have location and impact details.","troubleshootingHint":"Group repeated reports by area, SSID, or switch path.","requiredNote":true},{"id":"daily-summary","title":"Summarize health check and follow-up work","expectedResult":"Daily health state is ready for handoff.","troubleshootingHint":"Mark blockers if dependency is outside ITSS control.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-daily-backup-export-check', NULL, 'Daily Backup / Export Check', 'daily_check.backup', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"backup-location","title":"Confirm backup destination is available","expectedResult":"Local backup/export destination is reachable.","troubleshootingHint":"Use removable media or local server storage when internet is unavailable.","requiredNote":true},{"id":"backup-run","title":"Run or verify incident backup/export","expectedResult":"Backup or export result is recorded.","troubleshootingHint":"If export fails, capture exact error and free space state.","requiredNote":true},{"id":"backup-verify","title":"Verify backup file exists and has expected size","expectedResult":"Backup file is present and not empty.","troubleshootingHint":"Do not assume success from command completion alone.","requiredNote":true},{"id":"backup-handoff","title":"Record handoff or storage location","expectedResult":"Next ITSS can find the latest backup.","troubleshootingHint":"Do not store only on a single laptop when avoidable.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-link-outage-troubleshooting', NULL, 'Link Outage Troubleshooting', 'troubleshooting.link_outage', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"link-scope","title":"Identify affected users, devices, and path","expectedResult":"Outage scope is known.","troubleshootingHint":"Separate one endpoint failure from shared path failure.","requiredNote":true},{"id":"link-physical","title":"Check power, link lights, cable path, and labels","expectedResult":"Physical state is documented.","troubleshootingHint":"Photograph questionable cable paths before changing them.","requiredPhoto":true},{"id":"link-logical","title":"Check addressing, VLAN, route, and service reachability","expectedResult":"Logical fault domain is narrowed.","troubleshootingHint":"Use gateway, DNS, and upstream tests in order.","requiredNote":true},{"id":"link-resolution","title":"Record resolution, workaround, or escalation","expectedResult":"Incident record includes current state and next action.","troubleshootingHint":"If unresolved, mark blocker and owner.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-slow-network-troubleshooting', NULL, 'Slow Network Troubleshooting', 'troubleshooting.slow_network', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"slow-scope","title":"Identify affected area, SSID, switch, or service","expectedResult":"Slow network scope is recorded.","troubleshootingHint":"Avoid treating one slow workstation as a camp-wide issue.","requiredNote":true},{"id":"slow-wan-lan","title":"Compare LAN and WAN performance symptoms","expectedResult":"LAN or WAN side is suspected with evidence.","troubleshootingHint":"Test local resource access before blaming upstream internet.","requiredNote":true},{"id":"slow-load","title":"Check user load, streaming, updates, and large transfers","expectedResult":"High-use sources are identified or ruled out.","troubleshootingHint":"Look for background updates or unmanaged devices.","requiredNote":true},{"id":"slow-action","title":"Record action taken and re-test result","expectedResult":"Before and after state is documented.","troubleshootingHint":"If no improvement, escalate with measured symptoms.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-no-internet-troubleshooting', NULL, 'No Internet Troubleshooting', 'troubleshooting.no_internet', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"internet-scope","title":"Confirm whether outage is one user, one area, or all users","expectedResult":"Internet outage scope is recorded.","troubleshootingHint":"Check a known-good wired client before changing WAN settings.","requiredNote":true},{"id":"internet-upstream","title":"Check upstream WAN or satellite status","expectedResult":"Upstream state is known.","troubleshootingHint":"Power-cycle only after recording current indicators and status.","requiredNote":true},{"id":"internet-local","title":"Check local gateway, DNS, DHCP, and routing","expectedResult":"Local service state is known.","troubleshootingHint":"DNS failure can look like full internet outage.","requiredNote":true},{"id":"internet-resolution","title":"Record fix, workaround, or escalation","expectedResult":"Current internet state and next owner are documented.","troubleshootingHint":"If upstream vendor issue, record ticket/contact details.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-radio-cache-coml-notes', NULL, 'Radio Cache / COML Coordination Notes', 'coordination.coml', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"coml-contact","title":"Confirm COML or radio cache contact and availability","expectedResult":"Coordination contact is recorded.","troubleshootingHint":"Use role and location if a specific person is not assigned.","requiredNote":true},{"id":"coml-needs","title":"Capture network support needs for radio or comms work","expectedResult":"COML-related IT needs are documented.","troubleshootingHint":"Separate radio programming issues from network/IT service issues.","requiredNote":true},{"id":"coml-dependencies","title":"Record dependencies, cables, power, or network handoff details","expectedResult":"Shared dependency state is visible to ITSS and COML.","troubleshootingHint":"Label any shared paths or ports.","requiredPhoto":true},{"id":"coml-followup","title":"Record follow-up owner and operational period need","expectedResult":"Coordination work has a clear next action.","troubleshootingHint":"Mark blocker if the action waits on COML or logistics.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-documentation-handoff', NULL, 'Documentation Handoff', 'handoff.documentation', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"handoff-assets","title":"Review asset, device, network, and link records","expectedResult":"Key records are current before handoff.","troubleshootingHint":"Prioritize operationally important gaps first.","requiredNote":true},{"id":"handoff-open-items","title":"Record open issues, blockers, and next actions","expectedResult":"Incoming ITSS can continue work without verbal-only context.","troubleshootingHint":"Every blocker should have owner or escalation path.","requiredNote":true},{"id":"handoff-exports","title":"Confirm reports, exports, or backup bundle location","expectedResult":"Handoff package location is recorded.","troubleshootingHint":"Verify the file exists before reporting handoff complete.","requiredNote":true},{"id":"handoff-brief","title":"Complete handoff briefing or written substitute","expectedResult":"Shift or demob handoff is complete.","troubleshootingHint":"If no receiver is present, note where the handoff package was left.","requiredNote":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            ),
+            (
+                'standard-demobilization-checklist', NULL, 'Demobilization Checklist', 'closeout.demobilization', '1.0', 'published',
+                'global', NULL,
+                '[{"id":"demob-inventory","title":"Verify equipment inventory, missing items, and return path","expectedResult":"Equipment disposition is recorded.","troubleshootingHint":"Record serial or asset identifiers for disputed items.","requiredNote":true},{"id":"demob-network","title":"Document network teardown plan and retained services","expectedResult":"Teardown sequence and exceptions are known.","troubleshootingHint":"Confirm command staff no longer depends on service before disconnecting.","requiredNote":true},{"id":"demob-data","title":"Export final incident bundle and backup","expectedResult":"Final records are preserved for handoff.","troubleshootingHint":"Verify export file before shutting down the server.","requiredNote":true},{"id":"demob-handoff","title":"Complete final documentation and equipment handoff","expectedResult":"Closeout state is recorded and transferable.","troubleshootingHint":"Use photos for packed kits or unusual equipment condition.","requiredPhoto":true}]',
+                strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
+            );
+            """),
     ];
 
     private readonly string _connectionString;
@@ -961,6 +1071,192 @@ internal sealed class IncidentDatabase
         return runs;
     }
 
+    public async Task<DatabaseSaveResult<ChecklistRunSummary>> CreateChecklistRunAsync(
+        ChecklistRunCreateRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        var incidentId = await ReadCurrentIncidentIdAsync(connection, transaction, cancellationToken);
+        if (incidentId is null)
+        {
+            return DatabaseSaveResult<ChecklistRunSummary>.NotFound();
+        }
+
+        var template = await ReadChecklistTemplateDraftAsync(
+            connection,
+            transaction,
+            request.TemplateId,
+            cancellationToken);
+        if (template is null ||
+            (template.IncidentId is not null && template.IncidentId != incidentId))
+        {
+            return DatabaseSaveResult<ChecklistRunSummary>.NotFound();
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var id = string.IsNullOrWhiteSpace(request.Id)
+            ? Guid.NewGuid().ToString()
+            : request.Id.Trim();
+        var status = string.IsNullOrWhiteSpace(request.Status)
+            ? "in-progress"
+            : request.Status.Trim();
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO checklist_runs (
+                    id,
+                    incident_id,
+                    template_id,
+                    status,
+                    target_type,
+                    target_id,
+                    assignee_person_id,
+                    started_at_utc,
+                    completed_at_utc,
+                    steps_json,
+                    notes,
+                    created_at_utc,
+                    updated_at_utc,
+                    version)
+                VALUES (
+                    $id,
+                    $incidentId,
+                    $templateId,
+                    $status,
+                    $targetType,
+                    $targetId,
+                    $assigneePersonId,
+                    $startedAtUtc,
+                    $completedAtUtc,
+                    $stepsJson,
+                    $notes,
+                    $createdAtUtc,
+                    $updatedAtUtc,
+                    1);
+                """;
+            command.Parameters.AddWithValue("$id", id);
+            command.Parameters.AddWithValue("$incidentId", incidentId);
+            command.Parameters.AddWithValue("$templateId", request.TemplateId.Trim());
+            command.Parameters.AddWithValue("$status", status);
+            command.Parameters.AddWithValue("$targetType", CleanOrDefault(request.TargetType));
+            command.Parameters.AddWithValue("$targetId", ToDbValue(request.TargetId));
+            command.Parameters.AddWithValue("$assigneePersonId", ToDbValue(request.AssigneePersonId));
+            command.Parameters.AddWithValue("$startedAtUtc", (request.StartedAtUtc ?? now).ToUniversalTime().ToString("O"));
+            command.Parameters.AddWithValue("$completedAtUtc", ToDbValue(request.CompletedAtUtc));
+            command.Parameters.AddWithValue("$stepsJson", template.StepsJson);
+            command.Parameters.AddWithValue("$notes", CleanOrDefault(request.Notes));
+            command.Parameters.AddWithValue("$createdAtUtc", now.ToString("O"));
+            command.Parameters.AddWithValue("$updatedAtUtc", now.ToString("O"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            incidentId,
+            actorId,
+            "create",
+            "checklist-run",
+            id,
+            $"Started checklist run from template '{template.Title}'.",
+            cancellationToken);
+
+        var saved = await ReadChecklistRunAsync(connection, transaction, id, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return saved is null
+            ? DatabaseSaveResult<ChecklistRunSummary>.NotFound()
+            : DatabaseSaveResult<ChecklistRunSummary>.Saved(saved);
+    }
+
+    public async Task<DatabaseSaveResult<ChecklistRunSummary>> UpdateChecklistRunProgressAsync(
+        string id,
+        ChecklistRunProgressRequest request,
+        string actorId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction();
+
+        var existingRecord = await ReadTrackedRecordAsync(
+            connection,
+            transaction,
+            "checklist_runs",
+            id,
+            cancellationToken);
+        if (existingRecord is null)
+        {
+            return DatabaseSaveResult<ChecklistRunSummary>.NotFound();
+        }
+
+        if (request.ExpectedVersion.HasValue && request.ExpectedVersion.Value != existingRecord.Version)
+        {
+            return DatabaseSaveResult<ChecklistRunSummary>.Conflict(existingRecord.Version);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var status = string.IsNullOrWhiteSpace(request.Status)
+            ? "in-progress"
+            : request.Status.Trim();
+        var completedAtUtc = request.CompletedAtUtc;
+        if (completedAtUtc is null && IsChecklistCompleteStatus(status))
+        {
+            completedAtUtc = now;
+        }
+
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                UPDATE checklist_runs
+                SET
+                    status = $status,
+                    completed_at_utc = $completedAtUtc,
+                    steps_json = $stepsJson,
+                    notes = $notes,
+                    updated_at_utc = $updatedAtUtc,
+                    version = version + 1
+                WHERE id = $id;
+                """;
+            command.Parameters.AddWithValue("$id", id);
+            command.Parameters.AddWithValue("$status", status);
+            command.Parameters.AddWithValue("$completedAtUtc", ToDbValue(completedAtUtc));
+            command.Parameters.AddWithValue("$stepsJson", SerializeJsonElement(request.Steps, "[]"));
+            command.Parameters.AddWithValue("$notes", CleanOrDefault(request.Notes));
+            command.Parameters.AddWithValue("$updatedAtUtc", now.ToString("O"));
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await RecordAuditEventAsync(
+            connection,
+            transaction,
+            existingRecord.IncidentId,
+            actorId,
+            IsChecklistCompleteStatus(status) ? "complete" : "update",
+            "checklist-run",
+            id,
+            $"Saved checklist run '{id}' progress with status '{status}'.",
+            cancellationToken);
+
+        var saved = await ReadChecklistRunAsync(connection, transaction, id, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return saved is null
+            ? DatabaseSaveResult<ChecklistRunSummary>.NotFound()
+            : DatabaseSaveResult<ChecklistRunSummary>.Saved(saved);
+    }
+
     public Task<DatabaseSaveResult<EntityChangeSummary>> UpdateCampStatusAsync(
         string id,
         EntityStatusUpdateRequest request,
@@ -1352,6 +1648,95 @@ internal sealed class IncidentDatabase
             Version: reader.GetInt32(2));
     }
 
+    private static async Task<ChecklistTemplateDraft?> ReadChecklistTemplateDraftAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string templateId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                title,
+                steps_json
+            FROM checklist_templates
+            WHERE id = $id
+                AND status NOT IN ('archived', 'disabled')
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$id", templateId.Trim());
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ChecklistTemplateDraft(
+            Id: reader.GetString(0),
+            IncidentId: ReadOptionalString(reader, 1),
+            Title: reader.GetString(2),
+            StepsJson: reader.GetString(3));
+    }
+
+    private static async Task<ChecklistRunSummary?> ReadChecklistRunAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string id,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                template_id,
+                status,
+                target_type,
+                target_id,
+                assignee_person_id,
+                started_at_utc,
+                completed_at_utc,
+                steps_json,
+                notes,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM checklist_runs
+            WHERE id = $id
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ChecklistRunSummary(
+            Id: reader.GetString(0),
+            IncidentId: reader.GetString(1),
+            TemplateId: reader.GetString(2),
+            Status: reader.GetString(3),
+            TargetType: reader.GetString(4),
+            TargetId: ReadOptionalString(reader, 5),
+            AssigneePersonId: ReadOptionalString(reader, 6),
+            StartedAtUtc: ReadRequiredDateTimeOffset(reader, 7),
+            CompletedAtUtc: ReadOptionalDateTimeOffset(reader, 8),
+            Steps: ReadJsonElement(reader, 9),
+            Notes: reader.GetString(10),
+            CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 11),
+            UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 12),
+            Version: reader.GetInt32(13));
+    }
+
     private static void AddIncidentSummaryParameters(
         SqliteCommand command,
         string incidentId,
@@ -1377,6 +1762,13 @@ internal sealed class IncidentDatabase
         return value.HasValue
             ? value.Value.ToUniversalTime().ToString("O")
             : DBNull.Value;
+    }
+
+    private static object ToDbValue(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? DBNull.Value
+            : value.Trim();
     }
 
     private static async Task ExecuteNonQueryAsync(
@@ -1449,6 +1841,20 @@ internal sealed class IncidentDatabase
         return JsonSerializer.Deserialize<JsonElement>(reader.GetString(ordinal));
     }
 
+    private static string SerializeJsonElement(JsonElement value, string fallback)
+    {
+        return value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
+            ? fallback
+            : JsonSerializer.Serialize(value);
+    }
+
+    private static string CleanOrDefault(string? value) => value?.Trim() ?? "";
+
+    private static bool IsChecklistCompleteStatus(string status) =>
+        string.Equals(status, "complete", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(status, "completed", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(status, "done", StringComparison.OrdinalIgnoreCase);
+
     private static DateTimeOffset ReadDateTimeOffset(string value)
     {
         return DateTimeOffset.Parse(
@@ -1471,6 +1877,12 @@ internal sealed class IncidentDatabase
         string Id,
         string IncidentId,
         int Version);
+
+    private sealed record ChecklistTemplateDraft(
+        string Id,
+        string? IncidentId,
+        string Title,
+        string StepsJson);
 }
 
 internal sealed record DatabaseHealth(
@@ -1503,6 +1915,24 @@ internal sealed record EntityStatusUpdateRequest(
 
 internal sealed record ChecklistCompletionRequest(
     string Status,
+    DateTimeOffset? CompletedAtUtc,
+    int? ExpectedVersion);
+
+internal sealed record ChecklistRunCreateRequest(
+    string? Id,
+    string TemplateId,
+    string? Status,
+    string? TargetType,
+    string? TargetId,
+    string? AssigneePersonId,
+    DateTimeOffset? StartedAtUtc,
+    DateTimeOffset? CompletedAtUtc,
+    string? Notes);
+
+internal sealed record ChecklistRunProgressRequest(
+    string Status,
+    JsonElement Steps,
+    string? Notes,
     DateTimeOffset? CompletedAtUtc,
     int? ExpectedVersion);
 

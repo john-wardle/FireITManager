@@ -2,136 +2,120 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FireIT Mobile Status</title>
-    <style>
-        :root {
-            color-scheme: light dark;
-            font-family: "Segoe UI", Arial, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #f5f7fa;
-            color: #16202a;
-        }
-
-        main {
-            max-width: 560px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            margin: 0 0 16px;
-        }
-
-        .status {
-            border: 1px solid #c7d1dd;
-            border-radius: 8px;
-            padding: 16px;
-            background: #ffffff;
-        }
-
-        .state {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 999px;
-            background: #8b949e;
-        }
-
-        .online .dot {
-            background: #1f8f4d;
-        }
-
-        .offline .dot {
-            background: #c9352b;
-        }
-
-        dl {
-            display: grid;
-            grid-template-columns: max-content 1fr;
-            gap: 10px 14px;
-            margin: 16px 0 0;
-        }
-
-        dt {
-            color: #506070;
-            font-weight: 600;
-        }
-
-        dd {
-            margin: 0;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#174b76">
+    <title>FireIT Mobile</title>
+    <link rel="manifest" href="/mobile/manifest.webmanifest">
+    <link rel="stylesheet" href="/mobile/styles.css">
 </head>
 <body>
-<main>
-    <h1>FireIT Mobile Connection</h1>
-    <section id="status" class="status offline">
-        <div class="state">
-            <span class="dot"></span>
-            <span id="state-text">Checking server...</span>
+<div class="app-shell">
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">FireIT Mobile</p>
+            <h1 id="incident-title">Incident Field Tool</h1>
         </div>
-        <dl>
-            <dt>Server</dt>
-            <dd id="server-text">/health</dd>
-            <dt>Live updates</dt>
-            <dd>/hubs/incident</dd>
-            <dt>Clients</dt>
-            <dd id="client-count">Unknown</dd>
-            <dt>Last check</dt>
-            <dd id="last-check">Never</dd>
-        </dl>
-    </section>
-</main>
-<script>
-    async function refreshStatus() {
-        const status = document.getElementById("status");
-        const stateText = document.getElementById("state-text");
-        const serverText = document.getElementById("server-text");
-        const clientCount = document.getElementById("client-count");
-        const lastCheck = document.getElementById("last-check");
+        <div id="connection-pill" class="connection-pill offline">
+            <span class="status-dot"></span>
+            <span id="connection-text">Offline</span>
+        </div>
+    </header>
 
-        try {
-            const [healthResponse, connectionsResponse] = await Promise.all([
-                fetch("/health", { cache: "no-store" }),
-                fetch("/api/realtime/connections", { cache: "no-store" })
-            ]);
+    <nav class="tabbar" aria-label="Mobile workspaces">
+        <button class="tab active" data-view="overview">Overview</button>
+        <button class="tab" data-view="search">Search</button>
+        <button class="tab" data-view="checklists">Checklists</button>
+        <button class="tab" data-view="active">Active</button>
+        <button class="tab" data-view="guides">Guides</button>
+    </nav>
 
-            if (!healthResponse.ok || !connectionsResponse.ok) {
-                throw new Error("Server returned an unhealthy response.");
-            }
+    <main>
+        <section id="view-overview" class="view active">
+            <section class="summary-grid">
+                <article class="metric-panel">
+                    <span class="metric-label">Camps</span>
+                    <strong id="camp-count">0</strong>
+                </article>
+                <article class="metric-panel">
+                    <span class="metric-label">Devices</span>
+                    <strong id="device-count">0</strong>
+                </article>
+                <article class="metric-panel">
+                    <span class="metric-label">Links</span>
+                    <strong id="link-count">0</strong>
+                </article>
+                <article class="metric-panel">
+                    <span class="metric-label">Open Runs</span>
+                    <strong id="open-run-count">0</strong>
+                </article>
+            </section>
+            <section class="panel">
+                <div class="section-heading">
+                    <h2>Camp Summary</h2>
+                    <button id="refresh-button" class="icon-button" type="button" aria-label="Refresh">Refresh</button>
+                </div>
+                <div id="camp-list" class="compact-list"></div>
+            </section>
+            <section class="panel">
+                <h2>Link Status</h2>
+                <div id="link-status-list" class="compact-list"></div>
+            </section>
+            <section class="panel">
+                <h2>Device List</h2>
+                <div id="device-list" class="compact-list"></div>
+            </section>
+        </section>
 
-            const health = await healthResponse.json();
-            const connections = await connectionsResponse.json();
+        <section id="view-search" class="view">
+            <section class="panel">
+                <label class="field-label" for="global-search">Search incident data</label>
+                <input id="global-search" class="search-input" type="search" placeholder="Hostname, IP, MAC, asset, building, checklist">
+            </section>
+            <section class="panel">
+                <h2>Results</h2>
+                <div id="search-results" class="result-list"></div>
+            </section>
+        </section>
 
-            status.classList.remove("offline");
-            status.classList.add("online");
-            stateText.textContent = "Connected";
-            serverText.textContent = `${health.service} (${health.databaseStatus})`;
-            clientCount.textContent = connections.length.toString();
-        } catch (error) {
-            status.classList.remove("online");
-            status.classList.add("offline");
-            stateText.textContent = "Disconnected";
-            serverText.textContent = "Server unavailable";
-            clientCount.textContent = "Unknown";
-        } finally {
-            lastCheck.textContent = new Date().toLocaleTimeString();
-        }
-    }
+        <section id="view-checklists" class="view">
+            <section class="panel">
+                <div class="section-heading">
+                    <h2>Standard ITSS Checklists</h2>
+                    <span id="template-count" class="muted">0 available</span>
+                </div>
+                <div id="template-list" class="template-list"></div>
+            </section>
+        </section>
 
-    refreshStatus();
-    window.setInterval(refreshStatus, 5000);
-</script>
+        <section id="view-active" class="view">
+            <section class="panel">
+                <div class="section-heading">
+                    <h2>Active Checklist Runs</h2>
+                    <button id="sync-button" class="icon-button" type="button">Sync</button>
+                </div>
+                <div id="run-list" class="run-list"></div>
+            </section>
+            <section id="run-detail" class="panel hidden"></section>
+        </section>
+
+        <section id="view-guides" class="view">
+            <section class="panel">
+                <h2>Troubleshooting Guides</h2>
+                <div id="guide-list" class="guide-list"></div>
+            </section>
+            <section class="panel">
+                <h2>Documentation Library</h2>
+                <div id="doc-list" class="guide-list"></div>
+            </section>
+            <section class="panel">
+                <h2>Contact / Escalation</h2>
+                <div id="contact-list" class="guide-list"></div>
+            </section>
+        </section>
+    </main>
+</div>
+
+<div id="toast" class="toast hidden" role="status"></div>
+<script src="/mobile/app.js" defer></script>
 </body>
 </html>

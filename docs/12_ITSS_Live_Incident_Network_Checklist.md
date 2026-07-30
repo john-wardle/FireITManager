@@ -262,70 +262,76 @@ Goal: Give ITSS users field access to checklists, troubleshooting steps, notes, 
 
 Recommended first version:
 
-- [ ] Browser-based mobile tool served by the incident server.
-- [ ] Works on tablet and phone.
-- [ ] Uses large touch targets.
-- [ ] Works on incident LAN without internet.
-- [ ] Caches checklist content for short outages.
+- [x] Browser-based mobile tool served by the incident server.
+- [x] Works on tablet and phone.
+- [x] Uses large touch targets.
+- [x] Works on incident LAN without internet.
+- [x] Caches checklist content for short outages.
 
 Core mobile features:
 
-- [ ] View assigned incident.
-- [ ] View camp map summary.
-- [ ] View device list.
-- [ ] View link status list.
+- [x] View assigned incident.
+- [x] View camp map summary.
+- [x] View device list.
+- [x] View link status list.
 - [ ] Search hostname, IP, MAC, asset tag, building, or checklist.
-- [ ] Open standard ITSS checklists.
-- [ ] Start a checklist run.
-- [ ] Check off steps.
-- [ ] Add notes to checklist steps.
-- [ ] Attach photos.
-- [ ] Mark blockers.
-- [ ] Assign follow-up task.
-- [ ] Sync completed checklist to server.
-- [ ] View troubleshooting guides.
-- [ ] View documentation library.
-- [ ] View contact / escalation information.
+- [x] Open standard ITSS checklists.
+- [x] Start a checklist run.
+- [x] Check off steps.
+- [x] Add notes to checklist steps.
+- [x] Attach photos.
+- [x] Mark blockers.
+- [x] Assign follow-up task.
+- [x] Sync completed checklist to server.
+- [x] View troubleshooting guides.
+- [x] View documentation library.
+- [x] View contact / escalation information.
 
 Checklist content areas:
 
-- [ ] Initial ITSS arrival.
-- [ ] ICP / camp network setup.
-- [ ] Starlink / satellite setup.
-- [ ] Router setup.
-- [ ] Switch setup.
-- [ ] Wi-Fi access point setup.
-- [ ] Printer setup.
-- [ ] User workstation setup.
-- [ ] Account / access request handling.
-- [ ] Daily network health check.
-- [ ] Daily backup/export check.
-- [ ] Link outage troubleshooting.
-- [ ] Slow network troubleshooting.
-- [ ] No internet troubleshooting.
-- [ ] Radio cache / COML coordination notes.
-- [ ] Documentation handoff.
-- [ ] Demobilization checklist.
+- [x] Initial ITSS arrival.
+- [x] ICP / camp network setup.
+- [x] Starlink / satellite setup.
+- [x] Router setup.
+- [x] Switch setup.
+- [x] Wi-Fi access point setup.
+- [x] Printer setup.
+- [x] User workstation setup.
+- [x] Account / access request handling.
+- [x] Daily network health check.
+- [x] Daily backup/export check.
+- [x] Link outage troubleshooting.
+- [x] Slow network troubleshooting.
+- [x] No internet troubleshooting.
+- [x] Radio cache / COML coordination notes.
+- [x] Documentation handoff.
+- [x] Demobilization checklist.
 
 Checklist template fields:
 
-- [ ] Title.
+- [x] Title.
 - [ ] Purpose.
 - [ ] Role / owner.
 - [ ] Required tools.
 - [ ] Safety notes.
 - [ ] Prerequisites.
-- [ ] Steps.
-- [ ] Expected result per step.
-- [ ] Troubleshooting hint per step.
-- [ ] Required photo or note flag.
+- [x] Steps.
+- [x] Expected result per step.
+- [x] Troubleshooting hint per step.
+- [x] Required photo or note flag.
 - [ ] Completion criteria.
-- [ ] Version.
+- [x] Version.
 
 Done when:
 
-- [ ] An ITSS can walk camp with a tablet or phone and complete a checklist without returning to the desktop app.
-- [ ] Completed checklist runs become part of the incident record.
+- [x] An ITSS can walk camp with a tablet or phone and complete a checklist without returning to the desktop app.
+- [x] Completed checklist runs become part of the incident record.
+
+Open implementation note:
+
+- Full IP, building/location, person, and asset-tag search needs those exact fields exposed in the mobile API payload.
+- Template purpose, owner role, required tools, safety notes, prerequisites, and completion criteria need first-class template metadata fields beyond the current title/type/version/steps JSON shape.
+- Photo attachments are stored inside checklist run step JSON for the first mobile slice; larger media should move to a dedicated attachment table later.
 
 ## Phase 10: Security, Access, And Audit
 

@@ -2107,7 +2107,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-works-on-tablet-and-phone",
@@ -2121,7 +2122,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-uses-large-touch-targets",
@@ -2135,7 +2137,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-works-on-incident-lan-without-internet",
@@ -2149,7 +2152,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-caches-checklist-content-for-short-outages",
@@ -2163,7 +2167,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         },
@@ -2182,7 +2187,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-view-camp-map-summary",
@@ -2196,7 +2202,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-view-device-list",
@@ -2210,7 +2217,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-view-link-status-list",
@@ -2224,7 +2232,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-search-hostname-ip-mac-asset-tag-building-or-checklist",
@@ -2252,7 +2261,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-start-a-checklist-run",
@@ -2266,7 +2276,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-check-off-steps",
@@ -2280,7 +2291,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-add-notes-to-checklist-steps",
@@ -2294,7 +2306,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-attach-photos",
@@ -2308,7 +2321,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-mark-blockers",
@@ -2322,7 +2336,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-assign-follow-up-task",
@@ -2336,7 +2351,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-sync-completed-checklist-to-server",
@@ -2350,7 +2366,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-view-troubleshooting-guides",
@@ -2364,7 +2381,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-view-documentation-library",
@@ -2378,7 +2396,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-view-contact-escalation-information",
@@ -2392,7 +2411,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         },
@@ -2411,7 +2431,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-icp-camp-network-setup",
@@ -2425,7 +2446,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-starlink-satellite-setup",
@@ -2439,7 +2461,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-router-setup",
@@ -2453,7 +2476,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-switch-setup",
@@ -2467,7 +2491,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-wi-fi-access-point-setup",
@@ -2481,7 +2506,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-printer-setup",
@@ -2495,7 +2521,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-user-workstation-setup",
@@ -2509,7 +2536,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-account-access-request-handling",
@@ -2523,7 +2551,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-daily-network-health-check",
@@ -2537,7 +2566,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-daily-backupexport-check",
@@ -2551,7 +2581,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-link-outage-troubleshooting",
@@ -2565,7 +2596,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-slow-network-troubleshooting",
@@ -2579,7 +2611,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-no-internet-troubleshooting",
@@ -2593,7 +2626,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-radio-cache-coml-coordination-notes",
@@ -2607,7 +2641,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-documentation-handoff",
@@ -2621,7 +2656,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-demobilization-checklist",
@@ -2635,7 +2671,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         },
@@ -2654,7 +2691,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-purpose",
@@ -2738,7 +2776,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-expected-result-per-step",
@@ -2752,7 +2791,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-troubleshooting-hint-per-step",
@@ -2766,7 +2806,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-required-photo-or-note-flag",
@@ -2780,7 +2821,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-completion-criteria",
@@ -2808,7 +2850,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -2816,11 +2859,13 @@
       "completionCriteria": [
         {
           "id": "phase-9-build-the-mobile-tablet-checklist-tool-done-an-itss-can-walk-camp-with-a-tablet-or-phone-and-complete-a-checklist-without-returning-to-the-desktop-app",
-          "title": "An ITSS can walk camp with a tablet or phone and complete a checklist without returning to the desktop app."
+          "title": "An ITSS can walk camp with a tablet or phone and complete a checklist without returning to the desktop app.",
+          "completed": true
         },
         {
           "id": "phase-9-build-the-mobile-tablet-checklist-tool-done-completed-checklist-runs-become-part-of-the-incident-record",
-          "title": "Completed checklist runs become part of the incident record."
+          "title": "Completed checklist runs become part of the incident record.",
+          "completed": true
         }
       ]
     },
