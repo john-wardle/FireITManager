@@ -20,8 +20,9 @@
     "taskSelection": "first-incomplete-task-in-active-phase",
     "autoAdvancePhase": true,
     "weeklyTaskSource": "first-three-incomplete-tasks-in-active-phase",
-    "completionStateStorage": "browser-local-storage",
-    "requireVerificationBeforeCompletion": true
+    "completionStateStorage": "project-dashboard-data plus browser-local-storage",
+    "requireVerificationBeforeCompletion": true,
+    "authoritativeCompletionSource": "PROJECT_DASHBOARD.json completed flags"
   },
   "phases": [
     {
@@ -45,7 +46,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p1-keep-current-github-repository-clean-and-committed-after-each-meaningful-change",
@@ -59,7 +61,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p1-maintain-passing-tests-before-making-large-changes",
@@ -73,7 +76,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p1-document-current-screens-and-workflows-with-screenshots",
@@ -87,7 +91,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p1-identify-which-prototype-features-must-exist-in-the-future-c-version",
@@ -101,7 +106,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p1-identify-which-prototype-features-are-temporary-and-can-be-discarded-later",
@@ -115,7 +121,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p1-avoid-adding-large-new-systems-to-the-python-app-unless-they-clarify-the-product",
@@ -129,7 +136,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -137,11 +145,13 @@
       "completionCriteria": [
         {
           "id": "phase-1-stabilize-the-current-python-prototype-done-the-prototype-can-demonstrate-incident-details-camp-operations-inventory-network-views-reports-and-validation",
-          "title": "The prototype can demonstrate incident details, camp operations, inventory, network views, reports, and validation."
+          "title": "The prototype can demonstrate incident details, camp operations, inventory, network views, reports, and validation.",
+          "completed": true
         },
         {
           "id": "phase-1-stabilize-the-current-python-prototype-done-the-current-workflow-is-documented-well-enough-to-rebuild-intentionally-in-another-stack",
-          "title": "The current workflow is documented well enough to rebuild intentionally in another stack."
+          "title": "The current workflow is documented well enough to rebuild intentionally in another stack.",
+          "completed": true
         }
       ]
     },
@@ -166,7 +176,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-what-each-role-can-view",
@@ -180,7 +191,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-what-each-role-can-edit",
@@ -194,7 +206,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-the-normal-daily-itss-workflow",
@@ -208,7 +221,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-the-initial-incident-setup-workflow",
@@ -222,7 +236,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-demobilization-and-closeout-workflow",
@@ -236,7 +251,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-how-users-work-when-disconnected-from-the-local-network",
@@ -250,7 +266,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-what-must-be-printable-for-command-staff",
@@ -264,7 +281,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-what-must-be-available-on-phonetablet-in-the-field",
@@ -278,7 +296,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p2-define-what-is-considered-official-incident-record-data",
@@ -292,7 +311,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -300,11 +320,13 @@
       "completionCriteria": [
         {
           "id": "phase-2-define-the-incident-operating-model-done-a-written-workflow-exists-for-setup-daily-operations-troubleshooting-reporting-and-closeout",
-          "title": "A written workflow exists for setup, daily operations, troubleshooting, reporting, and closeout."
+          "title": "A written workflow exists for setup, daily operations, troubleshooting, reporting, and closeout.",
+          "completed": true
         },
         {
           "id": "phase-2-define-the-incident-operating-model-done-user-permissions-are-clear-enough-to-design-screens-and-database-rules",
-          "title": "User permissions are clear enough to design screens and database rules."
+          "title": "User permissions are clear enough to design screens and database rules.",
+          "completed": true
         }
       ]
     },
@@ -329,7 +351,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-camp",
@@ -343,7 +366,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-building-location",
@@ -357,7 +381,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-person",
@@ -371,7 +396,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-device",
@@ -385,7 +411,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-asset",
@@ -399,7 +426,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-network",
@@ -413,7 +441,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-physical-link",
@@ -427,7 +456,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-virtual-link",
@@ -441,7 +471,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-service",
@@ -455,7 +486,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-vlan-subnet",
@@ -469,7 +501,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-ip-address-assignment",
@@ -483,7 +516,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-wireless-link",
@@ -497,7 +531,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-satellite-wan-link",
@@ -511,7 +546,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-link-state-history",
@@ -525,7 +561,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-checklist-template",
@@ -539,7 +576,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-checklist-run-completed-checklist",
@@ -553,7 +591,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-attachment-photo-note",
@@ -567,7 +606,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-define-audit-event",
@@ -581,7 +621,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         },
@@ -600,7 +641,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-what-fields-are-optional",
@@ -614,7 +656,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-what-values-are-controlled-lists",
@@ -628,7 +671,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-what-values-can-be-free-text",
@@ -642,7 +686,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-what-records-can-be-archived-instead-of-deleted",
@@ -656,7 +701,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-what-changes-must-create-audit-history",
@@ -670,7 +716,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p3-what-objects-can-be-created-from-the-mobile-tool",
@@ -684,7 +731,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -692,11 +740,13 @@
       "completionCriteria": [
         {
           "id": "phase-3-define-core-data-model-done-the-model-can-represent-a-real-camp-network-not-just-a-demo",
-          "title": "The model can represent a real camp network, not just a demo."
+          "title": "The model can represent a real camp network, not just a demo.",
+          "completed": true
         },
         {
           "id": "phase-3-define-core-data-model-done-the-model-can-support-multi-user-editing-without-relying-on-shared-json-files",
-          "title": "The model can support multi-user editing without relying on shared JSON files."
+          "title": "The model can support multi-user editing without relying on shared JSON files.",
+          "completed": true
         }
       ]
     },
@@ -721,7 +771,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-decide-whether-the-first-c-version-must-run-only-on-windows",
@@ -735,7 +786,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-decide-whether-the-mobiletablet-tool-is-webpwa-first",
@@ -749,7 +801,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-choose-database-postgresql-sql-server-or-sqlite-for-first-shared-server-version",
@@ -763,7 +816,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-choose-real-time-update-mechanism",
@@ -777,7 +831,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-choose-authentication-approach-for-incident-local-use",
@@ -791,7 +846,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-choose-installerdeployment-approach-for-the-desktop-client",
@@ -805,7 +861,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-write-an-architecture-decision-record-before-starting-the-rewrite",
@@ -819,7 +876,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         },
@@ -838,7 +896,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-server-aspnet-core",
@@ -852,7 +911,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-live-updates-signalr",
@@ -866,7 +926,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-database-postgresql-or-sql-server-for-shared-server-sqlite-for-localoffline-cache",
@@ -880,7 +941,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p4-mobiletablet-checklist-client-browser-based-pwa-served-by-the-incident-server",
@@ -894,7 +956,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -902,15 +965,18 @@
       "completionCriteria": [
         {
           "id": "phase-4-choose-the-long-term-technical-stack-done-the-selected-stack-is-documented",
-          "title": "The selected stack is documented."
+          "title": "The selected stack is documented.",
+          "completed": true
         },
         {
           "id": "phase-4-choose-the-long-term-technical-stack-done-the-reason-for-the-choice-is-documented",
-          "title": "The reason for the choice is documented."
+          "title": "The reason for the choice is documented.",
+          "completed": true
         },
         {
           "id": "phase-4-choose-the-long-term-technical-stack-done-the-first-migration-milestone-is-small-enough-to-finish",
-          "title": "The first migration milestone is small enough to finish."
+          "title": "The first migration milestone is small enough to finish.",
+          "completed": true
         }
       ]
     },
@@ -935,7 +1001,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-database-connection",
@@ -949,7 +1016,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-schema-migrations",
@@ -963,7 +1031,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-incident-summary",
@@ -977,7 +1046,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-camps",
@@ -991,7 +1061,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-devices",
@@ -1005,7 +1076,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-networks",
@@ -1019,7 +1091,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-links",
@@ -1033,7 +1106,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-checklist-templates",
@@ -1047,7 +1121,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-api-endpoint-for-checklist-runs",
@@ -1061,7 +1136,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-audit-logging-for-create-update-delete",
@@ -1075,7 +1151,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-server-health-endpoint",
@@ -1089,7 +1166,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-backupexport-command",
@@ -1103,7 +1181,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p5-add-restoreimport-command",
@@ -1117,7 +1196,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -1125,15 +1205,18 @@
       "completionCriteria": [
         {
           "id": "phase-5-build-the-incident-server-foundation-done-two-clients-can-read-the-same-incident-data-from-the-server",
-          "title": "Two clients can read the same incident data from the server."
+          "title": "Two clients can read the same incident data from the server.",
+          "completed": true
         },
         {
           "id": "phase-5-build-the-incident-server-foundation-done-all-changes-are-stored-in-the-database",
-          "title": "All changes are stored in the database."
+          "title": "All changes are stored in the database.",
+          "completed": true
         },
         {
           "id": "phase-5-build-the-incident-server-foundation-done-changes-are-traceable-to-a-user-and-time",
-          "title": "Changes are traceable to a user and time."
+          "title": "Changes are traceable to a user and time.",
+          "completed": true
         }
       ]
     },
@@ -3171,32 +3254,16 @@
   ],
   "nearTermNextSteps": [
     {
-      "id": "near-term-next-steps-finish-documenting-the-python-prototype-workflows",
-      "title": "Finish documenting the Python prototype workflows."
+      "id": "near-term-p6-add-real-time-connection-endpoint",
+      "title": "Add real-time connection endpoint."
     },
     {
-      "id": "near-term-next-steps-create-an-architecture-decision-record-for-the-future-cnet-direction",
-      "title": "Create an architecture decision record for the future C#/.NET direction."
+      "id": "near-term-p6-add-client-connection-tracking",
+      "title": "Add client connection tracking."
     },
     {
-      "id": "near-term-next-steps-draft-the-first-shared-incident-data-model",
-      "title": "Draft the first shared incident data model."
-    },
-    {
-      "id": "near-term-next-steps-draft-the-first-checklist-template-format",
-      "title": "Draft the first checklist template format."
-    },
-    {
-      "id": "near-term-next-steps-build-one-real-itss-checklist-in-markdown-or-json",
-      "title": "Build one real ITSS checklist in markdown or JSON."
-    },
-    {
-      "id": "near-term-next-steps-decide-the-first-field-test-scenario",
-      "title": "Decide the first field test scenario."
-    },
-    {
-      "id": "near-term-next-steps-keep-all-current-prototype-changes-committed-and-pushed",
-      "title": "Keep all current prototype changes committed and pushed."
+      "id": "near-term-p6-broadcast-incident-changes",
+      "title": "Broadcast incident changes."
     }
   ],
   "blockers": [],
@@ -3206,6 +3273,6 @@
     "completionCriterionCount": 25,
     "weeklyChecklistItemCount": 10,
     "stopConditionCount": 6,
-    "nearTermNextStepCount": 7
+    "nearTermNextStepCount": 3
   }
 }
