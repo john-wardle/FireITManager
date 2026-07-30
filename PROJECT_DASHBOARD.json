@@ -17,7 +17,7 @@
   "guidingArchitecture": "Windows Desktop Client\n        |\n        | API and live updates\n        v\nIncident Server on the incident LAN\n        |\n        v\nDatabase, audit log, telemetry collectors, checklist content\n        |\n        v\nMobile / Tablet Checklist Client",
   "dashboardRules": {
     "phaseSelection": "explicit-current-phase-with-first-incomplete-fallback",
-    "currentPhaseId": "phase-9-build-the-mobile-tablet-checklist-tool",
+    "currentPhaseId": "phase-10-security-access-and-audit",
     "taskSelection": "first-incomplete-task-in-active-phase",
     "autoAdvancePhase": true,
     "weeklyTaskSource": "first-three-incomplete-tasks-in-active-phase",
@@ -2248,7 +2248,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-open-standard-itss-checklists",
@@ -2707,7 +2708,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-role-owner",
@@ -2721,7 +2723,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-required-tools",
@@ -2735,7 +2738,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-safety-notes",
@@ -2749,7 +2753,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-prerequisites",
@@ -2763,7 +2768,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-steps",
@@ -2837,7 +2843,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p9-version",

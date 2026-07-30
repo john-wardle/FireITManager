@@ -255,10 +255,55 @@ function renderSearch() {
     }
 
     const items = []
-        .concat(state.camps.map((item) => searchResult("Camp", item.name, item.status, item)))
-        .concat(state.devices.map((item) => searchResult("Device", item.hostname, item.status, item)))
-        .concat(state.links.map((item) => searchResult("Link", item.label || `${item.sourceRef} -> ${item.destinationRef}`, item.status, item)))
-        .concat(state.templates.map((item) => searchResult("Checklist", item.title, item.status, item)));
+        .concat(state.camps.map((item) => searchResult(
+            "Camp",
+            item.name,
+            item.status,
+            item,
+            [item.campType, item.primaryLocationId, item.addressOrDirections, item.notes]
+        )))
+        .concat(state.devices.map((item) => searchResult(
+            "Device",
+            item.hostname,
+            item.status,
+            item,
+            [
+                item.deviceType,
+                item.locationId ? `Location/building: ${item.locationId}` : "",
+                item.primaryIpAssignmentId ? `IP assignment: ${item.primaryIpAssignmentId}` : "",
+                Array.isArray(item.macAddresses) ? `MAC: ${item.macAddresses.join(", ")}` : "",
+                item.assetId ? `Asset: ${item.assetId}` : "",
+                item.manufacturer,
+                item.model,
+                item.serialNumber,
+                item.notes
+            ]
+        )))
+        .concat(state.links.map((item) => searchResult(
+            "Link",
+            item.label || `${item.sourceRef} -> ${item.destinationRef}`,
+            item.status,
+            item,
+            [item.linkCategory, item.linkType, item.sourceRef, item.destinationRef, item.path, item.notes]
+        )))
+        .concat(state.templates.map((item) => searchResult(
+            "Checklist",
+            item.title,
+            item.status,
+            item,
+            checklistTemplateDetailParts(item)
+        )))
+        .concat(state.runs.map((item) => {
+            const template = findTemplate(item.templateId);
+            const steps = normalizeSteps(item.steps);
+            return searchResult(
+                "Run",
+                template?.title ?? item.templateId,
+                item.status,
+                { ...item, template, steps },
+                [template?.title, item.targetType, item.targetId, item.assigneePersonId, item.notes]
+            );
+        }));
 
     const matches = items.filter((item) => item.search.includes(text)).slice(0, 50);
     target.innerHTML = matches.length === 0
@@ -282,6 +327,8 @@ function renderTemplates() {
                             ${badge(template.status)}
                         </div>
                         <p class="detail-text">${escapeHtml(joinDetails([template.templateType, template.versionLabel, `${steps.length} steps`]))}</p>
+                        ${template.purpose ? `<p class="template-purpose">${escapeHtml(template.purpose)}</p>` : ""}
+                        ${renderTemplateMetadata(template)}
                     </div>
                     <div class="template-actions">
                         <button class="primary" type="button" data-start-template="${escapeHtml(template.id)}">Start Run</button>
@@ -292,6 +339,44 @@ function renderTemplates() {
     target.querySelectorAll("[data-start-template]").forEach((button) => {
         button.addEventListener("click", () => startRun(button.dataset.startTemplate));
     });
+}
+
+function renderTemplateMetadata(template) {
+    const rows = [
+        ["Owner", template.roleOwner],
+        ["Tools", template.requiredTools],
+        ["Safety", template.safetyNotes],
+        ["Prerequisites", template.prerequisites],
+        ["Done when", template.completionCriteria]
+    ].filter(([, value]) => Boolean(cleanText(value)));
+
+    if (rows.length === 0) {
+        return "";
+    }
+
+    return `
+        <dl class="template-metadata">
+            ${rows.map(([label, value]) => `
+                <div>
+                    <dt>${escapeHtml(label)}</dt>
+                    <dd>${escapeHtml(value)}</dd>
+                </div>`).join("")}
+        </dl>`;
+}
+
+function checklistTemplateDetailParts(template) {
+    const steps = normalizeSteps(template.steps);
+    return [
+        template.templateType,
+        template.versionLabel,
+        `${steps.length} steps`,
+        template.purpose,
+        template.roleOwner,
+        template.requiredTools,
+        template.safetyNotes,
+        template.prerequisites,
+        template.completionCriteria
+    ];
 }
 
 function renderRuns() {
@@ -686,18 +771,38 @@ function isComplete(status) {
     return ["complete", "completed", "done"].includes((status ?? "").toLowerCase());
 }
 
-function searchResult(type, title, status, item) {
+function searchResult(type, title, status, item, detailParts = []) {
+    const detail = joinDetails(detailParts);
+
     return {
         type,
         title: title || item.id,
         status: status || "unknown",
-        detail: joinDetails(Object.values(item).filter((value) => typeof value === "string")),
-        search: Object.values(item)
-            .flatMap((value) => Array.isArray(value) ? value : [value])
-            .filter((value) => value !== null && value !== undefined)
+        detail: detail || joinDetails(extractSearchValues(item).slice(0, 8)),
+        search: extractSearchValues(item)
             .join(" ")
             .toLowerCase()
     };
+}
+
+function extractSearchValues(value) {
+    if (value === null || value === undefined) {
+        return [];
+    }
+
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return [value.toString()];
+    }
+
+    if (Array.isArray(value)) {
+        return value.flatMap(extractSearchValues);
+    }
+
+    if (typeof value === "object") {
+        return Object.values(value).flatMap(extractSearchValues);
+    }
+
+    return [];
 }
 
 function listItem(title, status, detail) {
@@ -724,6 +829,10 @@ function joinDetails(values) {
     return values.filter((value) => value !== null && value !== undefined && value.toString().trim() !== "")
         .map((value) => value.toString().trim())
         .join(" | ");
+}
+
+function cleanText(value) {
+    return (value ?? "").toString().trim();
 }
 
 function parseJson(value, fallback) {

@@ -1,4 +1,4 @@
-const cacheName = "fireit-mobile-shell-v2";
+const cacheName = "fireit-mobile-shell-v3";
 const shellFiles = [
     "/mobile/",
     "/mobile/index.html",

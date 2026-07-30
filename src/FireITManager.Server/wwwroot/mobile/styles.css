@@ -257,6 +257,35 @@ h3 {
     color: var(--muted);
 }
 
+.template-purpose {
+    margin: 8px 0 0;
+    color: var(--text);
+}
+
+.template-metadata {
+    display: grid;
+    gap: 6px;
+    margin: 10px 0 0;
+}
+
+.template-metadata div {
+    display: grid;
+    gap: 2px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+}
+
+.template-metadata dt {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.template-metadata dd {
+    margin: 0;
+}
+
 .status-badge {
     display: inline-flex;
     align-items: center;

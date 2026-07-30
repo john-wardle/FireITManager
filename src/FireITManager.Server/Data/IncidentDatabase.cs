@@ -424,6 +424,105 @@ internal sealed class IncidentDatabase
                 strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'), 1
             );
             """),
+        new(
+            "009_checklist_template_metadata",
+            """
+            ALTER TABLE checklist_templates
+                ADD COLUMN purpose TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE checklist_templates
+                ADD COLUMN role_owner TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE checklist_templates
+                ADD COLUMN required_tools TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE checklist_templates
+                ADD COLUMN safety_notes TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE checklist_templates
+                ADD COLUMN prerequisites TEXT NOT NULL DEFAULT '';
+
+            ALTER TABLE checklist_templates
+                ADD COLUMN completion_criteria TEXT NOT NULL DEFAULT '';
+
+            UPDATE checklist_templates
+            SET
+                purpose = CASE
+                    WHEN template_type LIKE 'setup.%'
+                        THEN 'Guide initial field setup work so equipment, access, power, network paths, and user handoff are documented consistently.'
+                    WHEN template_type LIKE 'daily_check.%'
+                        THEN 'Guide recurring operational-period checks so ITSS can spot service issues early and leave a usable handoff.'
+                    WHEN template_type LIKE 'troubleshooting.%'
+                        THEN 'Guide field troubleshooting so symptoms, scope, physical checks, logical checks, actions, and escalation are captured.'
+                    WHEN template_type LIKE 'coordination.%'
+                        THEN 'Guide coordination with communications and logistics partners so shared dependencies and follow-up owners are visible.'
+                    WHEN template_type LIKE 'handoff.%'
+                        THEN 'Guide shift or role handoff so incoming ITSS can continue work from documented facts instead of verbal-only context.'
+                    WHEN template_type LIKE 'closeout.%'
+                        THEN 'Guide demobilization so equipment, services, data exports, and final transfer status are preserved.'
+                    ELSE 'Provide a repeatable ITSS field checklist that can be completed offline and synced back to the incident server.'
+                END,
+                role_owner = CASE
+                    WHEN template_type LIKE 'coordination.%'
+                        THEN 'Assigned ITSS with COML/COMT coordination.'
+                    WHEN template_type LIKE 'closeout.%'
+                        THEN 'Assigned ITSS lead or demobilization ITSS.'
+                    WHEN template_type LIKE 'handoff.%'
+                        THEN 'Outgoing ITSS with incoming ITSS or supervisor acknowledgement.'
+                    ELSE 'Assigned ITSS; coordinate with ITSS lead, COML/COMT, and logistics as needed.'
+                END,
+                required_tools = CASE
+                    WHEN template_type LIKE 'setup.wan'
+                        THEN 'FireIT Mobile, satellite/vendor status app if available, labels, camera, cable protection, power tester, and basic hand tools.'
+                    WHEN template_type LIKE 'setup.router'
+                        THEN 'FireIT Mobile, console or management access, patch cables, labels, known-good client, and configuration backup location.'
+                    WHEN template_type LIKE 'setup.switch'
+                        THEN 'FireIT Mobile, cable labels, patch cables, camera, known-good endpoint, and switch management access when available.'
+                    WHEN template_type LIKE 'setup.wireless'
+                        THEN 'FireIT Mobile, mounting supplies, labels, known-good Wi-Fi client, camera, and AP management access when available.'
+                    WHEN template_type LIKE 'setup.printer'
+                        THEN 'FireIT Mobile, printer supplies, known-good workstation, labels, network details, and local driver/package source when available.'
+                    WHEN template_type LIKE 'setup.workstation'
+                        THEN 'FireIT Mobile, workstation asset details, user assignment notes, network credentials or local access process, and printer/service test path.'
+                    WHEN template_type LIKE 'daily_check.backup'
+                        THEN 'FireIT Mobile, incident server access, backup/export destination, removable media if used, and file-size verification.'
+                    ELSE 'FireIT Mobile, incident server access, labels or asset identifiers, camera, notes, and equipment-specific field tools.'
+                END,
+                safety_notes = CASE
+                    WHEN template_type LIKE 'setup.%'
+                        THEN 'Confirm access permission before touching equipment; avoid unsafe power, trip hazards, heat, vehicle paths, and unstable mounting locations.'
+                    WHEN template_type LIKE 'troubleshooting.%'
+                        THEN 'Record observed state before changing equipment; do not disturb shared services without command/communications awareness.'
+                    WHEN template_type LIKE 'closeout.%'
+                        THEN 'Do not disconnect active services until the supported function confirms release; use safe lifting, packing, and cable removal practices.'
+                    ELSE 'Follow incident safety rules, respect restricted areas, document hazards, and escalate unsafe conditions before continuing.'
+                END,
+                prerequisites = CASE
+                    WHEN template_type LIKE 'daily_check.%'
+                        THEN 'Current operational period is known; incident server or cached mobile app is available; prior blockers and handoff notes have been reviewed.'
+                    WHEN template_type LIKE 'troubleshooting.%'
+                        THEN 'Affected user, service, device, area, or link is identified; safety/access limits are known; current symptoms are captured before changes.'
+                    WHEN template_type LIKE 'handoff.%'
+                        THEN 'Current records, open blockers, generated exports, and receiving party or storage location are known.'
+                    WHEN template_type LIKE 'closeout.%'
+                        THEN 'Demobilization direction is confirmed; retained service needs are known; export/backup destination is available.'
+                    ELSE 'Assignment is confirmed; physical access is approved; incident server or cached mobile app is available; required equipment details are known or discoverable.'
+                END,
+                completion_criteria = CASE
+                    WHEN template_type LIKE 'troubleshooting.%'
+                        THEN 'Scope, checks, action taken, result, blocker or escalation owner, and follow-up status are recorded; required notes/photos are attached or explicitly blocked.'
+                    WHEN template_type LIKE 'daily_check.%'
+                        THEN 'Current state, exceptions, blockers, and follow-up items are recorded; checklist run is synced or queued for sync.'
+                    WHEN template_type LIKE 'handoff.%'
+                        THEN 'Records are reviewed, open work is documented, exports or backup locations are recorded, and receiving party or substitute handoff path is captured.'
+                    WHEN template_type LIKE 'closeout.%'
+                        THEN 'Inventory disposition, teardown status, final export/backup, and equipment or record handoff are documented.'
+                    ELSE 'All checklist steps are completed or blocked with notes; required photos/notes are captured; the run is synced or queued for sync.'
+                END,
+                updated_at_utc = strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                version = version + 1
+            WHERE id LIKE 'standard-%';
+            """),
     ];
 
     private readonly string _connectionString;
@@ -989,6 +1088,12 @@ internal sealed class IncidentDatabase
                 status,
                 scope_type,
                 scope_id,
+                purpose,
+                role_owner,
+                required_tools,
+                safety_notes,
+                prerequisites,
+                completion_criteria,
                 steps_json,
                 created_at_utc,
                 updated_at_utc,
@@ -1010,10 +1115,16 @@ internal sealed class IncidentDatabase
                 Status: reader.GetString(5),
                 ScopeType: reader.GetString(6),
                 ScopeId: ReadOptionalString(reader, 7),
-                Steps: ReadJsonElement(reader, 8),
-                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 9),
-                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 10),
-                Version: reader.GetInt32(11)));
+                Purpose: reader.GetString(8),
+                RoleOwner: reader.GetString(9),
+                RequiredTools: reader.GetString(10),
+                SafetyNotes: reader.GetString(11),
+                Prerequisites: reader.GetString(12),
+                CompletionCriteria: reader.GetString(13),
+                Steps: ReadJsonElement(reader, 14),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 15),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 16),
+                Version: reader.GetInt32(17)));
         }
 
         return templates;
@@ -2049,6 +2160,12 @@ internal sealed record ChecklistTemplateSummary(
     string Status,
     string ScopeType,
     string? ScopeId,
+    string Purpose,
+    string RoleOwner,
+    string RequiredTools,
+    string SafetyNotes,
+    string Prerequisites,
+    string CompletionCriteria,
     JsonElement Steps,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,

@@ -28,6 +28,8 @@ The mobile app now supports:
 
 The mobile client uses local storage for cached incident data and pending checklist work. A service worker caches the app shell, stylesheet, script, manifest, and icon so the page remains available after it has been loaded once.
 
+Search indexes camps, devices, links, checklist templates, checklist runs, and nested checklist step data. It includes hostname, known IP assignment identifiers, MAC addresses, asset IDs, location/building identifiers already exposed by the server, camp directions, link endpoints, checklist titles, checklist metadata, notes, blockers, and follow-up text.
+
 ## Server Changes
 
 The server now exposes:
@@ -36,6 +38,15 @@ The server now exposes:
 - `PUT /api/checklist-runs/{id}/progress` to save status, step progress, notes, blockers, follow-up tasks, and photo metadata/data.
 
 Both endpoints use the existing SQLite database, audit logging, optimistic versioning, and SignalR incident-change broadcast path.
+
+Migration `009_checklist_template_metadata` adds these checklist template fields to SQLite and the `/api/checklist-templates` response:
+
+- Purpose
+- Role / owner
+- Required tools
+- Safety notes
+- Prerequisites
+- Completion criteria
 
 ## Standard Templates
 
@@ -59,10 +70,8 @@ Migration `008_standard_itss_checklist_templates` seeds these global published t
 - Documentation Handoff
 - Demobilization Checklist
 
-Each seeded template includes stable step IDs, step titles, expected results, troubleshooting hints, and required note/photo flags where appropriate.
+Each seeded template includes stable step IDs, step titles, expected results, troubleshooting hints, required note/photo flags where appropriate, purpose, owner, required tools, safety notes, prerequisites, and completion criteria.
 
 ## Known Gaps
-
-The current mobile search can only search fields already exposed by the server APIs. Full IP address, building/location name, and person-name search remain open until those records are exposed directly to the mobile data payload.
 
 Photo attachments are stored inside checklist run step JSON for this first field version. A later attachment/photo table should move larger media into first-class records with size limits and export controls.
