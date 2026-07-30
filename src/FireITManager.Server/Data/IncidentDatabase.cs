@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using SQLitePCL;
 using System.Globalization;
+using System.Text.Json;
 
 namespace FireITManager.Server.Data;
 
@@ -83,6 +84,47 @@ internal sealed class IncidentDatabase
 
             CREATE INDEX IF NOT EXISTS idx_camps_status
                 ON camps(status, record_state);
+            """),
+        new(
+            "003_device_store",
+            """
+            CREATE TABLE IF NOT EXISTS devices (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                hostname TEXT NOT NULL,
+                device_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                location_id TEXT NULL,
+                manufacturer TEXT NOT NULL DEFAULT '',
+                model TEXT NOT NULL DEFAULT '',
+                serial_number TEXT NOT NULL DEFAULT '',
+                primary_ip_assignment_id TEXT NULL,
+                mac_addresses_json TEXT NOT NULL DEFAULT '[]',
+                asset_id TEXT NULL,
+                notes TEXT NOT NULL DEFAULT '',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_devices_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT ck_devices_hostname_not_blank
+                    CHECK (length(trim(hostname)) > 0),
+                CONSTRAINT ck_devices_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_devices_incident_hostname
+                ON devices(incident_id, hostname COLLATE NOCASE);
+
+            CREATE INDEX IF NOT EXISTS idx_devices_incident
+                ON devices(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_devices_location
+                ON devices(location_id);
+
+            CREATE INDEX IF NOT EXISTS idx_devices_status
+                ON devices(status);
             """),
     ];
 
@@ -248,6 +290,61 @@ internal sealed class IncidentDatabase
         return camps;
     }
 
+    public async Task<IReadOnlyList<DeviceSummary>> ListDevicesAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                hostname,
+                device_type,
+                status,
+                location_id,
+                manufacturer,
+                model,
+                serial_number,
+                primary_ip_assignment_id,
+                mac_addresses_json,
+                asset_id,
+                notes,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM devices
+            ORDER BY hostname COLLATE NOCASE ASC, created_at_utc ASC;
+            """;
+
+        var devices = new List<DeviceSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            devices.Add(new DeviceSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                Hostname: reader.GetString(2),
+                DeviceType: reader.GetString(3),
+                Status: reader.GetString(4),
+                LocationId: ReadOptionalString(reader, 5),
+                Manufacturer: reader.GetString(6),
+                Model: reader.GetString(7),
+                SerialNumber: reader.GetString(8),
+                PrimaryIpAssignmentId: ReadOptionalString(reader, 9),
+                MacAddresses: ReadStringListJson(reader, 10),
+                AssetId: ReadOptionalString(reader, 11),
+                Notes: reader.GetString(12),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 13),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 14),
+                Version: reader.GetInt32(15)));
+        }
+
+        return devices;
+    }
+
     private static async Task<bool> MigrationHasBeenAppliedAsync(
         SqliteConnection connection,
         string migrationId,
@@ -356,6 +453,12 @@ internal sealed class IncidentDatabase
             : reader.GetInt32(ordinal);
     }
 
+    private static IReadOnlyList<string> ReadStringListJson(SqliteDataReader reader, int ordinal)
+    {
+        var json = reader.GetString(ordinal);
+        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+    }
+
     private static DateTimeOffset ReadDateTimeOffset(string value)
     {
         return DateTimeOffset.Parse(
@@ -403,6 +506,24 @@ internal sealed record CampSummary(
     string? ItContactPersonId,
     string Notes,
     string RecordState,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
+
+internal sealed record DeviceSummary(
+    string Id,
+    string IncidentId,
+    string Hostname,
+    string DeviceType,
+    string Status,
+    string? LocationId,
+    string Manufacturer,
+    string Model,
+    string SerialNumber,
+    string? PrimaryIpAssignmentId,
+    IReadOnlyList<string> MacAddresses,
+    string? AssetId,
+    string Notes,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
     int Version);
