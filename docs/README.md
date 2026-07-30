@@ -25,6 +25,7 @@ FireIT Manager.
 - [Python Prototype Guardrails](16_Python_Prototype_Guardrails.md)
 - [Phase 6 Real-Time Multi-User Updates](17_Phase_6_Realtime_Multi_User_Updates.md)
 - [Phase 7 WPF Desktop Client](18_Phase_7_WPF_Desktop_Client.md)
+- [Phase 8 Live Network Map](19_Phase_8_Live_Network_Map.md)
 
 ## User Documentation
 

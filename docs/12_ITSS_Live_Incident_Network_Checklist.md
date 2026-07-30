@@ -220,37 +220,41 @@ Done when:
 
 Goal: Show the incident network as a live operational picture.
 
-- [ ] Define map object types: camp, building, device, link, service, VLAN, WAN, wireless.
-- [ ] Define visual status colors.
-- [ ] Define status labels: unknown, up, degraded, down, disabled, planned, maintenance.
-- [ ] Define status priority when several signals conflict.
+- [x] Define map object types: camp, building, device, link, service, VLAN, WAN, wireless.
+- [x] Define visual status colors.
+- [x] Define status labels: unknown, up, degraded, down, disabled, planned, maintenance.
+- [x] Define status priority when several signals conflict.
 - [ ] Draw camps and buildings.
-- [ ] Draw physical device links.
-- [ ] Draw virtual links.
-- [ ] Draw WAN / satellite / internet paths.
-- [ ] Draw wireless links.
-- [ ] Show link direction and type where useful.
-- [ ] Show hover/click details for each object.
-- [ ] Show last-seen time for each status.
+- [x] Draw physical device links.
+- [x] Draw virtual links.
+- [x] Draw WAN / satellite / internet paths.
+- [x] Draw wireless links.
+- [x] Show link direction and type where useful.
+- [x] Show hover/click details for each object.
+- [x] Show last-seen time for each status.
 - [ ] Show manual override indicator.
-- [ ] Show historical status for a selected link.
-- [ ] Add filtering by network, camp, device type, and status.
+- [x] Show historical status for a selected link.
+- [x] Add filtering by network, camp, device type, and status.
 - [ ] Add search for device, IP, MAC, hostname, or person.
 
 Telemetry sources to evaluate:
 
-- [ ] ICMP ping.
-- [ ] SNMP.
-- [ ] HTTP/HTTPS checks.
-- [ ] SSH reachability.
-- [ ] Router/switch API where available.
-- [ ] LLDP/CDP where available.
-- [ ] Manual ITSS status override.
+- [x] ICMP ping.
+- [x] SNMP.
+- [x] HTTP/HTTPS checks.
+- [x] SSH reachability.
+- [x] Router/switch API where available.
+- [x] LLDP/CDP where available.
+- [x] Manual ITSS status override.
 
 Done when:
 
-- [ ] A user can look at the map and quickly identify what is down, degraded, or unknown.
-- [ ] Link state changes appear live for all connected users.
+- [x] A user can look at the map and quickly identify what is down, degraded, or unknown.
+- [x] Link state changes appear live for all connected users.
+
+Open implementation note:
+
+- Building drawing, person-specific search, and real manual override indicators require location/person/manual override fields to be exposed by the incident server. The WPF map model and UI are ready to consume those fields when added.
 
 ## Phase 9: Build The Mobile / Tablet Checklist Tool
 

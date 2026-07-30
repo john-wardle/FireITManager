@@ -16,6 +16,27 @@ internal sealed class RelayCommand(
         CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }
 
+internal sealed class RelayCommand<T>(
+    Action<T?> execute,
+    Func<T?, bool>? canExecute = null) : ICommand
+{
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter) =>
+        canExecute?.Invoke(ConvertParameter(parameter)) ?? true;
+
+    public void Execute(object? parameter) =>
+        execute(ConvertParameter(parameter));
+
+    public void RaiseCanExecuteChanged() =>
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+    private static T? ConvertParameter(object? parameter) =>
+        parameter is T typed
+            ? typed
+            : default;
+}
+
 internal sealed class AsyncRelayCommand(
     Func<Task> execute,
     Func<bool>? canExecute = null) : ICommand

@@ -1731,7 +1731,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-define-visual-status-colors",
@@ -1745,7 +1746,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-define-status-labels-unknown-up-degraded-down-disabled-planned-maintenance",
@@ -1759,7 +1761,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-define-status-priority-when-several-signals-conflict",
@@ -1773,7 +1776,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-draw-camps-and-buildings",
@@ -1801,7 +1805,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-draw-virtual-links",
@@ -1815,7 +1820,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-draw-wan-satellite-internet-paths",
@@ -1829,7 +1835,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-draw-wireless-links",
@@ -1843,7 +1850,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-show-link-direction-and-type-where-useful",
@@ -1857,7 +1865,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-show-hoverclick-details-for-each-object",
@@ -1871,7 +1880,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-show-last-seen-time-for-each-status",
@@ -1885,7 +1895,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-show-manual-override-indicator",
@@ -1913,7 +1924,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-add-filtering-by-network-camp-device-type-and-status",
@@ -1927,7 +1939,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-add-search-for-device-ip-mac-hostname-or-person",
@@ -1960,7 +1973,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-snmp",
@@ -1974,7 +1988,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-httphttps-checks",
@@ -1988,7 +2003,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-ssh-reachability",
@@ -2002,7 +2018,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-routerswitch-api-where-available",
@@ -2016,7 +2033,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-lldpcdp-where-available",
@@ -2030,7 +2048,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             },
             {
               "id": "p8-manual-itss-status-override",
@@ -2044,7 +2063,8 @@
                 "Relevant tests, review, or validation have been completed.",
                 "The result is committed before the task is marked complete."
               ],
-              "files": []
+              "files": [],
+              "completed": true
             }
           ]
         }
@@ -2052,11 +2072,13 @@
       "completionCriteria": [
         {
           "id": "phase-8-build-the-live-network-map-done-a-user-can-look-at-the-map-and-quickly-identify-what-is-down-degraded-or-unknown",
-          "title": "A user can look at the map and quickly identify what is down, degraded, or unknown."
+          "title": "A user can look at the map and quickly identify what is down, degraded, or unknown.",
+          "completed": true
         },
         {
           "id": "phase-8-build-the-live-network-map-done-link-state-changes-appear-live-for-all-connected-users",
-          "title": "Link state changes appear live for all connected users."
+          "title": "Link state changes appear live for all connected users.",
+          "completed": true
         }
       ]
     },

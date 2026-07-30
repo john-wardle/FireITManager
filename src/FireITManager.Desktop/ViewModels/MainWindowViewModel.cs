@@ -12,6 +12,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private readonly IncidentRealtimeClient _realtimeClient = new();
     private readonly LocalCacheService _cacheService = new();
     private readonly OutputWorkflowService _outputWorkflow = new();
+    private readonly NetworkMapBuilder _networkMapBuilder = new();
 
     private string _serverUrl = "http://localhost:5000";
     private string _userId = Environment.UserName;
@@ -24,9 +25,20 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private string _operationalPeriodStartUtcText = "";
     private string _operationalPeriodEndUtcText = "";
     private string _lastOutputPath = "";
+    private string _mapSearchText = "";
+    private string _mapStatusFilter = NetworkMapBuilder.AllStatusesFilter;
+    private string _mapTypeFilter = NetworkMapBuilder.AllTypesFilter;
+    private string _mapNetworkFilter = NetworkMapBuilder.AllNetworksFilter;
+    private string _mapCampFilter = NetworkMapBuilder.AllCampsFilter;
+    private string _mapDeviceTypeFilter = NetworkMapBuilder.AllDeviceTypesFilter;
+    private string _mapSummaryText = "No map data loaded.";
     private string? _incidentId;
+    private NetworkMapNode? _selectedMapNode;
+    private NetworkMapLink? _selectedMapLink;
     private int _incidentVersion;
     private int _selectedWorkspaceIndex;
+    private double _mapCanvasWidth = 820;
+    private double _mapCanvasHeight = 520;
     private bool _isConnected;
     private bool _isBusy;
 
@@ -51,8 +63,14 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         SelectIncidentWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 0);
         SelectCampOpsWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 1);
         SelectInventoryWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 2);
-        SelectNetworkWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 3);
-        SelectOutputsWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 4);
+        SelectMapWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 3);
+        SelectNetworkWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 4);
+        SelectOutputsWorkspaceCommand = new RelayCommand(() => SelectedWorkspaceIndex = 5);
+        SelectMapNodeCommand = new RelayCommand<NetworkMapNode>(node => SelectedMapNode = node);
+        ClearMapFiltersCommand = new RelayCommand(ClearMapFilters);
+
+        Replace(StatusLegend, _networkMapBuilder.BuildLegend());
+        RefreshNetworkMap();
 
         ActivityLog.Add("Desktop client ready.");
     }
@@ -72,9 +90,19 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public ObservableCollection<EntityListItem> Networks { get; } = [];
     public ObservableCollection<EntityListItem> Links { get; } = [];
     public ObservableCollection<EntityListItem> ChecklistRuns { get; } = [];
+    public ObservableCollection<AuditEventItem> AuditEvents { get; } = [];
     public ObservableCollection<IncidentClientConnection> RealtimeConnections { get; } = [];
     public ObservableCollection<string> ValidationMessages { get; } = [];
     public ObservableCollection<string> ActivityLog { get; } = [];
+    public ObservableCollection<NetworkMapNode> MapNodes { get; } = [];
+    public ObservableCollection<NetworkMapLink> MapLinks { get; } = [];
+    public ObservableCollection<StatusLegendItem> StatusLegend { get; } = [];
+    public ObservableCollection<string> MapStatusFilters { get; } = [];
+    public ObservableCollection<string> MapTypeFilters { get; } = [];
+    public ObservableCollection<string> MapNetworkFilters { get; } = [];
+    public ObservableCollection<string> MapCampFilters { get; } = [];
+    public ObservableCollection<string> MapDeviceTypeFilters { get; } = [];
+    public ObservableCollection<string> MapStatusHistory { get; } = [];
 
     public AsyncRelayCommand ConnectCommand { get; }
     public AsyncRelayCommand RefreshCommand { get; }
@@ -90,8 +118,11 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public RelayCommand SelectIncidentWorkspaceCommand { get; }
     public RelayCommand SelectCampOpsWorkspaceCommand { get; }
     public RelayCommand SelectInventoryWorkspaceCommand { get; }
+    public RelayCommand SelectMapWorkspaceCommand { get; }
     public RelayCommand SelectNetworkWorkspaceCommand { get; }
     public RelayCommand SelectOutputsWorkspaceCommand { get; }
+    public RelayCommand<NetworkMapNode> SelectMapNodeCommand { get; }
+    public RelayCommand ClearMapFiltersCommand { get; }
 
     public string ServerUrl
     {
@@ -193,6 +224,158 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         get => _lastOutputPath;
         private set => SetProperty(ref _lastOutputPath, value);
     }
+
+    public string MapSearchText
+    {
+        get => _mapSearchText;
+        set
+        {
+            if (SetProperty(ref _mapSearchText, value))
+            {
+                RefreshNetworkMap();
+            }
+        }
+    }
+
+    public string MapStatusFilter
+    {
+        get => _mapStatusFilter;
+        set
+        {
+            if (SetProperty(ref _mapStatusFilter, string.IsNullOrWhiteSpace(value) ? NetworkMapBuilder.AllStatusesFilter : value))
+            {
+                RefreshNetworkMap();
+            }
+        }
+    }
+
+    public string MapTypeFilter
+    {
+        get => _mapTypeFilter;
+        set
+        {
+            if (SetProperty(ref _mapTypeFilter, string.IsNullOrWhiteSpace(value) ? NetworkMapBuilder.AllTypesFilter : value))
+            {
+                RefreshNetworkMap();
+            }
+        }
+    }
+
+    public string MapNetworkFilter
+    {
+        get => _mapNetworkFilter;
+        set
+        {
+            if (SetProperty(ref _mapNetworkFilter, string.IsNullOrWhiteSpace(value) ? NetworkMapBuilder.AllNetworksFilter : value))
+            {
+                RefreshNetworkMap();
+            }
+        }
+    }
+
+    public string MapCampFilter
+    {
+        get => _mapCampFilter;
+        set
+        {
+            if (SetProperty(ref _mapCampFilter, string.IsNullOrWhiteSpace(value) ? NetworkMapBuilder.AllCampsFilter : value))
+            {
+                RefreshNetworkMap();
+            }
+        }
+    }
+
+    public string MapDeviceTypeFilter
+    {
+        get => _mapDeviceTypeFilter;
+        set
+        {
+            if (SetProperty(ref _mapDeviceTypeFilter, string.IsNullOrWhiteSpace(value) ? NetworkMapBuilder.AllDeviceTypesFilter : value))
+            {
+                RefreshNetworkMap();
+            }
+        }
+    }
+
+    public double MapCanvasWidth
+    {
+        get => _mapCanvasWidth;
+        private set => SetProperty(ref _mapCanvasWidth, value);
+    }
+
+    public double MapCanvasHeight
+    {
+        get => _mapCanvasHeight;
+        private set => SetProperty(ref _mapCanvasHeight, value);
+    }
+
+    public string MapSummaryText
+    {
+        get => _mapSummaryText;
+        private set => SetProperty(ref _mapSummaryText, value);
+    }
+
+    public NetworkMapNode? SelectedMapNode
+    {
+        get => _selectedMapNode;
+        set
+        {
+            if (SetProperty(ref _selectedMapNode, value))
+            {
+                if (value is not null && _selectedMapLink is not null)
+                {
+                    _selectedMapLink = null;
+                    OnPropertyChanged(nameof(SelectedMapLink));
+                }
+
+                RefreshSelectedMapDetails();
+            }
+        }
+    }
+
+    public NetworkMapLink? SelectedMapLink
+    {
+        get => _selectedMapLink;
+        set
+        {
+            if (SetProperty(ref _selectedMapLink, value))
+            {
+                if (value is not null && _selectedMapNode is not null)
+                {
+                    _selectedMapNode = null;
+                    OnPropertyChanged(nameof(SelectedMapNode));
+                }
+
+                RefreshSelectedMapDetails();
+            }
+        }
+    }
+
+    public string SelectedMapDetailTitle =>
+        SelectedMapLink?.Title ??
+        SelectedMapNode?.Title ??
+        "No map object selected";
+
+    public string SelectedMapDetailText
+    {
+        get
+        {
+            if (SelectedMapLink is not null)
+            {
+                return BuildSelectedLinkDetail(SelectedMapLink);
+            }
+
+            if (SelectedMapNode is not null)
+            {
+                return BuildSelectedNodeDetail(SelectedMapNode);
+            }
+
+            return "Select a node on the map or a link in the link list.";
+        }
+    }
+
+    public string SelectedMapHistoryTitle =>
+        SelectedMapLink is not null ? "Selected Link History" : "Selected Object History";
 
     public int SelectedWorkspaceIndex
     {
@@ -335,6 +518,8 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             Replace(Networks, cache.Networks);
             Replace(Links, cache.Links);
             Replace(ChecklistRuns, cache.ChecklistRuns);
+            Replace(AuditEvents, cache.AuditEvents ?? []);
+            RefreshNetworkMap();
             LastSyncText = $"Loaded cache {cache.CachedAtUtc:g}";
             AddActivity($"Loaded local cache from {_cacheService.CachePath}.");
         });
@@ -374,7 +559,9 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         Replace(Networks, await _serverClient.ListNetworksAsync());
         Replace(Links, await _serverClient.ListLinksAsync());
         Replace(ChecklistRuns, await _serverClient.ListChecklistRunsAsync());
+        Replace(AuditEvents, await _serverClient.ListAuditEventsAsync());
         Replace(RealtimeConnections, await _serverClient.ListRealtimeConnectionsAsync());
+        RefreshNetworkMap();
         LastSyncText = $"Synced {DateTimeOffset.Now:g}";
         OnPropertyChanged(nameof(CanExport));
         InvalidateCommands();
@@ -411,7 +598,194 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             Networks: Networks.ToList(),
             Links: Links.ToList(),
             ChecklistRuns: ChecklistRuns.ToList(),
-            CachedAtUtc: DateTimeOffset.UtcNow);
+            CachedAtUtc: DateTimeOffset.UtcNow,
+            AuditEvents: AuditEvents.ToList());
+    }
+
+    private void RefreshNetworkMap()
+    {
+        RefreshMapFilterOptions();
+
+        var previousNodeId = SelectedMapNode?.Id;
+        var previousLinkId = SelectedMapLink?.Id;
+        var result = _networkMapBuilder.Build(
+            Camps,
+            Devices,
+            Networks,
+            Links,
+            MapSearchText,
+            MapStatusFilter,
+            MapTypeFilter,
+            MapNetworkFilter,
+            MapCampFilter,
+            MapDeviceTypeFilter);
+
+        Replace(MapNodes, result.Nodes);
+        Replace(MapLinks, result.Links);
+        MapCanvasWidth = result.CanvasWidth;
+        MapCanvasHeight = result.CanvasHeight;
+        MapSummaryText = result.Summary;
+
+        _selectedMapNode = previousNodeId is null
+            ? null
+            : MapNodes.FirstOrDefault(node => string.Equals(node.Id, previousNodeId, StringComparison.OrdinalIgnoreCase));
+        _selectedMapLink = previousLinkId is null
+            ? null
+            : MapLinks.FirstOrDefault(link => string.Equals(link.Id, previousLinkId, StringComparison.OrdinalIgnoreCase));
+        OnPropertyChanged(nameof(SelectedMapNode));
+        OnPropertyChanged(nameof(SelectedMapLink));
+        RefreshSelectedMapDetails();
+    }
+
+    private void RefreshMapFilterOptions()
+    {
+        Replace(MapStatusFilters, new[]
+        {
+            NetworkMapBuilder.AllStatusesFilter,
+            "down",
+            "degraded",
+            "unknown",
+            "maintenance",
+            "disabled",
+            "planned",
+            "up"
+        });
+        Replace(MapTypeFilters, new[]
+        {
+            NetworkMapBuilder.AllTypesFilter,
+            "Camp",
+            "Building",
+            "Device",
+            "Link",
+            "Network",
+            "Service",
+            "VLAN",
+            "WAN",
+            "Wireless"
+        });
+        Replace(MapNetworkFilters, new[] { NetworkMapBuilder.AllNetworksFilter }
+            .Concat(Networks.Select(item => item.Title))
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase));
+        Replace(MapCampFilters, new[] { NetworkMapBuilder.AllCampsFilter }
+            .Concat(Camps.Select(item => item.Title))
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase));
+        Replace(MapDeviceTypeFilters, new[] { NetworkMapBuilder.AllDeviceTypesFilter }
+            .Concat(Devices.Select(item => item.DeviceType))
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase));
+
+        EnsureFilterValue(MapStatusFilters, ref _mapStatusFilter, NetworkMapBuilder.AllStatusesFilter, nameof(MapStatusFilter));
+        EnsureFilterValue(MapTypeFilters, ref _mapTypeFilter, NetworkMapBuilder.AllTypesFilter, nameof(MapTypeFilter));
+        EnsureFilterValue(MapNetworkFilters, ref _mapNetworkFilter, NetworkMapBuilder.AllNetworksFilter, nameof(MapNetworkFilter));
+        EnsureFilterValue(MapCampFilters, ref _mapCampFilter, NetworkMapBuilder.AllCampsFilter, nameof(MapCampFilter));
+        EnsureFilterValue(MapDeviceTypeFilters, ref _mapDeviceTypeFilter, NetworkMapBuilder.AllDeviceTypesFilter, nameof(MapDeviceTypeFilter));
+    }
+
+    private void ClearMapFilters()
+    {
+        MapSearchText = "";
+        MapStatusFilter = NetworkMapBuilder.AllStatusesFilter;
+        MapTypeFilter = NetworkMapBuilder.AllTypesFilter;
+        MapNetworkFilter = NetworkMapBuilder.AllNetworksFilter;
+        MapCampFilter = NetworkMapBuilder.AllCampsFilter;
+        MapDeviceTypeFilter = NetworkMapBuilder.AllDeviceTypesFilter;
+    }
+
+    private void RefreshSelectedMapDetails()
+    {
+        OnPropertyChanged(nameof(SelectedMapDetailTitle));
+        OnPropertyChanged(nameof(SelectedMapDetailText));
+        OnPropertyChanged(nameof(SelectedMapHistoryTitle));
+
+        MapStatusHistory.Clear();
+        if (SelectedMapLink is not null)
+        {
+            AddSelectedHistory(
+                "link",
+                SelectedMapLink.Id,
+                $"{SelectedMapLink.StatusLabel} | {SelectedMapLink.LastSeenText}");
+            return;
+        }
+
+        if (SelectedMapNode is not null)
+        {
+            AddSelectedHistory(
+                ToAuditTargetType(SelectedMapNode),
+                SelectedMapNode.Id,
+                $"{SelectedMapNode.StatusLabel} | {SelectedMapNode.LastSeenText}");
+        }
+    }
+
+    private void AddSelectedHistory(
+        string targetType,
+        string targetId,
+        string currentStatus)
+    {
+        MapStatusHistory.Add($"Current: {currentStatus}");
+
+        if (string.IsNullOrWhiteSpace(targetType) || string.IsNullOrWhiteSpace(targetId))
+        {
+            MapStatusHistory.Add("No audit target is available for this map object.");
+            return;
+        }
+
+        var history = AuditEvents
+            .Where(item =>
+                string.Equals(item.TargetType, targetType, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(item.TargetId, targetId, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(item => item.OccurredAtUtc)
+            .Take(12)
+            .ToList();
+
+        if (history.Count == 0)
+        {
+            MapStatusHistory.Add("No audit events recorded for this object yet.");
+            return;
+        }
+
+        foreach (var item in history)
+        {
+            MapStatusHistory.Add($"{item.OccurredAtUtc.LocalDateTime:g} | {item.Action} | {item.ActorId} | {item.Summary}");
+        }
+    }
+
+    private string BuildSelectedNodeDetail(NetworkMapNode node)
+    {
+        var camp = FindTitle(Camps, node.CampId);
+        var network = FindTitle(Networks, node.NetworkId);
+
+        return JoinLines(
+            $"Type: {node.ObjectType}",
+            $"Status: {node.StatusLabel}",
+            $"Priority: {node.StatusPriority}",
+            $"Camp: {camp}",
+            $"Network: {network}",
+            $"Device type: {node.DeviceType}",
+            node.LastSeenText,
+            node.Detail);
+    }
+
+    private string BuildSelectedLinkDetail(NetworkMapLink link)
+    {
+        var camp = FindTitle(Camps, link.CampId);
+        var network = FindTitle(Networks, link.NetworkId);
+
+        return JoinLines(
+            $"Type: {link.ObjectType}",
+            $"Status: {link.StatusLabel}",
+            $"Priority: {link.StatusPriority}",
+            $"Direction: {link.SourceLabel} -> {link.TargetLabel}",
+            $"Category: {link.LinkCategory}",
+            $"Link type: {link.LinkType}",
+            $"Camp: {camp}",
+            $"Network: {network}",
+            link.LastSeenText,
+            link.Detail);
     }
 
     private bool ValidateIncident(bool showSuccess)
@@ -467,6 +841,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         OnPropertyChanged(nameof(IncidentVersionText));
         OnPropertyChanged(nameof(CanExport));
         InvalidateCommands();
+        RefreshNetworkMap();
         AddActivity("Started a new incident summary.");
     }
 
@@ -630,6 +1005,39 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         !string.IsNullOrWhiteSpace(Agency) ||
         !string.IsNullOrWhiteSpace(OperationalPeriodStartUtcText) ||
         !string.IsNullOrWhiteSpace(OperationalPeriodEndUtcText);
+
+    private void EnsureFilterValue(
+        ObservableCollection<string> options,
+        ref string field,
+        string fallback,
+        string propertyName)
+    {
+        var currentValue = field;
+        if (options.Any(item => string.Equals(item, currentValue, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        field = fallback;
+        OnPropertyChanged(propertyName);
+    }
+
+    private static string ToAuditTargetType(NetworkMapNode node) =>
+        node.ObjectType switch
+        {
+            "Camp" => "camp",
+            "Device" => "device",
+            "Network" or "Service" or "VLAN" or "WAN" or "Wireless" => "network",
+            _ => ""
+        };
+
+    private static string FindTitle(IEnumerable<EntityListItem> items, string? id) =>
+        string.IsNullOrWhiteSpace(id)
+            ? ""
+            : items.FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase))?.Title ?? "";
+
+    private static string JoinLines(params string[] values) =>
+        string.Join(Environment.NewLine, values.Where(value => !string.IsNullOrWhiteSpace(value)));
 
     private static void Replace<T>(
         ObservableCollection<T> target,
