@@ -52,6 +52,24 @@ app.MapGet("/api/devices", async (
     return Results.Ok(devices);
 });
 
+app.MapGet("/api/networks", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var networks = await incidentDatabase.ListNetworksAsync(cancellationToken);
+
+    return Results.Ok(networks);
+});
+
+app.MapGet("/api/links", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var links = await incidentDatabase.ListLinksAsync(cancellationToken);
+
+    return Results.Ok(links);
+});
+
 await app.RunAsync();
 
 internal sealed record HealthResponse(

@@ -149,8 +149,8 @@ Goal: Create the central authority for shared incident data.
 - [x] Add API endpoint for incident summary.
 - [x] Add API endpoint for camps.
 - [x] Add API endpoint for devices.
-- [ ] Add API endpoint for networks.
-- [ ] Add API endpoint for links.
+- [x] Add API endpoint for networks.
+- [x] Add API endpoint for links.
 - [ ] Add API endpoint for checklist templates.
 - [ ] Add API endpoint for checklist runs.
 - [ ] Add audit logging for create, update, delete.

@@ -126,6 +126,87 @@ internal sealed class IncidentDatabase
             CREATE INDEX IF NOT EXISTS idx_devices_status
                 ON devices(status);
             """),
+        new(
+            "004_network_and_link_store",
+            """
+            CREATE TABLE IF NOT EXISTS networks (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                camp_id TEXT NULL,
+                name TEXT NOT NULL,
+                network_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_networks_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_networks_camp
+                    FOREIGN KEY (camp_id) REFERENCES camps(id)
+                    ON DELETE SET NULL,
+                CONSTRAINT ck_networks_name_not_blank
+                    CHECK (length(trim(name)) > 0),
+                CONSTRAINT ck_networks_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_networks_scope_name
+                ON networks(incident_id, ifnull(camp_id, ''), name COLLATE NOCASE);
+
+            CREATE INDEX IF NOT EXISTS idx_networks_incident
+                ON networks(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_networks_camp
+                ON networks(camp_id);
+
+            CREATE INDEX IF NOT EXISTS idx_networks_status
+                ON networks(status);
+
+            CREATE TABLE IF NOT EXISTS links (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                network_id TEXT NULL,
+                link_category TEXT NOT NULL,
+                link_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                source_device_id TEXT NULL,
+                destination_device_id TEXT NULL,
+                source_location_id TEXT NULL,
+                destination_location_id TEXT NULL,
+                source_ref TEXT NOT NULL DEFAULT '',
+                destination_ref TEXT NOT NULL DEFAULT '',
+                label TEXT NOT NULL DEFAULT '',
+                length TEXT NOT NULL DEFAULT '',
+                path TEXT NOT NULL DEFAULT '',
+                notes TEXT NOT NULL DEFAULT '',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_links_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_links_network
+                    FOREIGN KEY (network_id) REFERENCES networks(id)
+                    ON DELETE SET NULL,
+                CONSTRAINT ck_links_type_not_blank
+                    CHECK (length(trim(link_type)) > 0),
+                CONSTRAINT ck_links_category_not_blank
+                    CHECK (length(trim(link_category)) > 0),
+                CONSTRAINT ck_links_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_links_incident
+                ON links(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_links_network
+                ON links(network_id);
+
+            CREATE INDEX IF NOT EXISTS idx_links_status
+                ON links(status);
+            """),
     ];
 
     private readonly string _connectionString;
@@ -345,6 +426,110 @@ internal sealed class IncidentDatabase
         return devices;
     }
 
+    public async Task<IReadOnlyList<NetworkSummary>> ListNetworksAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                camp_id,
+                name,
+                network_type,
+                status,
+                description,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM networks
+            ORDER BY name COLLATE NOCASE ASC, created_at_utc ASC;
+            """;
+
+        var networks = new List<NetworkSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            networks.Add(new NetworkSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                CampId: ReadOptionalString(reader, 2),
+                Name: reader.GetString(3),
+                NetworkType: reader.GetString(4),
+                Status: reader.GetString(5),
+                Description: reader.GetString(6),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 7),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 8),
+                Version: reader.GetInt32(9)));
+        }
+
+        return networks;
+    }
+
+    public async Task<IReadOnlyList<LinkSummary>> ListLinksAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                network_id,
+                link_category,
+                link_type,
+                status,
+                source_device_id,
+                destination_device_id,
+                source_location_id,
+                destination_location_id,
+                source_ref,
+                destination_ref,
+                label,
+                length,
+                path,
+                notes,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM links
+            ORDER BY link_category ASC, label COLLATE NOCASE ASC, created_at_utc ASC;
+            """;
+
+        var links = new List<LinkSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            links.Add(new LinkSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                NetworkId: ReadOptionalString(reader, 2),
+                LinkCategory: reader.GetString(3),
+                LinkType: reader.GetString(4),
+                Status: reader.GetString(5),
+                SourceDeviceId: ReadOptionalString(reader, 6),
+                DestinationDeviceId: ReadOptionalString(reader, 7),
+                SourceLocationId: ReadOptionalString(reader, 8),
+                DestinationLocationId: ReadOptionalString(reader, 9),
+                SourceRef: reader.GetString(10),
+                DestinationRef: reader.GetString(11),
+                Label: reader.GetString(12),
+                Length: reader.GetString(13),
+                Path: reader.GetString(14),
+                Notes: reader.GetString(15),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 16),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 17),
+                Version: reader.GetInt32(18)));
+        }
+
+        return links;
+    }
+
     private static async Task<bool> MigrationHasBeenAppliedAsync(
         SqliteConnection connection,
         string migrationId,
@@ -523,6 +708,39 @@ internal sealed record DeviceSummary(
     string? PrimaryIpAssignmentId,
     IReadOnlyList<string> MacAddresses,
     string? AssetId,
+    string Notes,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
+
+internal sealed record NetworkSummary(
+    string Id,
+    string IncidentId,
+    string? CampId,
+    string Name,
+    string NetworkType,
+    string Status,
+    string Description,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
+
+internal sealed record LinkSummary(
+    string Id,
+    string IncidentId,
+    string? NetworkId,
+    string LinkCategory,
+    string LinkType,
+    string Status,
+    string? SourceDeviceId,
+    string? DestinationDeviceId,
+    string? SourceLocationId,
+    string? DestinationLocationId,
+    string SourceRef,
+    string DestinationRef,
+    string Label,
+    string Length,
+    string Path,
     string Notes,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
