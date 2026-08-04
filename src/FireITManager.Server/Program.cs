@@ -189,6 +189,15 @@ app.MapGet("/api/devices", async (
     return Results.Ok(devices);
 });
 
+app.MapGet("/api/locations", async (
+    IncidentDatabase incidentDatabase,
+    CancellationToken cancellationToken) =>
+{
+    var locations = await incidentDatabase.ListLocationsAsync(cancellationToken);
+
+    return Results.Ok(locations);
+});
+
 app.MapPut("/api/devices/{id}/status", async (
     string id,
     EntityStatusUpdateRequest request,

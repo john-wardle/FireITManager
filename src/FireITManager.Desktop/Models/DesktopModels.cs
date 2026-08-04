@@ -51,7 +51,13 @@ internal sealed record EntityListItem(
     string Path = "",
     string Notes = "",
     string SearchText = "",
-    bool ManualOverride = false);
+    bool ManualOverride = false,
+    string? ParentLocationId = null,
+    string LocationType = "",
+    double? MapX = null,
+    double? MapY = null,
+    double? MapWidth = null,
+    double? MapHeight = null);
 
 internal sealed record AuditEventItem(
     string Id,
@@ -187,4 +193,5 @@ internal sealed record DesktopCache(
     IReadOnlyList<EntityListItem> Links,
     IReadOnlyList<EntityListItem> ChecklistRuns,
     DateTimeOffset CachedAtUtc,
-    IReadOnlyList<AuditEventItem>? AuditEvents = null);
+    IReadOnlyList<AuditEventItem>? AuditEvents = null,
+    IReadOnlyList<EntityListItem>? Locations = null);

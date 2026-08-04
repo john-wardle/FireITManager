@@ -89,6 +89,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public ObservableCollection<EntityListItem> Devices { get; } = [];
     public ObservableCollection<EntityListItem> Networks { get; } = [];
     public ObservableCollection<EntityListItem> Links { get; } = [];
+    public ObservableCollection<EntityListItem> Locations { get; } = [];
     public ObservableCollection<EntityListItem> ChecklistRuns { get; } = [];
     public ObservableCollection<AuditEventItem> AuditEvents { get; } = [];
     public ObservableCollection<IncidentClientConnection> RealtimeConnections { get; } = [];
@@ -517,6 +518,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             Replace(Devices, cache.Devices);
             Replace(Networks, cache.Networks);
             Replace(Links, cache.Links);
+            Replace(Locations, cache.Locations ?? []);
             Replace(ChecklistRuns, cache.ChecklistRuns);
             Replace(AuditEvents, cache.AuditEvents ?? []);
             RefreshNetworkMap();
@@ -558,6 +560,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         Replace(Devices, await _serverClient.ListDevicesAsync());
         Replace(Networks, await _serverClient.ListNetworksAsync());
         Replace(Links, await _serverClient.ListLinksAsync());
+        Replace(Locations, await _serverClient.ListLocationsAsync());
         Replace(ChecklistRuns, await _serverClient.ListChecklistRunsAsync());
         Replace(AuditEvents, await _serverClient.ListAuditEventsAsync());
         Replace(RealtimeConnections, await _serverClient.ListRealtimeConnectionsAsync());
@@ -599,7 +602,8 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             Links: Links.ToList(),
             ChecklistRuns: ChecklistRuns.ToList(),
             CachedAtUtc: DateTimeOffset.UtcNow,
-            AuditEvents: AuditEvents.ToList());
+            AuditEvents: AuditEvents.ToList(),
+            Locations: Locations.ToList());
     }
 
     private void RefreshNetworkMap()
@@ -610,6 +614,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         var previousLinkId = SelectedMapLink?.Id;
         var result = _networkMapBuilder.Build(
             Camps,
+            Locations,
             Devices,
             Networks,
             Links,
@@ -1026,6 +1031,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         node.ObjectType switch
         {
             "Camp" => "camp",
+            "Building" => "location",
             "Device" => "device",
             "Network" or "Service" or "VLAN" or "WAN" or "Wireless" => "network",
             _ => ""

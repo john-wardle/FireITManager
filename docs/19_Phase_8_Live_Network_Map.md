@@ -11,7 +11,7 @@ The map model supports these operational object types:
 | Object type | Current source | Notes |
 | --- | --- | --- |
 | Camp | Camp records | Shown as top-level incident operating areas. |
-| Building | Future location records | Defined now for field layout work after location APIs are added. |
+| Building | Building/Location records, with inferred fallback from location references | Camp-scoped places such as tents, trailers, command posts, rooms, pads, and map-only locations. |
 | Device | Device records | Routers, switches, APs, servers, printers, terminals, and other IT assets. |
 | Link | Link records | Generic physical path when no more specific type is known. |
 | Service | Network/link records | DNS, DHCP, print, HTTP/HTTPS, SSH, SNMP, or other logical services. |
@@ -42,6 +42,8 @@ Synonyms are normalized before display. Examples: `healthy`, `online`, and `oper
 The WPF client now includes a `Map` workspace before the raw `Network` workspace. It:
 
 - Draws camp, network, device, and unresolved endpoint nodes on a scrollable canvas.
+- Draws Building/Location nodes between camps and networks, using authoritative location records when available.
+- Infers Building/Location nodes from device and link location references when the server has not synced a first-class location record yet.
 - Draws physical, virtual, WAN, satellite, internet, and wireless links from the current link records.
 - Shows link direction and link type/category labels where available.
 - Uses status colors on every node and link.
@@ -53,6 +55,12 @@ The WPF client now includes a `Map` workspace before the raw `Network` workspace
 - Filters by status, object type, network, camp, and device type.
 - Searches across ID, device name, hostname/title, network/link text, source/destination refs, MAC addresses, and notes.
 - Rebuilds automatically after SignalR incident-change refreshes, so status changes appear for connected desktop users.
+
+## Building / Location Data Source
+
+Migration `010_location_store` adds a camp-scoped `locations` table for physical places that need to appear on the incident map. The server exposes these records through `GET /api/locations`, and the desktop client loads and caches them with the rest of the incident data.
+
+The first map renderer supports optional `map_x`, `map_y`, `map_width`, and `map_height` fields. When map coordinates are absent, Building/Location nodes are laid out in a stable row between camp nodes and network nodes. If no authoritative location row exists yet, the desktop map creates an inferred Building node from device `location_id` values or link endpoint location IDs so existing field data still has a visible place on the map.
 
 ## Telemetry Source Evaluation
 

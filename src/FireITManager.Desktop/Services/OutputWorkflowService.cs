@@ -89,6 +89,7 @@ internal sealed class OutputWorkflowService
         builder.AppendLine($"Updated UTC: {cache.Incident.UpdatedAtUtc:O}");
         builder.AppendLine();
         AppendCount(builder, "Camps", cache.Camps);
+        AppendCount(builder, "Buildings / Locations", cache.Locations ?? []);
         AppendCount(builder, "Devices", cache.Devices);
         AppendCount(builder, "Networks", cache.Networks);
         AppendCount(builder, "Links", cache.Links);
@@ -119,6 +120,7 @@ internal sealed class OutputWorkflowService
                 <table>
                     <tr><th>Area</th><th>Count</th></tr>
                     <tr><td>Camps</td><td>{{cache.Camps.Count}}</td></tr>
+                    <tr><td>Buildings / Locations</td><td>{{cache.Locations?.Count ?? 0}}</td></tr>
                     <tr><td>Devices</td><td>{{cache.Devices.Count}}</td></tr>
                     <tr><td>Networks</td><td>{{cache.Networks.Count}}</td></tr>
                     <tr><td>Links</td><td>{{cache.Links.Count}}</td></tr>

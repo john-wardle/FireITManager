@@ -1,4 +1,5 @@
 using FireITManager.Desktop.Models;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -65,6 +66,9 @@ internal sealed class IncidentServerClient
 
     public Task<IReadOnlyList<EntityListItem>> ListLinksAsync(CancellationToken cancellationToken = default) =>
         ListEntitiesAsync("/api/links", "link", cancellationToken);
+
+    public Task<IReadOnlyList<EntityListItem>> ListLocationsAsync(CancellationToken cancellationToken = default) =>
+        ListEntitiesAsync("/api/locations", "location", cancellationToken);
 
     public Task<IReadOnlyList<EntityListItem>> ListChecklistRunsAsync(CancellationToken cancellationToken = default) =>
         ListEntitiesAsync("/api/checklist-runs", "checklist-run", cancellationToken);
@@ -145,6 +149,8 @@ internal sealed class IncidentServerClient
         var networkType = ReadString(item, "networkType");
         var deviceType = ReadString(item, "deviceType");
         var campType = ReadString(item, "campType");
+        var locationType = ReadString(item, "locationType");
+        var accessNotes = ReadString(item, "accessNotes");
         var label = ReadString(item, "label");
         var length = ReadString(item, "length");
         var path = ReadString(item, "path");
@@ -156,6 +162,7 @@ internal sealed class IncidentServerClient
             "device" => ReadString(item, "hostname"),
             "network" => ReadString(item, "name"),
             "link" => Prefer(label, $"{Prefer(sourceRef, sourceDeviceId ?? "")} -> {Prefer(destinationRef, destinationDeviceId ?? "")}"),
+            "location" => ReadString(item, "name"),
             "checklist-run" => ReadString(item, "templateTitle"),
             _ => id
         };
@@ -174,6 +181,7 @@ internal sealed class IncidentServerClient
                 notes),
             "network" => JoinNonBlank(networkType, ReadString(item, "description")),
             "link" => JoinNonBlank(label, linkCategory, linkType, sourceRef, destinationRef, length, path, notes),
+            "location" => JoinNonBlank(locationType, ReadString(item, "addressOrDirections"), accessNotes, notes),
             "checklist-run" => JoinNonBlank(ReadString(item, "assignedTo"), ReadString(item, "completedAtUtc")),
             _ => ""
         };
@@ -190,9 +198,11 @@ internal sealed class IncidentServerClient
             networkType,
             deviceType,
             campType,
+            locationType,
             label,
             length,
             path,
+            accessNotes,
             notes,
             string.Join(" ", macAddresses));
 
@@ -224,7 +234,13 @@ internal sealed class IncidentServerClient
             Path: path,
             Notes: notes,
             SearchText: searchText,
-            ManualOverride: ReadBool(item, "manualOverride") || ReadBool(item, "isManualOverride"));
+            ManualOverride: ReadBool(item, "manualOverride") || ReadBool(item, "isManualOverride"),
+            ParentLocationId: ReadOptionalString(item, "parentLocationId"),
+            LocationType: locationType,
+            MapX: ReadOptionalDouble(item, "mapX"),
+            MapY: ReadOptionalDouble(item, "mapY"),
+            MapWidth: ReadOptionalDouble(item, "mapWidth"),
+            MapHeight: ReadOptionalDouble(item, "mapHeight"));
     }
 
     private static async Task<T?> ReadJsonOrThrowAsync<T>(
@@ -284,6 +300,24 @@ internal sealed class IncidentServerClient
         return TryGetProperty(item, propertyName, out var property) && property.TryGetInt32(out var value)
             ? value
             : 0;
+    }
+
+    private static double? ReadOptionalDouble(JsonElement item, string propertyName)
+    {
+        if (!TryGetProperty(item, propertyName, out var property) || property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return null;
+        }
+
+        if (property.TryGetDouble(out var value))
+        {
+            return value;
+        }
+
+        return property.ValueKind == JsonValueKind.String &&
+            double.TryParse(property.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : null;
     }
 
     private static bool ReadBool(JsonElement item, string propertyName)

@@ -523,6 +523,74 @@ internal sealed class IncidentDatabase
                 version = version + 1
             WHERE id LIKE 'standard-%';
             """),
+        new(
+            "010_location_store",
+            """
+            CREATE TABLE IF NOT EXISTS locations (
+                id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                camp_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                location_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                parent_location_id TEXT NULL,
+                map_x REAL NULL,
+                map_y REAL NULL,
+                map_width REAL NULL,
+                map_height REAL NULL,
+                latitude REAL NULL,
+                longitude REAL NULL,
+                elevation_ft REAL NULL,
+                address_or_directions TEXT NOT NULL DEFAULT '',
+                capacity INTEGER NULL,
+                access_notes TEXT NOT NULL DEFAULT '',
+                notes TEXT NOT NULL DEFAULT '',
+                record_state TEXT NOT NULL DEFAULT 'active',
+                created_at_utc TEXT NOT NULL,
+                updated_at_utc TEXT NOT NULL,
+                version INTEGER NOT NULL DEFAULT 1,
+                CONSTRAINT fk_locations_incident
+                    FOREIGN KEY (incident_id) REFERENCES incidents(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_locations_camp
+                    FOREIGN KEY (camp_id) REFERENCES camps(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_locations_parent
+                    FOREIGN KEY (parent_location_id) REFERENCES locations(id)
+                    ON DELETE SET NULL,
+                CONSTRAINT ck_locations_name_not_blank
+                    CHECK (length(trim(name)) > 0),
+                CONSTRAINT ck_locations_type_not_blank
+                    CHECK (length(trim(location_type)) > 0),
+                CONSTRAINT ck_locations_status_not_blank
+                    CHECK (length(trim(status)) > 0),
+                CONSTRAINT ck_locations_map_position_complete
+                    CHECK ((map_x IS NULL AND map_y IS NULL)
+                        OR (map_x IS NOT NULL AND map_y IS NOT NULL)),
+                CONSTRAINT ck_locations_map_size_positive
+                    CHECK ((map_width IS NULL OR map_width > 0)
+                        AND (map_height IS NULL OR map_height > 0)),
+                CONSTRAINT ck_locations_coordinates_complete
+                    CHECK ((latitude IS NULL AND longitude IS NULL)
+                        OR (latitude IS NOT NULL AND longitude IS NOT NULL)),
+                CONSTRAINT ck_locations_capacity_not_negative
+                    CHECK (capacity IS NULL OR capacity >= 0),
+                CONSTRAINT ck_locations_version_positive
+                    CHECK (version >= 1)
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_locations_camp_name
+                ON locations(camp_id, name COLLATE NOCASE);
+
+            CREATE INDEX IF NOT EXISTS idx_locations_incident
+                ON locations(incident_id);
+
+            CREATE INDEX IF NOT EXISTS idx_locations_camp
+                ON locations(camp_id);
+
+            CREATE INDEX IF NOT EXISTS idx_locations_status
+                ON locations(status, record_state);
+            """),
     ];
 
     private readonly string _connectionString;
@@ -964,6 +1032,73 @@ internal sealed class IncidentDatabase
         }
 
         return devices;
+    }
+
+    public async Task<IReadOnlyList<LocationSummary>> ListLocationsAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                id,
+                incident_id,
+                camp_id,
+                name,
+                location_type,
+                status,
+                parent_location_id,
+                map_x,
+                map_y,
+                map_width,
+                map_height,
+                latitude,
+                longitude,
+                elevation_ft,
+                address_or_directions,
+                capacity,
+                access_notes,
+                notes,
+                record_state,
+                created_at_utc,
+                updated_at_utc,
+                version
+            FROM locations
+            ORDER BY camp_id ASC, name COLLATE NOCASE ASC, created_at_utc ASC;
+            """;
+
+        var locations = new List<LocationSummary>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            locations.Add(new LocationSummary(
+                Id: reader.GetString(0),
+                IncidentId: reader.GetString(1),
+                CampId: reader.GetString(2),
+                Name: reader.GetString(3),
+                LocationType: reader.GetString(4),
+                Status: reader.GetString(5),
+                ParentLocationId: ReadOptionalString(reader, 6),
+                MapX: ReadOptionalDouble(reader, 7),
+                MapY: ReadOptionalDouble(reader, 8),
+                MapWidth: ReadOptionalDouble(reader, 9),
+                MapHeight: ReadOptionalDouble(reader, 10),
+                Latitude: ReadOptionalDouble(reader, 11),
+                Longitude: ReadOptionalDouble(reader, 12),
+                ElevationFt: ReadOptionalDouble(reader, 13),
+                AddressOrDirections: reader.GetString(14),
+                Capacity: ReadOptionalInt32(reader, 15),
+                AccessNotes: reader.GetString(16),
+                Notes: reader.GetString(17),
+                RecordState: reader.GetString(18),
+                CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 19),
+                UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 20),
+                Version: reader.GetInt32(21)));
+        }
+
+        return locations;
     }
 
     public async Task<IReadOnlyList<NetworkSummary>> ListNetworksAsync(CancellationToken cancellationToken = default)
@@ -2114,6 +2249,30 @@ internal sealed record DeviceSummary(
     IReadOnlyList<string> MacAddresses,
     string? AssetId,
     string Notes,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    int Version);
+
+internal sealed record LocationSummary(
+    string Id,
+    string IncidentId,
+    string CampId,
+    string Name,
+    string LocationType,
+    string Status,
+    string? ParentLocationId,
+    double? MapX,
+    double? MapY,
+    double? MapWidth,
+    double? MapHeight,
+    double? Latitude,
+    double? Longitude,
+    double? ElevationFt,
+    string AddressOrDirections,
+    int? Capacity,
+    string AccessNotes,
+    string Notes,
+    string RecordState,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
     int Version);

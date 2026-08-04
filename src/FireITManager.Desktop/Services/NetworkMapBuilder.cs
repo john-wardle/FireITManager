@@ -1,4 +1,5 @@
 using FireITManager.Desktop.Models;
+using System.Globalization;
 using System.Windows.Media;
 
 namespace FireITManager.Desktop.Services;
@@ -13,6 +14,10 @@ internal sealed class NetworkMapBuilder
 
     private const double NodeWidth = 178;
     private const double NodeHeight = 76;
+    private const double CampNodeWidth = 210;
+    private const double CampNodeHeight = 88;
+    private const double BuildingNodeWidth = 166;
+    private const double BuildingNodeHeight = 70;
     private const double ColumnSpacing = 226;
     private const double RowSpacing = 144;
     private const double LeftPadding = 32;
@@ -45,6 +50,7 @@ internal sealed class NetworkMapBuilder
 
     public NetworkMapBuildResult Build(
         IReadOnlyCollection<EntityListItem> camps,
+        IReadOnlyCollection<EntityListItem> locations,
         IReadOnlyCollection<EntityListItem> devices,
         IReadOnlyCollection<EntityListItem> networks,
         IReadOnlyCollection<EntityListItem> links,
@@ -59,10 +65,12 @@ internal sealed class NetworkMapBuilder
         var networkById = networks.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
         var campById = camps.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
         var deviceById = devices.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
+        var locationById = BuildLocationLookup(locations, devices, links, networkById, campById);
+        var resolvedLocations = locationById.Values.ToList();
         var selectedNetworkId = ResolveFilterId(networks, networkFilter, AllNetworksFilter);
         var selectedCampId = ResolveFilterId(camps, campFilter, AllCampsFilter);
 
-        if (camps.Count == 0 && devices.Count == 0 && networks.Count == 0 && links.Count == 0)
+        if (camps.Count == 0 && locationById.Count == 0 && devices.Count == 0 && networks.Count == 0 && links.Count == 0)
         {
             allNodes["map-empty"] = new NodeDraft(
                 "map-empty",
@@ -80,11 +88,12 @@ internal sealed class NetworkMapBuilder
                 "no incident network data unknown");
         }
 
-        AddCampNodes(camps, networks, devices, links, allNodes, networkById);
+        AddCampNodes(camps, resolvedLocations, networks, devices, links, allNodes, networkById, locationById);
+        AddBuildingNodes(resolvedLocations, allNodes, campById);
         AddNetworkNodes(networks, allNodes, campById);
-        AddDeviceNodes(devices, allNodes, campById);
+        AddDeviceNodes(devices, allNodes, campById, locationById);
 
-        var mapLinks = BuildLinks(links, allNodes, networkById, campById, deviceById);
+        var mapLinks = BuildLinks(links, allNodes, networkById, campById, deviceById, locationById);
         PositionEndpointNodes(allNodes.Values.Where(node => node.ObjectType == "Endpoint").ToList());
 
         var nodes = allNodes.Values
@@ -159,11 +168,13 @@ internal sealed class NetworkMapBuilder
 
     private static void AddCampNodes(
         IReadOnlyCollection<EntityListItem> camps,
+        IReadOnlyCollection<EntityListItem> locations,
         IReadOnlyCollection<EntityListItem> networks,
         IReadOnlyCollection<EntityListItem> devices,
         IReadOnlyCollection<EntityListItem> links,
         Dictionary<string, NodeDraft> nodes,
-        IReadOnlyDictionary<string, EntityListItem> networkById)
+        IReadOnlyDictionary<string, EntityListItem> networkById,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
     {
         var ordered = camps
             .OrderBy(item => item.Title, StringComparer.OrdinalIgnoreCase)
@@ -175,11 +186,14 @@ internal sealed class NetworkMapBuilder
             var childStatuses = networks
                 .Where(network => string.Equals(network.CampId, camp.Id, StringComparison.OrdinalIgnoreCase))
                 .Select(network => network.Status)
+                .Concat(locations
+                    .Where(location => string.Equals(location.CampId, camp.Id, StringComparison.OrdinalIgnoreCase))
+                    .Select(location => location.Status))
                 .Concat(devices
-                    .Where(device => string.Equals(device.LocationId, camp.Id, StringComparison.OrdinalIgnoreCase))
+                    .Where(device => DeviceBelongsToCamp(device, camp.Id, locationById))
                     .Select(device => device.Status))
                 .Concat(links
-                    .Where(link => LinkCampId(link, networkById) == camp.Id)
+                    .Where(link => LinkCampId(link, networkById, locationById) == camp.Id)
                     .Select(link => link.Status));
 
             var status = PickHighestPriorityStatus(new[] { camp.Status }.Concat(childStatuses));
@@ -198,7 +212,48 @@ internal sealed class NetworkMapBuilder
                 camp.Id,
                 null,
                 "",
-                BuildSearchText(camp, detail));
+                BuildSearchText(camp, detail),
+                CampNodeWidth,
+                CampNodeHeight);
+        }
+    }
+
+    private static void AddBuildingNodes(
+        IReadOnlyCollection<EntityListItem> locations,
+        Dictionary<string, NodeDraft> nodes,
+        IReadOnlyDictionary<string, EntityListItem> campById)
+    {
+        var ordered = locations
+            .OrderBy(item => ResolveCampTitle(item.CampId, campById), StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        for (var index = 0; index < ordered.Count; index++)
+        {
+            var location = ordered[index];
+            var campName = ResolveCampTitle(location.CampId, campById);
+            var detail = JoinNonBlank(location.LocationType, campName, location.Detail, location.Notes);
+            var x = location.MapX ?? LeftPadding + (index * ColumnSpacing);
+            var y = location.MapY ?? TopPadding + RowSpacing;
+            var width = Math.Max(120, location.MapWidth ?? BuildingNodeWidth);
+            var height = Math.Max(58, location.MapHeight ?? BuildingNodeHeight);
+
+            nodes[location.Id] = new NodeDraft(
+                location.Id,
+                location.Title,
+                "Building",
+                location.Status,
+                x,
+                y,
+                detail,
+                location.UpdatedAtUtc,
+                location.ManualOverride,
+                location.CampId,
+                null,
+                "",
+                BuildSearchText(location, detail, campName),
+                width,
+                height);
         }
     }
 
@@ -226,7 +281,7 @@ internal sealed class NetworkMapBuilder
                 objectType,
                 NormalizeStatus(network.Status),
                 LeftPadding + (index * ColumnSpacing),
-                TopPadding + RowSpacing,
+                TopPadding + (RowSpacing * 2),
                 detail,
                 network.UpdatedAtUtc,
                 network.ManualOverride,
@@ -240,7 +295,8 @@ internal sealed class NetworkMapBuilder
     private static void AddDeviceNodes(
         IReadOnlyCollection<EntityListItem> devices,
         Dictionary<string, NodeDraft> nodes,
-        IReadOnlyDictionary<string, EntityListItem> campById)
+        IReadOnlyDictionary<string, EntityListItem> campById,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
     {
         var ordered = devices
             .OrderBy(item => item.Title, StringComparer.OrdinalIgnoreCase)
@@ -249,13 +305,20 @@ internal sealed class NetworkMapBuilder
         for (var index = 0; index < ordered.Count; index++)
         {
             var device = ordered[index];
-            var campId = device.LocationId is not null && campById.ContainsKey(device.LocationId)
-                ? device.LocationId
+            var location = device.LocationId is not null && locationById.TryGetValue(device.LocationId, out var matchedLocation)
+                ? matchedLocation
                 : null;
+            var campId = location?.CampId;
+            if (campId is null && device.LocationId is not null && campById.ContainsKey(device.LocationId))
+            {
+                campId = device.LocationId;
+            }
+
             var campName = campId is not null && campById.TryGetValue(campId, out var camp)
                 ? camp.Title
                 : "";
-            var detail = JoinNonBlank(device.DeviceType, campName, device.Detail, device.Notes);
+            var locationName = location?.Title ?? "";
+            var detail = JoinNonBlank(device.DeviceType, campName, locationName, device.Detail, device.Notes);
 
             nodes[device.Id] = new NodeDraft(
                 device.Id,
@@ -263,15 +326,30 @@ internal sealed class NetworkMapBuilder
                 "Device",
                 NormalizeStatus(device.Status),
                 LeftPadding + (index * ColumnSpacing),
-                TopPadding + (RowSpacing * 2),
+                TopPadding + (RowSpacing * 3),
                 detail,
                 device.UpdatedAtUtc,
                 device.ManualOverride,
                 campId,
                 null,
                 device.DeviceType,
-                BuildSearchText(device, detail, campName));
+                BuildSearchText(device, detail, campName, locationName));
         }
+    }
+
+    private static bool DeviceBelongsToCamp(
+        EntityListItem device,
+        string campId,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
+    {
+        if (string.Equals(device.LocationId, campId, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return device.LocationId is not null &&
+            locationById.TryGetValue(device.LocationId, out var location) &&
+            string.Equals(location.CampId, campId, StringComparison.OrdinalIgnoreCase);
     }
 
     private static List<NetworkMapLink> BuildLinks(
@@ -279,7 +357,8 @@ internal sealed class NetworkMapBuilder
         Dictionary<string, NodeDraft> nodes,
         IReadOnlyDictionary<string, EntityListItem> networkById,
         IReadOnlyDictionary<string, EntityListItem> campById,
-        IReadOnlyDictionary<string, EntityListItem> deviceById)
+        IReadOnlyDictionary<string, EntityListItem> deviceById,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
     {
         var mapLinks = new List<NetworkMapLink>();
         var ordered = links
@@ -293,13 +372,15 @@ internal sealed class NetworkMapBuilder
                 isSource: true,
                 nodes,
                 campById,
-                deviceById);
+                deviceById,
+                locationById);
             var targetNode = ResolveEndpoint(
                 link,
                 isSource: false,
                 nodes,
                 campById,
-                deviceById);
+                deviceById,
+                locationById);
 
             if (sourceNode.Id == targetNode.Id && link.NetworkId is not null && nodes.TryGetValue(link.NetworkId, out var networkNode))
             {
@@ -311,7 +392,7 @@ internal sealed class NetworkMapBuilder
             var networkName = link.NetworkId is not null && networkById.TryGetValue(link.NetworkId, out var network)
                 ? network.Title
                 : "";
-            var campId = LinkCampId(link, networkById);
+            var campId = LinkCampId(link, networkById, locationById);
             var detail = JoinNonBlank(
                 link.Label,
                 link.LinkCategory,
@@ -362,7 +443,8 @@ internal sealed class NetworkMapBuilder
         bool isSource,
         Dictionary<string, NodeDraft> nodes,
         IReadOnlyDictionary<string, EntityListItem> campById,
-        IReadOnlyDictionary<string, EntityListItem> deviceById)
+        IReadOnlyDictionary<string, EntityListItem> deviceById,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
     {
         var deviceId = isSource ? link.SourceDeviceId : link.DestinationDeviceId;
         if (deviceId is not null && nodes.TryGetValue(deviceId, out var deviceNode))
@@ -403,7 +485,9 @@ internal sealed class NetworkMapBuilder
 
         var campId = locationId is not null && campById.ContainsKey(locationId)
             ? locationId
-            : null;
+            : locationId is not null && locationById.TryGetValue(locationId, out var location)
+                ? location.CampId
+                : null;
         var deviceType = deviceId is not null && deviceById.TryGetValue(deviceId, out var device)
             ? device.DeviceType
             : "";
@@ -414,7 +498,7 @@ internal sealed class NetworkMapBuilder
             "Endpoint",
             NormalizeStatus(link.Status),
             LeftPadding,
-            TopPadding + (RowSpacing * 3),
+            TopPadding + (RowSpacing * 4),
             JoinNonBlank(link.LinkCategory, link.LinkType, link.Detail, link.Notes),
             link.UpdatedAtUtc,
             link.ManualOverride,
@@ -432,7 +516,7 @@ internal sealed class NetworkMapBuilder
         for (var index = 0; index < endpoints.Count; index++)
         {
             endpoints[index].X = LeftPadding + (index * ColumnSpacing);
-            endpoints[index].Y = TopPadding + (RowSpacing * 3);
+            endpoints[index].Y = TopPadding + (RowSpacing * 4);
         }
     }
 
@@ -576,9 +660,116 @@ internal sealed class NetworkMapBuilder
         return items.FirstOrDefault(item => string.Equals(item.Title, filter, StringComparison.OrdinalIgnoreCase))?.Id;
     }
 
+    private static IReadOnlyDictionary<string, EntityListItem> BuildLocationLookup(
+        IReadOnlyCollection<EntityListItem> locations,
+        IReadOnlyCollection<EntityListItem> devices,
+        IReadOnlyCollection<EntityListItem> links,
+        IReadOnlyDictionary<string, EntityListItem> networkById,
+        IReadOnlyDictionary<string, EntityListItem> campById)
+    {
+        var result = new Dictionary<string, EntityListItem>(StringComparer.OrdinalIgnoreCase);
+        foreach (var location in locations.Where(item => !string.IsNullOrWhiteSpace(item.Id)))
+        {
+            result[location.Id] = location;
+        }
+
+        var singleCampId = campById.Count == 1
+            ? campById.Values.First().Id
+            : null;
+        var hints = new Dictionary<string, LocationHint>(StringComparer.OrdinalIgnoreCase);
+        LocationHint GetHint(string locationId)
+        {
+            if (!hints.TryGetValue(locationId, out var hint))
+            {
+                hint = new LocationHint(locationId);
+                hints[locationId] = hint;
+            }
+
+            return hint;
+        }
+
+        foreach (var device in devices)
+        {
+            var locationId = Clean(device.LocationId);
+            if (string.IsNullOrWhiteSpace(locationId) || campById.ContainsKey(locationId) || result.ContainsKey(locationId))
+            {
+                continue;
+            }
+
+            var hint = GetHint(locationId);
+            hint.CampId ??= singleCampId;
+            hint.DeviceCount++;
+            hint.AddTitle(device.LocationId);
+            hint.AddTitle(device.Detail);
+            hint.Statuses.Add(device.Status);
+            hint.UpdatedAtUtc = Latest(hint.UpdatedAtUtc, device.UpdatedAtUtc);
+        }
+
+        foreach (var link in links)
+        {
+            var campId = link.NetworkId is not null &&
+                networkById.TryGetValue(link.NetworkId, out var network) &&
+                !string.IsNullOrWhiteSpace(network.CampId)
+                    ? network.CampId
+                    : null;
+
+            AddEndpointHint(link.SourceLocationId, link.SourceRef, link.Status, link.UpdatedAtUtc, campId);
+            AddEndpointHint(link.DestinationLocationId, link.DestinationRef, link.Status, link.UpdatedAtUtc, campId);
+        }
+
+        foreach (var hint in hints.Values)
+        {
+            var title = hint.Titles.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ??
+                $"Location {ShortId(hint.Id)}";
+            var status = PickHighestPriorityStatus(hint.Statuses);
+            var detail = JoinNonBlank(
+                "Inferred building/location",
+                hint.DeviceCount > 0 ? $"{hint.DeviceCount} assigned devices" : "",
+                hint.LinkCount > 0 ? $"{hint.LinkCount} endpoint links" : "",
+                "No authoritative location record has been synced yet.");
+
+            result[hint.Id] = new EntityListItem(
+                Id: hint.Id,
+                Title: title,
+                Status: status,
+                Version: 0,
+                Detail: detail,
+                UpdatedAtUtc: hint.UpdatedAtUtc,
+                Kind: "location",
+                CampId: hint.CampId,
+                LocationType: "building",
+                Notes: "Inferred from existing device or link location references.",
+                SearchText: JoinNonBlank(hint.Id, title, status, detail, string.Join(" ", hint.Titles)));
+        }
+
+        return result;
+
+        void AddEndpointHint(
+            string? locationIdValue,
+            string titleValue,
+            string status,
+            DateTimeOffset? updatedAtUtc,
+            string? campId)
+        {
+            var locationId = Clean(locationIdValue);
+            if (string.IsNullOrWhiteSpace(locationId) || campById.ContainsKey(locationId) || result.ContainsKey(locationId))
+            {
+                return;
+            }
+
+            var hint = GetHint(locationId);
+            hint.CampId ??= campId ?? singleCampId;
+            hint.LinkCount++;
+            hint.AddTitle(titleValue);
+            hint.Statuses.Add(status);
+            hint.UpdatedAtUtc = Latest(hint.UpdatedAtUtc, updatedAtUtc);
+        }
+    }
+
     private static string? LinkCampId(
         EntityListItem link,
-        IReadOnlyDictionary<string, EntityListItem> networkById)
+        IReadOnlyDictionary<string, EntityListItem> networkById,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
     {
         if (link.NetworkId is not null &&
             networkById.TryGetValue(link.NetworkId, out var network) &&
@@ -589,15 +780,26 @@ internal sealed class NetworkMapBuilder
 
         if (!string.IsNullOrWhiteSpace(link.SourceLocationId))
         {
-            return link.SourceLocationId;
+            return ResolveLocationCampId(link.SourceLocationId, locationById) ?? link.SourceLocationId;
         }
 
         if (!string.IsNullOrWhiteSpace(link.DestinationLocationId))
         {
-            return link.DestinationLocationId;
+            return ResolveLocationCampId(link.DestinationLocationId, locationById) ?? link.DestinationLocationId;
         }
 
         return null;
+    }
+
+    private static string? ResolveLocationCampId(
+        string? locationId,
+        IReadOnlyDictionary<string, EntityListItem> locationById)
+    {
+        return !string.IsNullOrWhiteSpace(locationId) &&
+            locationById.TryGetValue(locationId, out var location) &&
+            !string.IsNullOrWhiteSpace(location.CampId)
+                ? location.CampId
+                : null;
     }
 
     private static string DetermineNetworkObjectType(string networkType, string title)
@@ -716,11 +918,17 @@ internal sealed class NetworkMapBuilder
                 item.NetworkType,
                 item.DeviceType,
                 item.CampType,
+                item.ParentLocationId,
+                item.LocationType,
                 item.Label,
                 item.Length,
                 item.Path,
                 item.Notes,
-                item.SearchText
+                item.SearchText,
+                item.MapX?.ToString(CultureInfo.InvariantCulture),
+                item.MapY?.ToString(CultureInfo.InvariantCulture),
+                item.MapWidth?.ToString(CultureInfo.InvariantCulture),
+                item.MapHeight?.ToString(CultureInfo.InvariantCulture)
             }
             .Concat(extras)
             .Where(value => !string.IsNullOrWhiteSpace(value)));
@@ -729,6 +937,35 @@ internal sealed class NetworkMapBuilder
         string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
 
     private static string Clean(string? value) => value?.Trim() ?? "";
+
+    private static DateTimeOffset? Latest(DateTimeOffset? first, DateTimeOffset? second)
+    {
+        if (first is null)
+        {
+            return second;
+        }
+
+        if (second is null)
+        {
+            return first;
+        }
+
+        return first > second ? first : second;
+    }
+
+    private static string ResolveCampTitle(
+        string? campId,
+        IReadOnlyDictionary<string, EntityListItem> campById)
+    {
+        return !string.IsNullOrWhiteSpace(campId) && campById.TryGetValue(campId, out var camp)
+            ? camp.Title
+            : "";
+    }
+
+    private static string ShortId(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? "unknown"
+            : value.Trim()[..Math.Min(8, value.Trim().Length)];
 
     private static Brush BuildBrush(string hex)
     {
@@ -747,6 +984,35 @@ internal sealed class NetworkMapBuilder
         public Brush Brush { get; } = BuildBrush(Color);
     }
 
+    private sealed class LocationHint(string id)
+    {
+        public string Id { get; } = id;
+
+        public string? CampId { get; set; }
+
+        public List<string> Titles { get; } = [];
+
+        public List<string> Statuses { get; } = [];
+
+        public DateTimeOffset? UpdatedAtUtc { get; set; }
+
+        public int DeviceCount { get; set; }
+
+        public int LinkCount { get; set; }
+
+        public void AddTitle(string? title)
+        {
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                var cleaned = title.Trim();
+                if (!Titles.Any(value => string.Equals(value, cleaned, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Titles.Add(cleaned);
+                }
+            }
+        }
+    }
+
     private sealed class NodeDraft(
         string id,
         string title,
@@ -760,7 +1026,9 @@ internal sealed class NetworkMapBuilder
         string? campId,
         string? networkId,
         string deviceType,
-        string searchText)
+        string searchText,
+        double width = NodeWidth,
+        double height = NodeHeight)
     {
         public string Id { get; } = id;
 
@@ -774,9 +1042,9 @@ internal sealed class NetworkMapBuilder
 
         public double Y { get; set; } = y;
 
-        public double Width { get; } = NodeWidth;
+        public double Width { get; } = width;
 
-        public double Height { get; } = NodeHeight;
+        public double Height { get; } = height;
 
         public string Detail { get; } = detail;
 
