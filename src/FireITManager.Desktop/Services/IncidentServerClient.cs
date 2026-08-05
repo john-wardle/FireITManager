@@ -155,7 +155,21 @@ internal sealed class IncidentServerClient
         var length = ReadString(item, "length");
         var path = ReadString(item, "path");
         var notes = ReadString(item, "notes");
+        var primaryIpAssignmentId = ReadString(item, "primaryIpAssignmentId");
+        var contactPersonId = Prefer(
+            ReadString(item, "itContactPersonId"),
+            ReadString(item, "contactPersonId"),
+            ReadString(item, "assignedPersonId"),
+            ReadString(item, "personId"),
+            ReadString(item, "assigneePersonId"));
+        var assignedTo = Prefer(
+            ReadString(item, "assignedTo"),
+            ReadString(item, "assignedUser"),
+            ReadString(item, "assignee"),
+            ReadString(item, "owner"),
+            contactPersonId);
         var macAddresses = ReadStringList(item, "macAddresses");
+        var macAddressesText = string.Join(" ", macAddresses);
         var title = kind switch
         {
             "camp" => ReadString(item, "name"),
@@ -175,9 +189,10 @@ internal sealed class IncidentServerClient
                 ReadString(item, "manufacturer"),
                 ReadString(item, "model"),
                 ReadString(item, "serialNumber"),
-                ReadOptionalString(item, "primaryIpAssignmentId") ?? "",
+                primaryIpAssignmentId,
                 string.Join(", ", macAddresses),
                 ReadOptionalString(item, "assetId") ?? "",
+                assignedTo,
                 notes),
             "network" => JoinNonBlank(networkType, ReadString(item, "description")),
             "link" => JoinNonBlank(label, linkCategory, linkType, sourceRef, destinationRef, length, path, notes),
@@ -199,12 +214,16 @@ internal sealed class IncidentServerClient
             deviceType,
             campType,
             locationType,
+            primaryIpAssignmentId,
+            macAddressesText,
+            contactPersonId,
+            assignedTo,
             label,
             length,
             path,
             accessNotes,
             notes,
-            string.Join(" ", macAddresses));
+            macAddressesText);
 
         return new EntityListItem(
             Id: id,
@@ -235,6 +254,10 @@ internal sealed class IncidentServerClient
             Notes: notes,
             SearchText: searchText,
             ManualOverride: ReadBool(item, "manualOverride") || ReadBool(item, "isManualOverride"),
+            PrimaryIpAssignmentId: primaryIpAssignmentId,
+            MacAddressesText: macAddressesText,
+            ContactPersonId: contactPersonId,
+            AssignedTo: assignedTo,
             ParentLocationId: ReadOptionalString(item, "parentLocationId"),
             LocationType: locationType,
             MapX: ReadOptionalDouble(item, "mapX"),

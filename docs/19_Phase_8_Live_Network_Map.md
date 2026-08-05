@@ -50,10 +50,11 @@ The WPF client now includes a `Map` workspace before the raw `Network` workspace
 - Shows hover details for nodes and links.
 - Lets users click nodes on the map and links in the link table to inspect details.
 - Shows last-seen time from the record update timestamp.
-- Reserves a manual override indicator in the map model for the future link-state history schema.
+- Shows an `OVR` badge on manually overridden nodes and link labels/rows.
 - Shows audit-backed history for selected links and objects when matching audit events exist.
 - Filters by status, object type, network, camp, and device type.
-- Searches across ID, device name, hostname/title, network/link text, source/destination refs, MAC addresses, and notes.
+- Searches across ID, device name, hostname/title, primary IP assignment ID, MAC addresses, person/contact/assignee identifiers, network/link text, source/destination refs, locations, and notes.
+- Keeps connected links visible when a search term matches a node, so a device/IP/MAC/person hit still shows its immediate topology context.
 - Rebuilds automatically after SignalR incident-change refreshes, so status changes appear for connected desktop users.
 
 ## Building / Location Data Source
@@ -61,6 +62,12 @@ The WPF client now includes a `Map` workspace before the raw `Network` workspace
 Migration `010_location_store` adds a camp-scoped `locations` table for physical places that need to appear on the incident map. The server exposes these records through `GET /api/locations`, and the desktop client loads and caches them with the rest of the incident data.
 
 The first map renderer supports optional `map_x`, `map_y`, `map_width`, and `map_height` fields. When map coordinates are absent, Building/Location nodes are laid out in a stable row between camp nodes and network nodes. If no authoritative location row exists yet, the desktop map creates an inferred Building node from device `location_id` values or link endpoint location IDs so existing field data still has a visible place on the map.
+
+## Manual Override Indicator
+
+Migration `011_manual_override_flags` adds a `manual_override` flag to camps, devices, networks, and links. User-driven status updates mark that flag by default, while future automated telemetry can explicitly clear it by sending `manualOverride: false`.
+
+The desktop map reads this flag from the existing list APIs and shows a compact `OVR` badge on affected map nodes, link labels, and link table rows. Selected-object details and history continue to include the manual status text for audit review.
 
 ## Telemetry Source Evaluation
 

@@ -52,6 +52,10 @@ internal sealed record EntityListItem(
     string Notes = "",
     string SearchText = "",
     bool ManualOverride = false,
+    string PrimaryIpAssignmentId = "",
+    string MacAddressesText = "",
+    string ContactPersonId = "",
+    string AssignedTo = "",
     string? ParentLocationId = null,
     string LocationType = "",
     double? MapX = null,
@@ -98,6 +102,8 @@ internal sealed record NetworkMapNode(
 {
     public string StatusLabel => ManualOverride ? $"{Status} manual" : Status;
 
+    public string ManualOverrideBadge => ManualOverride ? "OVR" : "";
+
     public string LastSeenText => LastSeenAtUtc is null
         ? "No status timestamp"
         : $"Last seen {LastSeenAtUtc.Value.LocalDateTime:g}";
@@ -132,6 +138,8 @@ internal sealed record NetworkMapLink(
     string SearchText)
 {
     public string StatusLabel => ManualOverride ? $"{Status} manual" : Status;
+
+    public string ManualOverrideBadge => ManualOverride ? "OVR" : "";
 
     public string LastSeenText => LastSeenAtUtc is null
         ? "No status timestamp"

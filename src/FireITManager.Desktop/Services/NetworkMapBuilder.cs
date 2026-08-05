@@ -104,6 +104,7 @@ internal sealed class NetworkMapBuilder
             .Select(link => RepositionLink(link, nodes))
             .ToList();
 
+        var searchHasText = !string.IsNullOrWhiteSpace(searchText);
         var matchingLinks = mapLinks
             .Where(link => MatchesLink(link, searchText, statusFilter, typeFilter, selectedNetworkId, selectedCampId))
             .ToList();
@@ -119,6 +120,21 @@ internal sealed class NetworkMapBuilder
                 deviceTypeFilter))
             .Select(node => node.Id)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (searchHasText)
+        {
+            var connectedMatchingLinks = mapLinks
+                .Where(link =>
+                    (visibleNodeIds.Contains(link.SourceNodeId) || visibleNodeIds.Contains(link.TargetNodeId)) &&
+                    MatchesLink(link, "", statusFilter, typeFilter, selectedNetworkId, selectedCampId))
+                .ToList();
+
+            matchingLinks = matchingLinks
+                .Concat(connectedMatchingLinks)
+                .GroupBy(link => link.Id, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First())
+                .ToList();
+        }
 
         foreach (var link in matchingLinks)
         {
@@ -918,6 +934,10 @@ internal sealed class NetworkMapBuilder
                 item.NetworkType,
                 item.DeviceType,
                 item.CampType,
+                item.PrimaryIpAssignmentId,
+                item.MacAddressesText,
+                item.ContactPersonId,
+                item.AssignedTo,
                 item.ParentLocationId,
                 item.LocationType,
                 item.Label,

@@ -591,6 +591,21 @@ internal sealed class IncidentDatabase
             CREATE INDEX IF NOT EXISTS idx_locations_status
                 ON locations(status, record_state);
             """),
+        new(
+            "011_manual_override_flags",
+            """
+            ALTER TABLE camps
+                ADD COLUMN manual_override INTEGER NOT NULL DEFAULT 0;
+
+            ALTER TABLE devices
+                ADD COLUMN manual_override INTEGER NOT NULL DEFAULT 0;
+
+            ALTER TABLE networks
+                ADD COLUMN manual_override INTEGER NOT NULL DEFAULT 0;
+
+            ALTER TABLE links
+                ADD COLUMN manual_override INTEGER NOT NULL DEFAULT 0;
+            """),
     ];
 
     private readonly string _connectionString;
@@ -948,7 +963,8 @@ internal sealed class IncidentDatabase
                 record_state,
                 created_at_utc,
                 updated_at_utc,
-                version
+                version,
+                manual_override
             FROM camps
             ORDER BY name COLLATE NOCASE ASC, created_at_utc ASC;
             """;
@@ -973,7 +989,8 @@ internal sealed class IncidentDatabase
                 RecordState: reader.GetString(12),
                 CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 13),
                 UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 14),
-                Version: reader.GetInt32(15)));
+                Version: reader.GetInt32(15),
+                ManualOverride: ReadBoolean(reader, 16)));
         }
 
         return camps;
@@ -1003,7 +1020,8 @@ internal sealed class IncidentDatabase
                 notes,
                 created_at_utc,
                 updated_at_utc,
-                version
+                version,
+                manual_override
             FROM devices
             ORDER BY hostname COLLATE NOCASE ASC, created_at_utc ASC;
             """;
@@ -1028,7 +1046,8 @@ internal sealed class IncidentDatabase
                 Notes: reader.GetString(12),
                 CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 13),
                 UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 14),
-                Version: reader.GetInt32(15)));
+                Version: reader.GetInt32(15),
+                ManualOverride: ReadBoolean(reader, 16)));
         }
 
         return devices;
@@ -1119,7 +1138,8 @@ internal sealed class IncidentDatabase
                 description,
                 created_at_utc,
                 updated_at_utc,
-                version
+                version,
+                manual_override
             FROM networks
             ORDER BY name COLLATE NOCASE ASC, created_at_utc ASC;
             """;
@@ -1138,7 +1158,8 @@ internal sealed class IncidentDatabase
                 Description: reader.GetString(6),
                 CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 7),
                 UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 8),
-                Version: reader.GetInt32(9)));
+                Version: reader.GetInt32(9),
+                ManualOverride: ReadBoolean(reader, 10)));
         }
 
         return networks;
@@ -1171,7 +1192,8 @@ internal sealed class IncidentDatabase
                 notes,
                 created_at_utc,
                 updated_at_utc,
-                version
+                version,
+                manual_override
             FROM links
             ORDER BY link_category ASC, label COLLATE NOCASE ASC, created_at_utc ASC;
             """;
@@ -1199,7 +1221,8 @@ internal sealed class IncidentDatabase
                 Notes: reader.GetString(15),
                 CreatedAtUtc: ReadRequiredDateTimeOffset(reader, 16),
                 UpdatedAtUtc: ReadRequiredDateTimeOffset(reader, 17),
-                Version: reader.GetInt32(18)));
+                Version: reader.GetInt32(18),
+                ManualOverride: ReadBoolean(reader, 19)));
         }
 
         return links;
@@ -1514,6 +1537,7 @@ internal sealed class IncidentDatabase
             id,
             request.Status,
             request.ExpectedVersion,
+            request.ManualOverride ?? true,
             actorId,
             cancellationToken);
 
@@ -1528,6 +1552,7 @@ internal sealed class IncidentDatabase
             id,
             request.Status,
             request.ExpectedVersion,
+            request.ManualOverride ?? true,
             actorId,
             cancellationToken);
 
@@ -1542,6 +1567,7 @@ internal sealed class IncidentDatabase
             id,
             request.Status,
             request.ExpectedVersion,
+            request.ManualOverride ?? true,
             actorId,
             cancellationToken);
 
@@ -1556,6 +1582,7 @@ internal sealed class IncidentDatabase
             id,
             request.Status,
             request.ExpectedVersion,
+            request.ManualOverride ?? true,
             actorId,
             cancellationToken);
 
@@ -1640,6 +1667,7 @@ internal sealed class IncidentDatabase
         string id,
         string status,
         int? expectedVersion,
+        bool manualOverride,
         string actorId,
         CancellationToken cancellationToken)
     {
@@ -1673,12 +1701,14 @@ internal sealed class IncidentDatabase
                 UPDATE {tableName}
                 SET
                     status = $status,
+                    manual_override = $manualOverride,
                     updated_at_utc = $updatedAtUtc,
                     version = version + 1
                 WHERE id = $id;
                 """;
             command.Parameters.AddWithValue("$id", id);
             command.Parameters.AddWithValue("$status", status.Trim());
+            command.Parameters.AddWithValue("$manualOverride", manualOverride ? 1 : 0);
             command.Parameters.AddWithValue("$updatedAtUtc", now.ToString("O"));
 
             await command.ExecuteNonQueryAsync(cancellationToken);
@@ -2076,6 +2106,16 @@ internal sealed class IncidentDatabase
             : reader.GetInt32(ordinal);
     }
 
+    private static bool ReadBoolean(SqliteDataReader reader, int ordinal)
+    {
+        if (reader.IsDBNull(ordinal))
+        {
+            return false;
+        }
+
+        return reader.GetInt32(ordinal) != 0;
+    }
+
     private static IReadOnlyList<string> ReadStringListJson(SqliteDataReader reader, int ordinal)
     {
         var json = reader.GetString(ordinal);
@@ -2157,7 +2197,8 @@ internal sealed record IncidentSummaryRequest(
 
 internal sealed record EntityStatusUpdateRequest(
     string Status,
-    int? ExpectedVersion);
+    int? ExpectedVersion,
+    bool? ManualOverride = null);
 
 internal sealed record ChecklistCompletionRequest(
     string Status,
@@ -2233,7 +2274,8 @@ internal sealed record CampSummary(
     string RecordState,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    int Version);
+    int Version,
+    bool ManualOverride);
 
 internal sealed record DeviceSummary(
     string Id,
@@ -2251,7 +2293,8 @@ internal sealed record DeviceSummary(
     string Notes,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    int Version);
+    int Version,
+    bool ManualOverride);
 
 internal sealed record LocationSummary(
     string Id,
@@ -2287,7 +2330,8 @@ internal sealed record NetworkSummary(
     string Description,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    int Version);
+    int Version,
+    bool ManualOverride);
 
 internal sealed record LinkSummary(
     string Id,
@@ -2308,7 +2352,8 @@ internal sealed record LinkSummary(
     string Notes,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    int Version);
+    int Version,
+    bool ManualOverride);
 
 internal sealed record ChecklistTemplateSummary(
     string Id,
